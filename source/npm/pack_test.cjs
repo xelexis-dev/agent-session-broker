@@ -63,11 +63,11 @@ test("packs one package with the launcher and all four clients", (t) => {
   assert.deepEqual(manifest.bin, { "x-broker": "bin/x-broker.js" });
   assert.deepEqual(manifest.engines, { node: ">=22" });
   for (const key of ["optionalDependencies", "dependencies", "os", "cpu", "scripts"]) assert.equal(manifest[key], undefined, key);
-  // Public links go to the public deploy repository; the private source repository must not appear.
-  assert.deepEqual(manifest.repository, { type: "git", url: "git+https://github.com/xelexis-dev/agent-session-broker-deploy.git" });
-  assert.equal(manifest.homepage, "https://github.com/xelexis-dev/agent-session-broker-deploy#readme");
-  assert.deepEqual(manifest.bugs, { url: "https://github.com/xelexis-dev/agent-session-broker-deploy#readme" });
-  assert.doesNotMatch(execFileSync("tar", ["-xOzf", tgz, "package/package.json"], { encoding: "utf8" }), /xelexis-dev\/agent-session-broker(?!-deploy)/);
+  // Public links go to the publishing repository (P4: the public source repository from 1.0.3); npm requires an exact match.
+  assert.deepEqual(manifest.repository, { type: "git", url: "git+https://github.com/xelexis-dev/agent-session-broker.git" });
+  assert.equal(manifest.homepage, "https://github.com/xelexis-dev/agent-session-broker#readme");
+  assert.deepEqual(manifest.bugs, { url: "https://github.com/xelexis-dev/agent-session-broker#readme" });
+  assert.doesNotMatch(execFileSync("tar", ["-xOzf", tgz, "package/package.json"], { encoding: "utf8" }), /agent-session-broker-deploy/);
   assert.equal(manifest.license, "SEE LICENSE IN LICENSE");
   for (const name of ["THIRD_PARTY_NOTICES", "LICENSE"]) {
     assert.equal(execFileSync("tar", ["-xOzf", tgz, `package/${name}`], { encoding: "utf8" }), fs.readFileSync(path.resolve(__dirname, "../..", name), "utf8"));
@@ -169,6 +169,15 @@ test("private origin references are counted in text and bytes; public repositori
   assert.equal(privateReferences("HTTPS://GITHUB.COM/Xelexis-Dev/Agent-Session-Broker/issues"), 0);
   assert.equal(privateReferences(Buffer.from("\0github.com/xelexis-dev/agent-session-broker/source\0github.com/xelexis-dev/agent-session-broker\0", "latin1")), 0);
   assert.equal(privateReferences("git+https://github.com/xelexis-dev/agent-session-broker-deploy.git https://github.com/xelexis-dev/agent-session-broker-deploy#readme"), 0);
+});
+
+test("package links follow the fixed per-version publishing repository (P4 from 1.0.3)", () => {
+  const { publicLinks } = require("./pack.cjs");
+  for (const [version, repo] of [["0.0.0", "agent-session-broker-deploy"], ["1.0.2", "agent-session-broker-deploy"],
+    ["1.0.3", "agent-session-broker"], ["1.1.0", "agent-session-broker"], ["2.0.0", "agent-session-broker"]]) {
+    assert.deepEqual(publicLinks(version), { repository: { type: "git", url: `git+https://github.com/xelexis-dev/${repo}.git` },
+      homepage: `https://github.com/xelexis-dev/${repo}#readme`, bugs: { url: `https://github.com/xelexis-dev/${repo}#readme` } }, version);
+  }
 });
 
 // CI runners may use a strict umask; packing must not depend on it.

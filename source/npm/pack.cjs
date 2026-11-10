@@ -19,14 +19,18 @@ const platforms = {
   "linux-x64": { asset: "linux-amd64", binary: "asb-client" },
   "win32-x64": { asset: "windows-amd64.exe", binary: "asb-client.exe" },
 };
-// Public package links point to the public deploy repository. npm trusted
-// publishing matches repository.url against the publishing workflow's
-// repository, so these packages may only be published from a deploy
-// repository workflow, not from this repository's workflows.
-const deploy = "https://github.com/xelexis-dev/agent-session-broker-deploy";
-const repository = { type: "git", url: `git+${deploy}.git` };
-const homepage = `${deploy}#readme`;
-const bugs = { url: `${deploy}#readme` };
+// Public package links point to the publishing repository. npm trusted publishing requires repository.url
+// to match the workflow's repository exactly. Same fixed per-version rule as scripts/release_repo.py:
+// the public source repository from 1.0.3 (P4), the deploy repository before (including 0.0.0 test builds).
+function publisherFor(version) {
+  const [major, minor, patch] = version.split(/[.-]/).slice(0, 3).map(Number);
+  const moved = major > 1 || (major === 1 && (minor > 0 || patch >= 3));
+  return `https://github.com/xelexis-dev/agent-session-broker${moved ? "" : "-deploy"}`;
+}
+function publicLinks(version) {
+  const publisher = publisherFor(version);
+  return { repository: { type: "git", url: `git+${publisher}.git` }, homepage: `${publisher}#readme`, bugs: { url: `${publisher}#readme` } };
+}
 // Reject private origin identifiers in all package bytes; public links are
 // allowed. The patterns come from a private policy file that public source
 // does not contain (ASB_PRIVATE_ORIGIN_POLICY overrides its location); CI
@@ -173,9 +177,7 @@ function main() {
     bin: { "x-broker": "bin/x-broker.js" },
     files: Object.keys(files).filter((file) => file !== "README.md"),
     engines: { node: ">=22" },
-    repository,
-    homepage,
-    bugs,
+    ...publicLinks(version),
     ...(clientInputs === undefined ? {} : { xBrokerClientInputs: clientInputs }),
   };
   // Refuse before anything is written.
@@ -196,4 +198,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { privateReferences };
+module.exports = { privateReferences, publicLinks };

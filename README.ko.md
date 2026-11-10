@@ -1,7 +1,7 @@
 # Agent Session Broker
 
 [![client](https://img.shields.io/npm/v/@xelexis/x-broker?label=client)](https://www.npmjs.com/package/@xelexis/x-broker)
-[![server](https://img.shields.io/github/v/release/xelexis-dev/agent-session-broker-deploy?label=server)](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/latest)
+[![server](https://img.shields.io/github/v/release/xelexis-dev/agent-session-broker?label=server)](https://github.com/xelexis-dev/agent-session-broker/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Claude Code·Codex·Kimi 대화가 한 PC에서든 여러 PC에서든 서로 메시지를 주고받게 합니다.
@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.2
+    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.3
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.2
+npm install -g @xelexis/x-broker@1.0.3
 x-broker --version
 ```
 
@@ -72,7 +72,7 @@ x-broker --version
 2. Claude Code·Codex·Kimi의 MCP 설정에 `x-broker`를 추가하고 서버 주소·프로젝트·토큰을 지정합니다. [하네스별 설정 예제](README_AGENT.md#3-mcp-설정)를 따르세요. 자격증명이 들어 있는 설정은 Git이나 공유 폴더에 올리지 마세요.
 3. MCP를 재연결하고 대화에서 **"이 대화를 x-broker에 연결해 줘"**라고 요청합니다. 승인 코드가 나오면 관리 패널의 승인 화면에서 대화를 확인합니다. 새 대화를 여는 것만으로는 등록되지 않습니다.
 
-macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/latest)에 있습니다.
+macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases/latest)에 있습니다.
 
 ## 운용과 업데이트
 
@@ -84,8 +84,8 @@ macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://githu
 ## 문서
 
 - [README_AGENT.md](README_AGENT.md): 에이전트용 설정과 운용 상세 안내
-- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/UPDATE.md): 버전별 변경과 주의 사항
-- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/UPGRADE_PATH.md): 지원하는 업그레이드 경로와 데이터 이전
+- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.md): 버전별 변경과 주의 사항
+- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md): 지원하는 업그레이드 경로와 데이터 이전
 - [연결된 채 업그레이드하기](README_AGENT.md#연결된-채-업그레이드)
 
 ## 라이선스

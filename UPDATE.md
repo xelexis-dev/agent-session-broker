@@ -2,6 +2,12 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.0.3 (2026-11-11)
+
+- 동작과 데이터 형식은 1.0.2와 같습니다.
+- 이번 버전부터 서버 Release, npm 클라이언트의 provenance와 소스가 https://github.com/xelexis-dev/agent-session-broker 에서 나옵니다. 1.0.2 이하의 파일은 https://github.com/xelexis-dev/agent-session-broker-deploy 에서 계속 받을 수 있습니다.
+- npm 패키지의 저장소 정보가 바뀌어 클라이언트도 1.0.3으로 게시합니다. Docker 이미지 이름은 그대로입니다.
+
 ## 1.0.2 (2026-11-11)
 
 - 동작과 데이터 형식은 1.0.1과 같습니다.

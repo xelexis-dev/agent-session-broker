@@ -232,7 +232,7 @@ func TestLocalDocsSetupIsBoundedAndOffline(t *testing.T) {
 	if len(out.Markdown) > 3584 {
 		t.Fatal("setup exceeds 3.5 KiB")
 	}
-	for _, want := range []string{"npm install -g @xelexis/x-broker@1.0.2", `"command": "x-broker"`, `command = "x-broker"`, "npx", "100 MB", "Windows", "auth_status", "attach_session", "upgrade", "errors"} {
+	for _, want := range []string{"npm install -g @xelexis/x-broker@1.0.3", `"command": "x-broker"`, `command = "x-broker"`, "npx", "100 MB", "Windows", "auth_status", "attach_session", "upgrade", "errors"} {
 		if !strings.Contains(out.Markdown, want) {
 			t.Errorf("setup missing %s", want)
 		}

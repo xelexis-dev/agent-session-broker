@@ -5,9 +5,13 @@
 새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
 
 
-이 안내는 **1.0.2까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker-deploy#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에서 확인하세요.
+이 안내는 **1.0.3까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다.
 
 0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+
+## 1.0.2 → 1.0.3
+
+동작과 데이터 형식은 1.0.2와 같습니다. 이번 버전부터 서버 실행파일 Release, npm 클라이언트의 provenance와 소스가 https://github.com/xelexis-dev/agent-session-broker 에서 나옵니다. npm 패키지의 저장소 정보가 바뀌어 클라이언트도 1.0.3으로 게시합니다. Docker 이미지 이름(`ghcr.io/xelexis-dev/agent-session-broker-deploy`)은 그대로입니다. 클라이언트를 `@xelexis/x-broker@1.0.3`으로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.3으로 교체하고, 각 대화를 다시 연결하세요. 1.0.2 이하의 파일은 이전 배포 저장소에서 계속 받을 수 있습니다. 되돌리기는 전체 백업과 1.0.2 서버를 함께 복원하는 방법만 지원합니다.
 
 ## 1.0.1 → 1.0.2
 
@@ -32,11 +36,11 @@
 이 버전부터 **0.17.3 미만 클라이언트는 사용할 수 없습니다.** 다른 프로젝트의 PC도 포함되므로 반드시 클라이언트를 먼저 올리세요.
 
 1. **남은 구 클라이언트 확인**: 모든 프로젝트 담당자에게 PC별 client 버전을 확인하고 0.17.3 미만을 업데이트하도록 알립니다. 1.0에서는 버전 현황 집계가 제거되므로 꺼져 있던 PC도 별도로 확인하세요.
-2. **클라이언트 먼저 갱신**: 모든 PC에서 `npm install -g @xelexis/x-broker@1.0.2`(npx 사용자는 MCP 설정의 고정 버전)으로 올리고 각 대화를 다시 연결합니다. 1.0 클라이언트는 0.17.3 이상 서버(지금의 0.19.x 포함)에서 동작하므로 서버보다 먼저 올려도 됩니다. 재연결 방법은 [연결된 채 업그레이드](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/README_AGENT.md#연결된-채-업그레이드)를 따릅니다.
+2. **클라이언트 먼저 갱신**: 모든 PC에서 `npm install -g @xelexis/x-broker@1.0.3`(npx 사용자는 MCP 설정의 고정 버전)으로 올리고 각 대화를 다시 연결합니다. 1.0 클라이언트는 0.17.3 이상 서버(지금의 0.19.x 포함)에서 동작하므로 서버보다 먼저 올려도 됩니다. 재연결 방법은 [연결된 채 업그레이드](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#연결된-채-업그레이드)를 따릅니다.
 3. **전체 백업**: 서버를 멈추고 데이터 폴더 전체를 백업합니다. 파일 목록과 해시를 함께 기록하고, 백업 위치의 접근을 제한하세요(토큰 해시와 설정 정보가 들어 있습니다). 서버 메모리 대기열은 백업되지 않으므로 대기 메시지를 먼저 비웁니다.
 4. **서버 교체**: 같은 데이터 경로로 새 서버를 시작합니다. Compose는 image 버전을 바꾸고 `docker compose pull`, `docker compose up -d`를 실행합니다.
    - 이미 최초 설정을 마친 서버는 설정 코드가 필요 없습니다.
-5. **구 클라이언트 거부 확인**: 0.17.3 미만 클라이언트는 모든 도구 호출이 거부됩니다. 표시되는 안내는 [버전 호환](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/README_AGENT.md#버전-호환)을 확인하세요.
+5. **구 클라이언트 거부 확인**: 0.17.3 미만 클라이언트는 모든 도구 호출이 거부됩니다. 표시되는 안내는 [버전 호환](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#버전-호환)을 확인하세요.
 6. **연결 확인**: 각 대화의 `auth_status`에서 버전과 `compatible`, 같은 등록 ID·이름을 확인하고, peer 메시지를 실제로 주고받는지 확인합니다.
 
 **되돌리기**는 전체 백업 복원만 지원합니다.
@@ -129,7 +133,7 @@
 
 클라이언트 0.17.2와 서버 0.17.1 조합에서는 프로젝트 종료 판단·수신 프로세스 보호를 사용할 수 없고, `expectRegistrationId`는 `unsupported`로 거부하며 기대값 없이 재전송하지 않습니다. Kimi는 서버와 클라이언트 모두 0.17.2 이상이 필요하며 이전 서버에서는 `unsupported-server`로 안내합니다.
 
-Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤** 추가하세요. 0.17.1은 알 수 없는 키를 거절합니다. Kimi는 `SessionStart`·`UserPromptSubmit`·`Stop`에 `kimi-hook`을 설정하고 MCP와 같은 상태 경로를 사용합니다. idle 대화를 깨우지 않으며 다음 프롬프트 또는 턴 종료 시 메시지를 받습니다. 설정 예시는 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/README_AGENT.md)를 따르세요.
+Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤** 추가하세요. 0.17.1은 알 수 없는 키를 거절합니다. Kimi는 `SessionStart`·`UserPromptSubmit`·`Stop`에 `kimi-hook`을 설정하고 MCP와 같은 상태 경로를 사용합니다. idle 대화를 깨우지 않으며 다음 프롬프트 또는 턴 종료 시 메시지를 받습니다. 설정 예시는 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md)를 따르세요.
 
 버전 사이의 데이터 쓰기 호환은 보장하지 않습니다. 롤백은 서버를 중지하고 **업그레이드 전 전체 데이터 백업과 이전 실행파일을 함께 복원**합니다. `control.db`만 되돌리지 마세요. 백업 이후 변경은 전체 복원에 포함되지 않습니다. 서버 재시작 전 미전달 메시지는 보존되지 않으며 실패한 메시지를 자동으로 다시 보내지 않습니다.
 
@@ -280,7 +284,7 @@ Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤**
 
 필수 중간 버전이나 DB 이전은 없습니다. 기존 서버 데이터와 클라이언트 등록 상태 디렉터리를 유지합니다.
 
-**인증 클라이언트의 설정 변경이 필요합니다.** `--token-file` 옵션은 더 이상 지원하지 않습니다. MCP 설정에서 이 옵션과 파일 경로를 제거하고 `--token` 다음에 기존 파일 안의 토큰 값 자체를 입력한 뒤 연결을 다시 시작합니다. 기존 토큰이 여전히 유효하면 새로 발급할 필요는 없습니다. 무인증 연결은 `--token` 없이 그대로 사용합니다. 예제와 설정 보관 방법은 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/README_AGENT.md)를 따르세요.
+**인증 클라이언트의 설정 변경이 필요합니다.** `--token-file` 옵션은 더 이상 지원하지 않습니다. MCP 설정에서 이 옵션과 파일 경로를 제거하고 `--token` 다음에 기존 파일 안의 토큰 값 자체를 입력한 뒤 연결을 다시 시작합니다. 기존 토큰이 여전히 유효하면 새로 발급할 필요는 없습니다. 무인증 연결은 `--token` 없이 그대로 사용합니다. 예제와 설정 보관 방법은 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md)를 따르세요.
 
 서버·클라이언트를 0.3.2로 교체한 뒤 버전, 로그인, 프로젝트 목록과 실제 세션 답신을 확인합니다. 파일의 토큰은 자동으로 읽거나 삭제하지 않습니다.
 

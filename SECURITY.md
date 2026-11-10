@@ -6,4 +6,4 @@ Report security issues privately through GitHub private vulnerability reporting:
 
 Include the affected version, your platform, the steps to reproduce and the impact you observed. Never include real tokens, passwords or other credentials; use placeholder values.
 
-Fixes ship in a new release. Check the [latest release](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/latest) before you report, because the issue may already be fixed.
+Fixes ship in a new release. Check the [latest release](https://github.com/xelexis-dev/agent-session-broker/releases/latest) before you report, because the issue may already be fixed.

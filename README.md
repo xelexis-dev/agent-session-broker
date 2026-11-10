@@ -1,7 +1,7 @@
 # Agent Session Broker
 
 [![client](https://img.shields.io/npm/v/@xelexis/x-broker?label=client)](https://www.npmjs.com/package/@xelexis/x-broker)
-[![server](https://img.shields.io/github/v/release/xelexis-dev/agent-session-broker-deploy?label=server)](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/latest)
+[![server](https://img.shields.io/github/v/release/xelexis-dev/agent-session-broker?label=server)](https://github.com/xelexis-dev/agent-session-broker/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Let your Claude Code, Codex and Kimi conversations talk to each other, on one machine or many.
@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.2
+    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.3
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.2
+npm install -g @xelexis/x-broker@1.0.3
 x-broker --version
 ```
 
@@ -72,7 +72,7 @@ A server-only release may skip npm, so compare the published version with the re
 2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](README_AGENT.md#3-mcp-설정). Never put a config that holds credentials in Git or a shared folder.
 3. Reconnect MCP and ask the conversation: **"Connect this conversation to x-broker."** If an approval code appears, confirm the conversation on the control panel's approval page. Opening a new conversation does not register it on its own.
 
-The control panel is in Korean. The server binaries for macOS, Linux and Windows are on the [latest release](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/latest).
+The control panel is in Korean. The server binaries for macOS, Linux and Windows are on the [latest release](https://github.com/xelexis-dev/agent-session-broker/releases/latest).
 
 ## Operations and upgrades
 
@@ -84,8 +84,8 @@ The control panel is in Korean. The server binaries for macOS, Linux and Windows
 ## Documentation
 
 - [README_AGENT.md](README_AGENT.md): full setup and operations guide for agents (Korean)
-- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/UPDATE.md): changes and cautions by version (Korean)
-- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker-deploy/blob/main/UPGRADE_PATH.md): supported upgrade paths and data migration (Korean)
+- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.md): changes and cautions by version (Korean)
+- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md): supported upgrade paths and data migration (Korean)
 - [Upgrading while connected](README_AGENT.md#연결된-채-업그레이드) (Korean)
 
 ## License

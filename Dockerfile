@@ -14,7 +14,7 @@ FROM alpine:3.23.7@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde8
 ARG VERSION=dev
 ARG REVISION=unknown
 LABEL org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.source="https://github.com/xelexis-dev/agent-session-broker-deploy" \
+      org.opencontainers.image.source="https://github.com/xelexis-dev/agent-session-broker" \
       org.opencontainers.image.description="Central broker for Claude and Codex sessions" \
       org.opencontainers.image.version=$VERSION \
       org.opencontainers.image.revision=$REVISION

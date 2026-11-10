@@ -1,0 +1,250 @@
+name: npm-publish
+run-name: npm-${{ inputs.version }}-${{ inputs.request_id }}
+'on':
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+      release_id:
+        required: true
+        type: string
+      sha256:
+        required: true
+        type: string
+      npm_tag:
+        required: true
+        type: string
+      request_id:
+        required: true
+        type: string
+      snapshot:
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: npm-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'xelexis-dev/agent-session-broker' && github.ref == 'refs/heads/main'
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.22.2'
+          package-manager-cache: false
+      - name: validate
+        id: validate
+        env:
+          ASB_VERSION: ${{ inputs.version }}
+          ASB_RELEASE_ID: ${{ inputs.release_id }}
+          ASB_SHA256: ${{ inputs.sha256 }}
+          ASB_NPM_TAG: ${{ inputs.npm_tag }}
+          ASB_REQUEST_ID: ${{ inputs.request_id }}
+          ASB_SNAPSHOT: ${{ inputs.snapshot }}
+          ASB_GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/npm-publisher.py" <<'PYCODE'
+          import base64, hashlib, io, json, os, re, subprocess, sys, tarfile, time
+          import urllib.error, urllib.parse, urllib.request
+          from pathlib import Path
+
+          REPO = 'xelexis-dev/agent-session-broker'
+          PACKAGE = '@xelexis/x-broker'
+          API = 'https://api.github.com/repos/' + REPO
+          REGISTRY = 'https://registry.npmjs.org'
+          LIMIT = 256 * 1024 * 1024
+          SEMVER = r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
+          NAMES = {'package/package.json', 'package/README.md', 'package/LICENSE', 'package/THIRD_PARTY_NOTICES',
+                   'package/bin/x-broker.js', 'package/bin/darwin-arm64/asb-client',
+                   'package/bin/darwin-x64/asb-client', 'package/bin/linux-x64/asb-client',
+                   'package/bin/win32-x64/asb-client.exe'}
+          HOSTS = {'api.github.com', 'github.com', 'release-assets.githubusercontent.com',
+                   'objects.githubusercontent.com', 'registry.npmjs.org'}
+
+          def require(ok):
+              if not ok: raise ValueError('publication validation failed')
+
+          def safe_url(url):
+              u = urllib.parse.urlsplit(url)
+              require(u.scheme == 'https' and u.hostname in HOSTS and not u.username and
+                      not u.password and u.port in (None, 443) and not u.fragment)
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, url): return None
+
+          class AssetRedirects(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, url):
+                  safe_url(url)
+                  require(urllib.parse.urlsplit(url).hostname not in ('api.github.com', 'registry.npmjs.org'))
+                  return super().redirect_request(req, fp, code, msg, headers, url)
+
+          def get(url, limit, missing=False):
+              safe_url(url)
+              api = url.startswith(API + '/')
+              headers = {'User-Agent': 'asb-npm-publication'}
+              if api:
+                  require(bool(os.environ.get('ASB_GITHUB_TOKEN')))
+                  headers.update(Authorization='Bearer ' + os.environ['ASB_GITHUB_TOKEN'],
+                                 Accept='application/vnd.github+json', **{'X-GitHub-Api-Version':'2026-03-10'})
+              # API credentials never reach redirects, assets, registry or npm subprocesses.
+              opener = urllib.request.build_opener(NoRedirect() if api or url.startswith(REGISTRY + '/') else AssetRedirects())
+              try:
+                  with opener.open(urllib.request.Request(url, headers=headers), timeout=30) as response:
+                      data = response.read(limit + 1)
+                      require(len(data) <= limit)
+                      return data
+              except urllib.error.HTTPError as error:
+                  if missing and error.code == 404: return None
+                  raise
+
+          def strict_object(pairs):
+              out = {}
+              for key, value in pairs:
+                  require(key not in out)
+                  out[key] = value
+              return out
+
+          def obj(url, missing=False):
+              data = get(url, 4 * 1024 * 1024, missing)
+              return None if data is None else json.loads(data, object_pairs_hook=strict_object)
+
+          def check_bundle(data, version, digest):
+              require(0 < len(data) <= LIMIT and hashlib.sha256(data).hexdigest() == digest)
+              files = {}
+              with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as archive:
+                  for e in archive:
+                      require(e.name in NAMES and e.name not in files and e.isfile() and not e.linkname and 0 < e.size <= LIMIT)
+                      require(e.mode == (0o755 if e.name.startswith('package/bin/') else 0o644))
+                      files[e.name] = archive.extractfile(e).read(LIMIT + 1)
+                      require(len(files[e.name]) == e.size)
+              require(set(files) == NAMES and len(files['package/package.json']) <= 65536)
+              manifest = json.loads(files['package/package.json'], object_pairs_hook=strict_object)
+              require(manifest.get('name') == PACKAGE and manifest.get('version') == version)
+              require(manifest.get('repository') == {'type':'git', 'url':'git+https://github.com/' + REPO + '.git'})
+              require(manifest.get('license') == 'SEE LICENSE IN LICENSE')
+              require(not any(k in manifest for k in ('scripts', 'publishConfig', 'dependencies',
+                          'optionalDependencies', 'bundledDependencies', 'bundleDependencies', 'devDependencies')))
+
+          def verify(metadata, receipt, data):
+              require(metadata.get('name') == PACKAGE and metadata.get('version') == receipt['version'])
+              dist = metadata['dist']
+              url = REGISTRY + '/@xelexis/x-broker/-/x-broker-' + receipt['version'] + '.tgz'
+              require(dist.get('integrity') == receipt['integrity'] and dist.get('tarball') == url)
+              require(get(url, LIMIT) == data)
+              return isinstance(dist.get('attestations'), dict) and bool(dist['attestations'].get('url'))
+
+          def root(): return Path(os.environ['RUNNER_TEMP']) / 'asb-npm-input'
+
+          def load():
+              receipt = json.loads((root() / 'input.json').read_text())
+              data = (root() / receipt['name']).read_bytes()
+              check_bundle(data, receipt['version'], receipt['sha256'])
+              return receipt, data
+
+          def tag_commit(name):
+              # The export pushes lightweight tags; anything else is not the reviewed snapshot.
+              target = obj(API + '/git/ref/tags/' + name)['object']
+              require(target.get('type') == 'commit' and re.fullmatch(r'[a-f0-9]{40}', target.get('sha', '')))
+              return target['sha']
+
+          def validate():
+              require(os.environ['GITHUB_REPOSITORY'] == REPO and os.environ['GITHUB_REF'] == 'refs/heads/main')
+              v, rid, digest, tag, request = [os.environ[k] for k in ('ASB_VERSION', 'ASB_RELEASE_ID', 'ASB_SHA256', 'ASB_NPM_TAG', 'ASB_REQUEST_ID')]
+              require(re.fullmatch(SEMVER, v) and tuple(map(int, v.split('.'))) >= (1,0,3))
+              # Pin 1 before any npm action: this run is the exported snapshot named by the dispatch, and both
+              # release tags still name it. A main that moved after the dispatch runs another commit and stops here.
+              snapshot = os.environ.get('ASB_SNAPSHOT', '')
+              require(re.fullmatch(r'[a-f0-9]{40}', snapshot) and os.environ.get('GITHUB_SHA') == snapshot)
+              require(tag_commit(v) == snapshot and tag_commit('source/v' + v) == snapshot)
+              require(re.fullmatch(r'[1-9][0-9]{0,19}', rid) and re.fullmatch(r'[a-f0-9]{64}', digest))
+              require(re.fullmatch(r'[a-f0-9]{32}', request) and tag in ('latest', 'release-' + v))
+              tool_env = {k:value for k,value in os.environ.items() if k not in ('ASB_GITHUB_TOKEN','GITHUB_TOKEN','GH_TOKEN','NPM_TOKEN','NODE_AUTH_TOKEN')}
+              require(subprocess.check_output(['node','--version'], text=True, env=tool_env).strip() == 'v24.22.2')
+              require(subprocess.check_output(['npm','--version'], text=True, env=tool_env).strip() == '11.19.1')
+              release = obj(API + '/releases/' + rid)
+              require(release['id'] == int(rid) and release['tag_name'] == 'npm-client-' + v and
+                      release['draft'] is False and release['prerelease'] is True)
+              name = 'xelexis-x-broker-' + v + '.tgz'
+              assets = obj(API + '/releases/' + rid + '/assets?per_page=100')
+              require(isinstance(assets, list) and len(assets) == 2 and {a['name'] for a in assets} == {name, name + '.sha256'})
+              downloaded = {}
+              for asset in assets:
+                  filename = asset['name']; bound = 256 if filename.endswith('.sha256') else LIMIT
+                  url = 'https://github.com/' + REPO + '/releases/download/npm-client-' + v + '/' + filename
+                  require(asset['browser_download_url'] == url and asset['state'] == 'uploaded')
+                  require(type(asset['size']) is int and 0 < asset['size'] <= bound)
+                  data = get(url, bound)
+                  require(len(data) == asset['size'] and asset.get('digest') == 'sha256:' + hashlib.sha256(data).hexdigest())
+                  downloaded[filename] = data
+              data = downloaded[name]
+              require(downloaded[name + '.sha256'] == (digest + '  ' + name + '\n').encode())
+              check_bundle(data, v, digest)
+              receipt = dict(version=v, name=name, sha256=digest, integrity='sha512-' + base64.b64encode(hashlib.sha512(data).digest()).decode(), npm_tag=tag, action='publish', snapshot=snapshot)
+              existing = obj(REGISTRY + '/@xelexis%2fx-broker/' + v, missing=True)
+              if existing is not None:
+                  require(verify(existing, receipt, data))
+                  receipt['action'] = 'identical'
+              else:
+                  latest = obj(REGISTRY + '/@xelexis%2fx-broker/latest')
+                  previous = latest.get('version', '')
+                  require(re.fullmatch(SEMVER, previous))
+                  expected = 'latest' if tuple(map(int, previous.split('.'))) < tuple(map(int, v.split('.'))) else 'release-' + v
+                  require(tag == expected)
+              root().mkdir(mode=0o700)
+              (root() / name).write_bytes(data)
+              (root() / 'input.json').write_text(json.dumps(receipt))
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+                  for key in ('action','sha256','version','npm_tag'): output.write(key + '=' + receipt[key] + '\n')
+
+          def publish():
+              receipt, _ = load()
+              require(receipt['action'] == 'publish' and os.environ.get('GITHUB_SHA') == receipt['snapshot'])
+              for name in ('user.npmrc','global.npmrc'): (root() / name).write_text('')
+              env = {k:v for k,v in os.environ.items() if not k.lower().startswith('npm_config_') and
+                     k not in ('NODE_AUTH_TOKEN','NPM_TOKEN','ASB_GITHUB_TOKEN','GITHUB_TOKEN','GH_TOKEN')}
+              env.update(NPM_CONFIG_USERCONFIG=str(root() / 'user.npmrc'), NPM_CONFIG_GLOBALCONFIG=str(root() / 'global.npmrc'),
+                         NPM_CONFIG_CACHE=str(root() / 'cache'), NPM_CONFIG_LOGS_MAX='0')
+              result = subprocess.run(['npm','publish','./' + receipt['name'],'--access','public','--provenance','--ignore-scripts',
+                                       '--tag',receipt['npm_tag'],'--registry=' + REGISTRY], cwd=root(),env=env,capture_output=True,timeout=180)
+              require(result.returncode == 0) # confirm resolves lost responses without another publish call.
+
+          def confirm():
+              receipt, data = load()
+              deadline = time.monotonic() + 600
+              while time.monotonic() < deadline:
+                  metadata = obj(REGISTRY + '/@xelexis%2fx-broker/' + receipt['version'], missing=True)
+                  if metadata is not None and verify(metadata, receipt, data):
+                      print('registry bytes and provenance metadata verified')
+                      return
+                  time.sleep(5)
+              raise ValueError('publication unconfirmed')
+
+          if __name__ == '__main__':
+              try:
+                  require(len(sys.argv) == 2 and sys.argv[1] in ('validate','publish','confirm'))
+                  globals()[sys.argv[1]]()
+              except Exception:
+                  print('npm publication step failed; inspect registry and private receipt', file=sys.stderr)
+                  sys.exit(1)
+          PYCODE
+          python3 "$RUNNER_TEMP/npm-publisher.py" validate
+      - name: publish
+        id: publish
+        if: steps.validate.outputs.action == 'publish'
+        continue-on-error: true
+        shell: bash
+        run: python3 "$RUNNER_TEMP/npm-publisher.py" publish
+      - name: confirm
+        id: confirm
+        if: always() && steps.validate.outcome == 'success'
+        shell: bash
+        run: python3 "$RUNNER_TEMP/npm-publisher.py" confirm
