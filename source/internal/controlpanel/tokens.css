@@ -1,0 +1,125 @@
+/* Approved ASB-1 design tokens, preserving the Storybook catalog names.
+   Production accessibility adjustments: action, muted text, and badge text.
+   Status dots/borders keep the original semantic color tokens.
+   Without a stored override, the browser system color scheme is respected. */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: #f3f6fa;
+  --color-surface: #ffffff;
+  --color-raised: #f0f4f9;
+  --color-subtle: #f7f9fc;
+  --color-high: #e7edf5;
+  --color-border: #dce4ee;
+  --color-border-strong: #c7d2e0;
+  --color-text: #142033;
+  --color-text-secondary: #4e5f75;
+  --color-text-muted: #617186;
+  --color-action: #0b7285;
+  --color-action-text: #0a6b7c;
+  --color-action-hover: #095e6d;
+  --color-action-tint: #e2f4f6;
+  --color-success: #24c78d;
+  --color-success-tint: #dff8ef;
+  --color-warning: #eaaa32;
+  --color-warning-tint: #fff2d2;
+  --color-critical: #f35d74;
+  --color-critical-tint: #ffe8ed;
+  --color-on-action: #ffffff;
+  --color-brand-glass: rgba(255, 255, 255, 0.85);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --control-height: 44px;
+  --control-height-action: 40px;
+  --control-height-compact: 32px;
+  --font-sans: "Pretendard Variable", system-ui, sans-serif;
+  --font-latin: var(--font-sans);
+  --shadow-card: 0 6px 18px rgba(35, 54, 77, 0.07);
+  --shadow-modal: 0 20px 56px rgba(35, 54, 77, 0.18);
+  --color-success-text: #177e5a;
+  --color-warning-text: #94660f;
+  --color-critical-text: #d7102e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --color-canvas: #070b12;
+  --color-surface: #0d1420;
+  --color-raised: #111b2a;
+  --color-subtle: #0a111c;
+  --color-high: #172235;
+  --color-border: #223047;
+  --color-border-strong: #31435e;
+  --color-text: #f1f5fa;
+  --color-text-secondary: #9daabd;
+  --color-text-muted: #768498;
+  --color-action: #0b7285;
+  --color-action-text: #3fbfd0;
+  --color-action-hover: #095e6d;
+  --color-action-tint: #0f3036;
+  --color-success: #24c78d;
+  --color-success-tint: #0e3029;
+  --color-warning: #eaaa32;
+  --color-warning-tint: #3a2a10;
+  --color-critical: #f35d74;
+  --color-critical-tint: #3a1721;
+  --color-on-action: #ffffff;
+  --color-brand-glass: rgba(13, 20, 32, 0.85);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-modal: 0 20px 56px rgba(0, 0, 0, 0.45);
+  --color-success-text: #24c78d;
+  --color-warning-text: #eaaa32;
+  --color-critical-text: #f35d74;
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #070b12;
+  --color-surface: #0d1420;
+  --color-raised: #111b2a;
+  --color-subtle: #0a111c;
+  --color-high: #172235;
+  --color-border: #223047;
+  --color-border-strong: #31435e;
+  --color-text: #f1f5fa;
+  --color-text-secondary: #9daabd;
+  --color-text-muted: #768498;
+  --color-action: #0b7285;
+  --color-action-text: #3fbfd0;
+  --color-action-hover: #095e6d;
+  --color-action-tint: #0f3036;
+  --color-success: #24c78d;
+  --color-success-tint: #0e3029;
+  --color-warning: #eaaa32;
+  --color-warning-tint: #3a2a10;
+  --color-critical: #f35d74;
+  --color-critical-tint: #3a1721;
+  --color-on-action: #ffffff;
+  --color-brand-glass: rgba(13, 20, 32, 0.85);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-modal: 0 20px 56px rgba(0, 0, 0, 0.45);
+  --color-success-text: #24c78d;
+  --color-warning-text: #eaaa32;
+  --color-critical-text: #f35d74;
+}
+
+/* Mobile widths and touch pointers: every control is at least 44px. */
+@media (max-width: 600px), (pointer: coarse) {
+  :root {
+    --control-height-action: 44px;
+    --control-height-compact: 44px;
+  }
+}

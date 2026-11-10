@@ -1,0 +1,92 @@
+{{define "profile-subnav"}}
+<nav class="profile-subnav" aria-label="내 프로필 메뉴">
+  <a href="/profile" {{if eq .View "profile"}}aria-current="page"{{end}}><span class="icon icon--user" aria-hidden="true"></span>프로필</a>
+  <a href="/profile/api-tokens" {{if ne .View "profile"}}aria-current="page"{{end}}><span class="icon icon--lock-keyhole" aria-hidden="true"></span>API 토큰</a>
+</nav>
+{{end}}
+
+{{define "profile-account"}}
+<aside class="profile-account" aria-label="계정">
+<div class="profile-account-head"><span class="profile-avatar" aria-hidden="true">{{slice .User.Username 0 1}}</span><div><p class="profile-name">{{if .User.DisplayName}}{{.User.DisplayName}}{{else}}{{.User.Username}}{{end}}</p><p class="profile-meta">{{if .User.DisplayName}}{{.User.Username}} · {{end}}{{if eq .User.Role "admin"}}시스템 관리자{{else}}사용자{{end}}</p></div></div>
+{{template "profile-subnav" .}}
+</aside>
+{{end}}
+
+{{define "admin-api-policy"}}
+<section class="card admin-api" id="admin-api" aria-labelledby="admin-api-title" data-api-enabled="{{.AdminAPIEnabled}}">
+  <div class="admin-api__head">
+    <div class="admin-api__heading">
+      <div class="admin-api__title"><span class="admin-api__icon" aria-hidden="true"><span class="icon icon--server"></span></span><h2 id="admin-api-title">관리 API</h2><span class="badge admin-api__badge" id="admin-api-badge">{{if .AdminAPIEnabled}}ON{{else}}OFF{{end}}</span></div>
+      <p class="admin-api__intro">에이전트와 스크립트가 사용자 API 토큰으로 서버를 관리하는 REST API입니다.</p>
+    </div>
+    <form id="admin-api-form" class="admin-api__action" method="post" action="/admin/admin-api" data-confirm-action="admin-api" data-api-confirm data-confirm-title="관리 API {{if .AdminAPIEnabled}}끄기{{else}}켜기{{end}}" data-confirm-description="{{if .AdminAPIEnabled}}공개 명세 /api/v1/openapi.json을 제외한 모든 /api/v1 요청을 즉시 거부합니다. 기존 토큰은 유지되며 다시 켜면 사용할 수 있습니다. 관리 API를 끄시겠습니까?{{else}}사용자 API 토큰으로 /api/v1 관리 요청을 허용합니다. 토큰을 가진 에이전트와 스크립트가 토큰 권한 범위에서 서버를 관리할 수 있습니다. 관리 API를 켜시겠습니까?{{end}}" data-confirm-button="{{if .AdminAPIEnabled}}끄기{{else}}켜기{{end}}">
+      <input type="hidden" name="csrf" value="{{.CSRF}}"><input type="hidden" name="settings_version" value="{{index .SettingsVersions "admin-api"}}"><input type="hidden" name="enabled" value="{{if .AdminAPIEnabled}}false{{else}}true{{end}}">
+      <button id="admin-api-toggle" aria-label="관리 API {{if .AdminAPIEnabled}}끄기{{else}}켜기{{end}}">{{if .AdminAPIEnabled}}끄기{{else}}켜기{{end}}</button>
+    </form>
+  </div>
+  <div class="admin-api__endpoint"><code>/api/v1</code><span>사용자 API 토큰 · Bearer 인증</span></div>
+  <p class="admin-api__description">끄면 공개 명세 <code>/api/v1/openapi.json</code>을 제외한 모든 <code>/api/v1</code> 요청을 즉시 거부합니다. 기존 토큰은 유지되며 다시 켜면 사용할 수 있습니다.</p>
+  <div class="admin-api__status" role="status"><strong id="admin-api-status-title">관리 API가 {{if .AdminAPIEnabled}}켜져{{else}}꺼져{{end}} 있습니다.</strong><p id="admin-api-status-detail">{{if .AdminAPIEnabled}}사용자 API 토큰으로 관리 요청을 볼 수 있습니다. 토큰 권한 범위만 허용합니다.{{else}}지금은 기존 토큰도 작동하지 않습니다. 토큰을 삭제하지 않고 요청만 차단합니다.{{end}}</p></div>
+  <p class="admin-api__history" id="admin-api-history">{{with .AdminAPILastChange}}마지막 변경: {{.Actor}} · <time datetime="{{.At.Format "2006-01-02T15:04:05Z07:00"}}">{{.At.Format "2006-01-02 15:04"}}</time> · {{if .Old}}ON{{else}}OFF{{end}} → {{if .New}}ON{{else}}OFF{{end}}{{else}}설정 변경 이력이 없습니다.{{end}}</p>
+</section>
+{{end}}
+
+{{define "profile-api-tokens"}}
+<div class="profile-layout">{{template "profile-account" .}}<div class="profile-content">{{if .IssuedAPIToken}}<section class="api-issued" id="api-issued" aria-labelledby="api-issued-title">
+  <h2 id="api-issued-title" tabindex="-1">토큰을 발급했습니다.</h2>
+  <p>지금만 표시되며 페이지를 벗어나면 다시 볼 수 없습니다. 안전한 곳에 저장하세요.</p>
+  <div class="api-issued__token"><code id="issued-token" tabindex="0" spellcheck="false">{{.IssuedAPIToken}}</code><button type="button" data-copy-token>복사</button></div>
+  <code class="api-issued__command">Authorization: Bearer {{.IssuedAPIToken}}</code>
+  <p class="api-issued__note">REST Bearer 토큰입니다. MCP <code>--token</code> 값이 아닙니다.</p>
+  <p class="api-copy-status" role="status" aria-live="polite" data-copy-status></p>
+</section>{{end}}{{if not .AdminAPIEnabled}}<div class="api-notice api-notice--warning" role="status"><strong>관리 API가 꺼져 있습니다.</strong><p>지금은 토큰이 작동하지 않습니다. 발급은 가능하며 관리 API를 켜면 다시 작동합니다.</p></div>{{end}}{{if .APIHTTPRefused}}<div class="api-notice api-notice--error" role="alert">HTTP에서는 API 토큰을 발급하거나 표시할 수 없습니다.</div>{{end}}<section class="card api-tokens" aria-labelledby="api-token-list-title">
+  <div class="api-token-area">
+    <div class="api-token-area__head"><div><h2 id="api-token-list-title">발급한 토큰</h2><p>만료되지 않은 토큰을 표시합니다.</p></div>{{if .UserAPITokens}}<form class="api-revoke-all" id="api-token-revoke-all" method="post" action="/profile/api-tokens/revoke-all" data-confirm-action="api-token-revoke-all" data-api-confirm data-confirm-title="API 토큰 모두 취소" data-confirm-description="내 API 토큰을 모두 취소합니다. 이 토큰을 사용하는 에이전트와 스크립트는 즉시 작동을 멈춥니다. 되돌릴 수 없습니다. 모두 취소하시겠습니까?" data-confirm-button="모두 취소"><input type="hidden" name="csrf" value="{{.CSRF}}"><button class="danger">모두 취소</button></form>{{end}}</div>
+    {{if .UserAPITokens}}<div class="table-scroll api-token-list" id="api-token-list">
+      <table class="api-token-table"><caption class="sr-only">내 API 토큰 목록</caption><colgroup><col class="api-col-label"><col class="api-col-scopes"><col class="api-col-source"><col><col><col><col class="api-col-action"></colgroup><thead><tr><th scope="col">라벨</th><th scope="col">권한</th><th scope="col">출처</th><th scope="col">생성</th><th scope="col">만료</th><th scope="col">마지막 사용</th><th scope="col"><span class="sr-only">작업</span></th></tr></thead><tbody>
+        {{range .UserAPITokens}}<tr><td class="cell-primary" data-label="라벨"><strong>{{if .Label}}{{.Label}}{{else}}라벨 없음{{end}}</strong></td><td data-label="권한"><div class="token-scope-list">{{range .Scopes}}<span class="badge">{{.}}</span>{{end}}</div></td><td data-label="출처">{{if eq .Source "login"}}로그인{{else}}제어판{{end}}</td><td data-label="생성"><time datetime="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}"><span>{{.CreatedAt.Format "2006-01-02"}}</span> <span>{{.CreatedAt.Format "15:04"}}</span></time></td><td data-label="만료"><time datetime="{{.ExpiresAt.Format "2006-01-02T15:04:05Z07:00"}}"><span>{{.ExpiresAt.Format "2006-01-02"}}</span> <span>{{.ExpiresAt.Format "15:04"}}</span></time></td><td data-label="마지막 사용">{{if .LastUsedAt.IsZero}}사용 안 함{{else}}<time datetime="{{.LastUsedAt.Format "2006-01-02T15:04:05Z07:00"}}"><span>{{.LastUsedAt.Format "2006-01-02"}}</span> <span>{{.LastUsedAt.Format "15:04"}}</span></time>{{end}}</td><td class="cell-actions"><form method="post" action="/profile/api-tokens/revoke" data-confirm-action="api-token-revoke" data-api-confirm data-confirm-title="API 토큰 취소" data-confirm-description="{{if .Label}}{{.Label}}{{else}}라벨 없음{{end}} API 토큰을 취소합니다. 이 토큰을 사용하는 에이전트와 스크립트는 즉시 작동을 멈춥니다. 되돌릴 수 없습니다. 취소하시겠습니까?" data-confirm-button="토큰 취소"><input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="id" value="{{.ID}}"><button class="danger" aria-label="{{if .Label}}{{.Label}}{{else}}라벨 없음{{end}} API 토큰 취소">취소</button></form></td></tr>{{end}}
+      </tbody></table>
+    </div>
+    {{else}}<div class="empty api-token-empty" id="api-token-empty"><strong>발급한 API 토큰이 없습니다.</strong><p>새 토큰 발급을 눌러 에이전트나 스크립트에서 사용할 토큰을 만드세요.</p></div>{{end}}
+  </div>
+</section></div></div>
+{{end}}
+
+{{define "profile-api-token-new"}}
+<div class="profile-layout">{{template "profile-account" .}}<div class="profile-content"><section class="card api-new-card" aria-labelledby="api-new-title">
+<form class="api-issue" id="api-token-issue" method="post" action="/profile/api-tokens" autocomplete="off">
+  <input type="hidden" name="csrf" value="{{.CSRF}}">
+  <div class="api-issue__head"><h2 id="api-new-title">토큰 정보</h2><p class="api-issue__desc">토큰은 본인 계정으로만 발급할 수 있습니다.</p></div>
+{{if eq .APIError "cap"}}<div class="api-notice api-notice--error" role="alert" data-api-error="cap"><strong>API 토큰을 발급할 수 없습니다.</strong><p>활성 API 토큰이 32개입니다. 사용하지 않는 토큰을 먼저 취소하세요.</p></div>{{end}}
+{{if eq .APIError "rate"}}<div class="api-notice api-notice--error" role="alert" data-api-error="rate"><strong>잠시 후 다시 시도하세요.</strong><p>발급 요청이 너무 많습니다.</p></div>{{end}}
+{{if eq .APIError "http"}}<div class="api-notice api-notice--error" role="alert" data-api-error="http"><strong>HTTP에서는 발급할 수 없습니다.</strong><p>이 인스턴스는 HTTP를 허용하지 않습니다. HTTPS로 접속한 후 API 토큰을 발급하세요.</p></div>{{end}}
+
+  <div class="api-issue__grid">
+    <label class="api-field">라벨 <span class="sr-only">(선택)</span><input name="label" maxlength="128" autocomplete="off" placeholder="예: 배포 자동화" aria-describedby="api-label-help" {{if .APIIssueDisabled}}disabled{{end}}><small id="api-label-help">선택 · 최대 128바이트</small></label>
+    <label class="api-field">유효 기간<select name="expires_days" data-select aria-describedby="api-expiry-help" {{if .APIIssueDisabled}}disabled{{end}}><option value="1">1일</option><option value="7">7일</option><option value="30" selected>30일</option><option value="90">90일</option></select><small id="api-expiry-help">최대 90일</small></label>
+    <fieldset class="api-scope-options"><legend>권한</legend><div class="api-scope-grid">
+      <label class="api-scope"><input type="checkbox" name="scope" value="read" checked {{if .APIIssueDisabled}}disabled{{end}}><span class="api-scope__copy"><code>read</code> · 조회<small>서버 상태와 관리 정보를 봅니다.</small></span></label>
+      <label class="api-scope"><input type="checkbox" name="scope" value="write" checked {{if .APIIssueDisabled}}disabled{{end}}><span class="api-scope__copy"><code>write</code> · 변경<small>프로젝트, 멤버, 프로젝트 토큰과 세션을 변경합니다.</small></span></label>
+      {{if eq .User.Role "admin"}}<label class="api-scope" data-admin-scope><input type="checkbox" name="scope" value="admin" {{if .APIIssueDisabled}}disabled{{end}}><span class="api-scope__copy"><code>admin</code> · 관리<small>사용자와 인스턴스 설정을 관리합니다.</small></span></label>{{end}}
+      <label class="api-scope api-scope--approve"><input type="checkbox" name="scope" value="approve" {{if .APIIssueDisabled}}disabled{{end}}><span class="api-scope__copy"><code>approve</code> · 연결 승인<small><strong>주의:</strong> 이 권한을 가진 에이전트는 사람이 확인하지 않아도 세션·기기 연결 요청을 승인할 수 있습니다.</small></span></label>
+    </div></fieldset>
+  </div>
+  <div class="api-issue__foot"><ul class="api-issue__limits"><li>사용자당 활성 토큰 최대 32개</li><li>비밀번호·역할·활성 상태가 바뀌면 토큰이 작동을 멈춥니다.</li><li>API 토큰으로 다른 토큰을 만들 수 없습니다.</li></ul><button class="primary api-issue__submit" {{if .APIIssueDisabled}}disabled{{end}}>토큰 발급</button></div>
+</form>
+</section></div></div>
+{{end}}
+
+{{define "admin-user-api-tokens"}}
+<section class="card api-tokens" id="api-tokens" aria-labelledby="api-tokens-title">
+  <header class="api-tokens__head"><div><div class="api-tokens__title"><h2 id="api-tokens-title">API 토큰</h2><span class="badge api-tokens__rest">REST API</span></div><p class="api-tokens__intro">{{.SelectedUser.Username}}이 직접 발급한 토큰입니다. 관리자는 다른 사용자의 토큰을 발급할 수 없습니다.</p></div></header>
+  <div class="api-token-area">
+    <div class="api-token-area__head"><div><h3>발급한 토큰</h3><p>만료되지 않은 토큰을 표시합니다.</p></div>{{if .UserAPITokens}}<form class="api-revoke-all" id="user-api-token-revoke-all" method="post" action="/admin/users/api-tokens/revoke-all" data-confirm-action="user-api-token-revoke-all" data-api-confirm data-confirm-title="API 토큰 모두 취소" data-confirm-description="{{.SelectedUser.Username}}의 API 토큰을 모두 취소합니다. 이 토큰을 사용하는 에이전트와 스크립트는 즉시 작동을 멈춥니다. 되돌릴 수 없습니다. 모두 취소하시겠습니까?" data-confirm-button="모두 취소"><input type="hidden" name="csrf" value="{{.CSRF}}"><input type="hidden" name="user" value="{{.SelectedUser.ID}}"><button class="danger">모두 취소</button></form>{{end}}</div>
+    {{if .UserAPITokens}}<div class="table-scroll api-token-list" id="user-api-token-list">
+      <table class="api-token-table"><caption class="sr-only">{{.SelectedUser.Username}}의 API 토큰 목록</caption><colgroup><col class="api-col-label"><col class="api-col-scopes"><col class="api-col-source"><col><col><col><col class="api-col-action"></colgroup><thead><tr><th scope="col">라벨</th><th scope="col">권한</th><th scope="col">출처</th><th scope="col">생성</th><th scope="col">만료</th><th scope="col">마지막 사용</th><th scope="col"><span class="sr-only">작업</span></th></tr></thead><tbody>
+        {{range .UserAPITokens}}<tr><td class="cell-primary" data-label="라벨"><strong>{{if .Label}}{{.Label}}{{else}}라벨 없음{{end}}</strong></td><td data-label="권한"><div class="token-scope-list">{{range .Scopes}}<span class="badge">{{.}}</span>{{end}}</div></td><td data-label="출처">{{if eq .Source "login"}}로그인{{else}}제어판{{end}}</td><td data-label="생성"><time datetime="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Format "2006-01-02 15:04"}}</time></td><td data-label="만료"><time datetime="{{.ExpiresAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.ExpiresAt.Format "2006-01-02 15:04"}}</time></td><td data-label="마지막 사용">{{if .LastUsedAt.IsZero}}사용 안 함{{else}}<time datetime="{{.LastUsedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.LastUsedAt.Format "2006-01-02 15:04"}}</time>{{end}}</td><td class="cell-actions"><form method="post" action="/admin/users/api-tokens/revoke" data-confirm-action="user-api-token-revoke" data-api-confirm data-confirm-title="API 토큰 취소" data-confirm-description="{{$.SelectedUser.Username}}의 {{if .Label}}{{.Label}}{{else}}라벨 없음{{end}} API 토큰을 취소합니다. 이 토큰을 사용하는 에이전트와 스크립트는 즉시 작동을 멈춥니다. 되돌릴 수 없습니다. 취소하시겠습니까?" data-confirm-button="토큰 취소"><input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="user" value="{{$.SelectedUser.ID}}"><input type="hidden" name="id" value="{{.ID}}"><button class="danger" aria-label="{{$.SelectedUser.Username}} {{if .Label}}{{.Label}}{{else}}라벨 없음{{end}} API 토큰 취소">취소</button></form></td></tr>{{end}}
+      </tbody></table>
+    </div>
+    {{else}}<div class="empty api-token-empty" id="user-api-token-empty"><strong>{{.SelectedUser.Username}}의 API 토큰이 없습니다.</strong><p>사용자가 내 프로필에서 직접 토큰을 발급할 수 있습니다.</p></div>{{end}}
+  </div>
+</section>
+{{end}}

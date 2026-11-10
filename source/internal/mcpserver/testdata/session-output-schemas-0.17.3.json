@@ -1,0 +1,170 @@
+{
+  "get_session": {
+    "additionalProperties": false,
+    "properties": {
+      "activity": {
+        "additionalProperties": false,
+        "properties": {
+          "changedAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "generation": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observedAt": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string"
+          },
+          "sequence": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "sequence"
+        ],
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "automaticDeliveryReady": {
+        "type": "boolean"
+      },
+      "clientId": {
+        "type": "string"
+      },
+      "deliverySequence": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "deliveryState": {
+        "type": "string"
+      },
+      "epoch": {
+        "type": "string"
+      },
+      "errorCode": {
+        "type": "string"
+      },
+      "externallyManaged": {
+        "type": "boolean"
+      },
+      "generation": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "handoverFrom": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "at"
+        ],
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "harness": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string"
+      },
+      "lastManagement": {
+        "additionalProperties": false,
+        "properties": {
+          "actorName": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "actorName",
+          "at"
+        ],
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "name": {
+        "description": "Session.Name communication address used by other sessions",
+        "type": "string"
+      },
+      "pendingMessages": {
+        "type": "integer"
+      },
+      "pid": {
+        "type": "integer"
+      },
+      "probeDeadline": {
+        "type": "string"
+      },
+      "probePending": {
+        "type": "boolean"
+      },
+      "recoveryId": {
+        "type": "string"
+      },
+      "registrationId": {
+        "type": "string"
+      },
+      "requestedName": {
+        "description": "Name the client asked for when a UUID nickname was assigned instead",
+        "type": "string"
+      },
+      "revision": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "startedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "suspended": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "harness",
+      "status"
+    ],
+    "type": "object"
+  }
+}

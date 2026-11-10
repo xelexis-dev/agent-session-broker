@@ -1,0 +1,437 @@
+{
+  "0.12.0": {
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "deliverySequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meteredWake": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "wakeStatus": {
+          "type": "string"
+        },
+        "warning": {
+          "type": "string"
+        },
+        "warningMessage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "accepted",
+        "meteredWake",
+        "wakeStatus"
+      ],
+      "type": "object"
+    },
+    "wait_for_message": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "additionalProperties": false,
+          "description": "FIFO batch returned by one idle Claude wake; omitted for a single-message response",
+          "properties": {
+            "messages": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "body"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            }
+          },
+          "required": [
+            "messages"
+          ],
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "from": {
+          "description": "untrusted caller label; never used for authorization or routing",
+          "type": "string"
+        },
+        "registrationId": {
+          "description": "registration whose remote ingress queue delivered this envelope; set by the broker",
+          "type": "string"
+        },
+        "to": {
+          "description": "recipient Session.Name communication address or session ID",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "0.13.0": {
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "deliverySequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meteredWake": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "wakeStatus": {
+          "type": "string"
+        },
+        "warning": {
+          "type": "string"
+        },
+        "warningMessage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "accepted",
+        "meteredWake",
+        "wakeStatus"
+      ],
+      "type": "object"
+    },
+    "wait_for_message": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "additionalProperties": false,
+          "description": "FIFO batch returned by one idle Claude wake; omitted for a single-message response",
+          "properties": {
+            "messages": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "body"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            }
+          },
+          "required": [
+            "messages"
+          ],
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "from": {
+          "description": "untrusted caller label; never used for authorization or routing",
+          "type": "string"
+        },
+        "registrationId": {
+          "description": "registration whose remote ingress queue delivered this envelope; set by the broker",
+          "type": "string"
+        },
+        "to": {
+          "description": "recipient Session.Name communication address or session ID",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "0.14.0": {
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "deliverySequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meteredWake": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "wakeStatus": {
+          "type": "string"
+        },
+        "warning": {
+          "type": "string"
+        },
+        "warningMessage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "accepted",
+        "meteredWake",
+        "wakeStatus"
+      ],
+      "type": "object"
+    },
+    "wait_for_message": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "additionalProperties": false,
+          "description": "FIFO batch returned by one idle Claude wake; omitted for a single-message response",
+          "properties": {
+            "messages": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "body"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            }
+          },
+          "required": [
+            "messages"
+          ],
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "from": {
+          "description": "untrusted caller label; never used for authorization or routing",
+          "type": "string"
+        },
+        "registrationId": {
+          "description": "registration whose remote ingress queue delivered this envelope; set by the broker",
+          "type": "string"
+        },
+        "to": {
+          "description": "recipient Session.Name communication address or session ID",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "0.15.0": {
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "deliverySequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meteredWake": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "wakeStatus": {
+          "type": "string"
+        },
+        "warning": {
+          "type": "string"
+        },
+        "warningMessage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "accepted",
+        "meteredWake",
+        "wakeStatus"
+      ],
+      "type": "object"
+    },
+    "wait_for_message": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "additionalProperties": false,
+          "description": "FIFO batch returned by one idle Claude wake; omitted for a single-message response",
+          "properties": {
+            "messages": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "body"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            }
+          },
+          "required": [
+            "messages"
+          ],
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "from": {
+          "description": "untrusted caller label; never used for authorization or routing",
+          "type": "string"
+        },
+        "registrationId": {
+          "description": "registration whose remote ingress queue delivered this envelope; set by the broker",
+          "type": "string"
+        },
+        "to": {
+          "description": "recipient Session.Name communication address or session ID",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "0.16.0": {
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "deliverySequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meteredWake": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "wakeStatus": {
+          "type": "string"
+        },
+        "warning": {
+          "type": "string"
+        },
+        "warningMessage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "accepted",
+        "meteredWake",
+        "wakeStatus"
+      ],
+      "type": "object"
+    }
+  }
+}

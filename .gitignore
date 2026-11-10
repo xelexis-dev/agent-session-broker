@@ -1,0 +1,13 @@
+# Build output
+/source/bin/
+node_modules/
+
+# Local server data
+.agent-memory/
+/data/
+
+# Credentials
+.env
+.env.*
+*.pem
+*.key

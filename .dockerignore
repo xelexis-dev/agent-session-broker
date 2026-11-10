@@ -1,0 +1,12 @@
+# Only implementation inputs enter the build context.
+**
+!Dockerfile
+!source/
+!source/**/
+!source/**/*.go
+!source/go.mod
+!source/go.sum
+source/**/*_test.go
+
+!THIRD_PARTY_NOTICES
+!LICENSE

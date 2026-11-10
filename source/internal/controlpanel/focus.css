@@ -1,0 +1,40 @@
+/* Shared by the Web panel and Storybook. Outline follows the control's
+   existing border radius; do not replace it with a second border/shadow. */
+:root {
+  --focus-color: var(--color-action-text);
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --focus-extent: calc(var(--focus-width) + var(--focus-offset));
+}
+.asb :where(button, a[href], input, textarea, select, dialog, [tabindex]) {
+  scroll-margin: var(--focus-extent);
+}
+.asb :where(button, a[href], input, textarea, select, dialog, [tabindex]):focus-visible,
+.asb :is(.input, .search):has(input:focus-visible),
+.asb .switch__input:focus-visible + .switch__track {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+.asb :where(button, a[href], input, textarea, select, dialog, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+/* The visible wrapper/track carries the ring instead of the nested or
+   visually hidden native input. Text editors retain browser focus-visible
+   behavior even when clicked, since they immediately accept keyboard input. */
+.asb :is(.input, .search) input:focus-visible,
+.asb .switch__input:focus-visible {
+  outline: none;
+}
+.asb :is(.input, .search):focus-within { box-shadow: none; }
+.asb :where(.sidebar, .table-scroll, .select__popup, .member-suggestions, .user-menu-items, dialog) {
+  scroll-padding: var(--focus-extent);
+}
+/* Select options use aria-activedescendant, keeping DOM focus on the
+   trigger/search field. An inset ring survives scrolling and forced colors. */
+.asb .select:has(:focus-visible) .select__option.is-active {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+@media (forced-colors: active) {
+  :root { --focus-color: Highlight; }
+}

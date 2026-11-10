@@ -1,0 +1,11 @@
+/* Shared tooltip for the panel and catalog. No runtime style attributes. */
+.asb-tooltip{display:inline-flex;anchor-scope:--asb-tooltip-trigger}
+.asb-tooltip .asb-tooltip__trigger{display:inline-flex;align-items:center;width:auto;min-width:0;min-height:0;height:auto;margin:0;padding:0;border:0;border-radius:var(--radius-sm,6px);background:transparent;color:inherit;font:inherit;cursor:help;anchor-name:--asb-tooltip-trigger}
+.asb-tooltip .asb-tooltip__trigger:hover{background:transparent}
+.asb-tooltip__content{display:none;position:fixed;inset:0;margin:auto;box-sizing:border-box;width:max-content;height:max-content;max-width:min(280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:10px 12px;overflow:auto;overflow-wrap:anywhere;white-space:normal;border:1px solid var(--color-border-strong);border-radius:var(--radius-md,8px);background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-modal);font-family:var(--font-sans);font-size:12px;font-weight:400;line-height:1.6;text-align:left}
+.asb-tooltip__content:popover-open{display:block}
+.asb-tooltip__content code{font-family:var(--font-sans);font-variant-numeric:tabular-nums;font-size:11px;color:var(--color-text-muted)}
+@supports (anchor-scope:--asb-tooltip-trigger) and (position-area:top){
+ .asb-tooltip__content{position-anchor:--asb-tooltip-trigger;position-area:top span-all;position-try-fallbacks:flip-block,flip-inline;inset:auto;margin:8px;justify-self:anchor-center}
+}
+@media (pointer:coarse){.asb-tooltip .asb-tooltip__trigger{min-height:44px}}

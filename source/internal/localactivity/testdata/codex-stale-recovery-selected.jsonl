@@ -1,0 +1,4 @@
+{"type":"event_msg","timestamp":"2026-10-14T00:00:00Z","payload":{"type":"task_started","turn_id":"stale-turn"}}
+{"type":"response_item","timestamp":"2026-10-14T00:00:01Z","payload":{"type":"message"}}
+{"type":"response_item","timestamp":"2026-10-14T00:05:28Z","payload":{"type":"custom_tool_call"}}
+{"type":"event_msg","timestamp":"2026-10-14T00:05:29Z","payload":{"type":"task_complete","turn_id":"stale-turn"}}

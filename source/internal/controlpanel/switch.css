@@ -1,0 +1,38 @@
+/* Shared switch for the control panel.
+   The native checkbox (role=switch) stays the control and the form value;
+   the track and thumb are decoration, so it works without JavaScript and in
+   forced colors. Only .switch markup is affected (opt-in). */
+.switch {
+  position: relative; display: inline-flex; flex-direction: row; align-items: center; gap: 10px; width: fit-content; min-height: 44px;
+  font-size: 13px; font-weight: 500; line-height: 20px; color: var(--color-text); cursor: pointer;
+}
+/* Outranks panel.css input sizing (input, .check input) so the native input stays hidden but focusable. */
+.switch .switch__input {
+  position: absolute; width: 1px; min-width: 0; max-width: 1px; height: 1px; margin: 0; padding: 0; border: 0;
+  overflow: hidden; clip-path: inset(50%); opacity: 0;
+}
+.switch__track {
+  position: relative; flex: none; box-sizing: border-box; width: 40px; height: 24px; border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill); background: var(--color-high); transition: background-color 0.15s, border-color 0.15s;
+}
+.switch__thumb {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-text-muted);
+  transition: transform 0.15s, background-color 0.15s;
+}
+.switch__input:checked + .switch__track { border-color: var(--color-action); background: var(--color-action); }
+.switch__input:checked + .switch__track .switch__thumb { background: var(--color-on-action); transform: translateX(16px); }
+.switch__state { min-width: 2.5em; color: var(--color-text-muted); }
+.switch__input:checked ~ .switch__state { color: var(--color-action-text); }
+.switch__input:checked ~ .switch__state .switch__off,
+.switch__input:not(:checked) ~ .switch__state .switch__on { display: none; }
+.switch:has(.switch__input:disabled) { cursor: not-allowed; }
+.switch__input:disabled ~ .switch__track, .switch__input:disabled ~ .switch__label, .switch__input:disabled ~ .switch__state { opacity: 0.6; }
+@media (prefers-reduced-motion: reduce) {
+  .switch__track, .switch__thumb { transition: none; }
+}
+@media (forced-colors: active) {
+  .switch__track { border-color: CanvasText; background: Canvas; }
+  .switch__thumb { background: CanvasText; }
+  .switch__input:checked + .switch__track { border-color: Highlight; background: Highlight; }
+  .switch__input:checked + .switch__track .switch__thumb { background: HighlightText; }
+}

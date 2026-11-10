@@ -1,0 +1,2868 @@
+{
+  "tools": [
+    {
+      "name": "attach_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "description": "optional delivery capabilities supported by this receiver on this lease",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "channelId": {
+            "description": "Local ingress bridge lease identifier; only the exact session child renews it while its receiver is running",
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "harness": {
+            "description": "claude (default) or codex",
+            "type": "string"
+          },
+          "name": {
+            "description": "Communication name for this session; required for Codex. Claude defaults to its existing registration or CLI name",
+            "type": "string"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId",
+          "pid",
+          "cwd"
+        ],
+        "type": "object"
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "get_bug_report",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "report": {
+            "additionalProperties": false,
+            "properties": {
+              "actual": {
+                "type": "string"
+              },
+              "client": {
+                "additionalProperties": false,
+                "properties": {
+                  "arch": {
+                    "type": "string"
+                  },
+                  "authState": {
+                    "type": "string"
+                  },
+                  "clientVersion": {
+                    "type": "string"
+                  },
+                  "events": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "event": {
+                          "type": "string"
+                        },
+                        "reasonClass": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "event"
+                      ],
+                      "type": "object"
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ]
+                  },
+                  "harness": {
+                    "type": "string"
+                  },
+                  "lastFollow": {
+                    "type": "string"
+                  },
+                  "os": {
+                    "type": "string"
+                  },
+                  "receiveReady": {
+                    "type": "boolean"
+                  },
+                  "serverVersion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "clientVersion",
+                  "serverVersion",
+                  "harness",
+                  "os",
+                  "arch",
+                  "authState",
+                  "receiveReady"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "expected": {
+                "type": "string"
+              },
+              "expectedVersion": {
+                "type": "string"
+              },
+              "harness": {
+                "type": "string"
+              },
+              "historyTruncated": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "receivedAt": {
+                "type": "string"
+              },
+              "registrationId": {
+                "type": "string"
+              },
+              "serverVersion": {
+                "type": "string"
+              },
+              "sessionName": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "statusChanges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "actor": {
+                      "type": "string"
+                    },
+                    "at": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "session": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "registrationId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "registrationId"
+                      ],
+                      "type": [
+                        "null",
+                        "object"
+                      ]
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "from",
+                    "to",
+                    "actor",
+                    "source"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "steps": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "tool": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "severity",
+              "state",
+              "receivedAt",
+              "expectedVersion",
+              "summary",
+              "serverVersion",
+              "sessionName",
+              "registrationId",
+              "harness",
+              "statusChanges",
+              "historyTruncated"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          }
+        },
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "activity": {
+            "additionalProperties": false,
+            "properties": {
+              "changedAt": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "type": "string"
+              },
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "observedAt": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "receivedAt": {
+                "type": "string"
+              },
+              "sequence": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "source": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "sequence"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "automaticDeliveryReady": {
+            "type": "boolean"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "deliverySequence": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "deliveryState": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "externallyManaged": {
+            "type": "boolean"
+          },
+          "generation": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "handoverFrom": {
+            "additionalProperties": false,
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "revision",
+              "at"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "harness": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastManagement": {
+            "additionalProperties": false,
+            "properties": {
+              "actorName": {
+                "type": "string"
+              },
+              "at": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "actorName",
+              "at"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "name": {
+            "description": "Session.Name communication address used by other sessions",
+            "type": "string"
+          },
+          "pendingMessages": {
+            "type": "integer"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "probeDeadline": {
+            "type": "string"
+          },
+          "probePending": {
+            "type": "boolean"
+          },
+          "recoveryId": {
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          },
+          "requestedName": {
+            "description": "Name the client asked for when a UUID nickname was assigned instead",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "suspended": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "harness",
+          "status"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_bug_reports",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "state": {
+            "description": "open (default), resolved, ignored, closed (legacy), or all",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "reports": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "expectedVersion": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "receivedAt": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "severity",
+                "state",
+                "receivedAt",
+                "expectedVersion"
+              ],
+              "type": "object"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reports",
+          "total",
+          "page"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_sessions",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "memory_get",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "memory node id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "backlinks": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "node": {
+            "additionalProperties": false,
+            "properties": {
+              "archived": {
+                "type": "boolean"
+              },
+              "body": {
+                "type": "string"
+              },
+              "created_at": {
+                "type": "string"
+              },
+              "created_by": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "links": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "supersedes": {
+                "type": "string"
+              },
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "body",
+              "created_by",
+              "created_at",
+              "archived"
+            ],
+            "type": "object"
+          },
+          "replaced_by": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "backlinks"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "memory_put",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "body": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "supersedes": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body",
+          "created_by"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "body": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "supersedes": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "body",
+          "created_by",
+          "created_at",
+          "archived"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "memory_search",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_by": {
+            "type": "string"
+          },
+          "include_history": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "linked_to": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "nodes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "archived": {
+                  "type": "boolean"
+                },
+                "created_at": {
+                  "type": "string"
+                },
+                "created_by": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "links": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": [
+                    "null",
+                    "array"
+                  ]
+                },
+                "snippet": {
+                  "type": "string"
+                },
+                "supersedes": {
+                  "type": "string"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": [
+                    "null",
+                    "array"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "created_by",
+                "snippet",
+                "created_at",
+                "archived"
+              ],
+              "type": "object"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "warnings": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "file": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "file",
+                "error"
+              ],
+              "type": "object"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          }
+        },
+        "required": [
+          "nodes",
+          "warnings"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "probe_response",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "probeId": {
+            "type": "string"
+          },
+          "processKey": {
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "registrationId",
+          "probeId",
+          "revision",
+          "channelId",
+          "ok"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "removed": {
+            "type": "boolean"
+          },
+          "session": {
+            "additionalProperties": false,
+            "properties": {
+              "activity": {
+                "additionalProperties": false,
+                "properties": {
+                  "changedAt": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "observedAt": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "receivedAt": {
+                    "type": "string"
+                  },
+                  "sequence": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "sequence"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "automaticDeliveryReady": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              },
+              "deliverySequence": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "deliveryState": {
+                "type": "string"
+              },
+              "epoch": {
+                "type": "string"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "externallyManaged": {
+                "type": "boolean"
+              },
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "handoverFrom": {
+                "additionalProperties": false,
+                "properties": {
+                  "at": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "harness": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "lastManagement": {
+                "additionalProperties": false,
+                "properties": {
+                  "actorName": {
+                    "type": "string"
+                  },
+                  "at": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "actorName",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "name": {
+                "description": "Session.Name communication address used by other sessions",
+                "type": "string"
+              },
+              "pendingMessages": {
+                "type": "integer"
+              },
+              "pid": {
+                "type": "integer"
+              },
+              "probeDeadline": {
+                "type": "string"
+              },
+              "probePending": {
+                "type": "boolean"
+              },
+              "recoveryId": {
+                "type": "string"
+              },
+              "registrationId": {
+                "type": "string"
+              },
+              "requestedName": {
+                "description": "Name the client asked for when a UUID nickname was assigned instead",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "startedAt": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "suspended": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "harness",
+              "status"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "register_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "description": "optional delivery capabilities supported by this receiver on this lease",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "channelId": {
+            "description": "Fresh ingress lease for this receiver",
+            "type": "string"
+          },
+          "clientId": {
+            "description": "Stable per-PC client identity generated by the local MCP client",
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "expectedRevision": {
+            "description": "Registration revision the client last stored; zero for a first registration. A different current revision rejects this stale request",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "harness": {
+            "type": "string"
+          },
+          "holder": {
+            "additionalProperties": false,
+            "properties": {
+              "deviceId": {
+                "type": "string"
+              },
+              "incarnation": {
+                "type": "string"
+              },
+              "pid": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "deviceId",
+              "pid",
+              "incarnation"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "holderProof": {
+            "additionalProperties": false,
+            "properties": {
+              "challenge": {
+                "additionalProperties": false,
+                "properties": {
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "holder": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "deviceId": {
+                        "type": "string"
+                      },
+                      "incarnation": {
+                        "type": "string"
+                      },
+                      "pid": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "deviceId",
+                      "pid",
+                      "incarnation"
+                    ],
+                    "type": "object"
+                  },
+                  "nonce": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "holder",
+                  "revision",
+                  "generation",
+                  "nonce"
+                ],
+                "type": "object"
+              },
+              "dead": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "challenge",
+              "dead"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "ingressPending": {
+            "description": "Registration is connected but its local delivery channel has not been activated",
+            "type": "boolean"
+          },
+          "mac": {
+            "type": "string"
+          },
+          "name": {
+            "description": "Requested communication name; ignored when an admission grant assigns one",
+            "type": "string"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "processKey": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Idempotency key for retries",
+            "type": "string"
+          },
+          "secret": {
+            "description": "Client-generated resume secret; the server stores only its hash",
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "token": {
+            "description": "Optional admission token for token-protected projects; never used for resume",
+            "type": "string"
+          }
+        },
+        "required": [
+          "harness",
+          "sessionId",
+          "pid",
+          "cwd",
+          "clientId",
+          "channelId",
+          "secret",
+          "requestId"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "activityVersion": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "credentialScopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "holderChallenge": {
+            "additionalProperties": false,
+            "properties": {
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "holder": {
+                "additionalProperties": false,
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "incarnation": {
+                    "type": "string"
+                  },
+                  "pid": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "deviceId",
+                  "pid",
+                  "incarnation"
+                ],
+                "type": "object"
+              },
+              "nonce": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "holder",
+              "revision",
+              "generation",
+              "nonce"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "messageAckVersion": {
+            "type": "integer"
+          },
+          "pendingProbe": {
+            "additionalProperties": false,
+            "properties": {
+              "deadline": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "revision",
+              "deadline"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "runtimeInfoVersion": {
+            "type": "integer"
+          },
+          "session": {
+            "additionalProperties": false,
+            "properties": {
+              "activity": {
+                "additionalProperties": false,
+                "properties": {
+                  "changedAt": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "observedAt": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "receivedAt": {
+                    "type": "string"
+                  },
+                  "sequence": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "sequence"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "automaticDeliveryReady": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              },
+              "deliverySequence": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "deliveryState": {
+                "type": "string"
+              },
+              "epoch": {
+                "type": "string"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "externallyManaged": {
+                "type": "boolean"
+              },
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "handoverFrom": {
+                "additionalProperties": false,
+                "properties": {
+                  "at": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "harness": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "lastManagement": {
+                "additionalProperties": false,
+                "properties": {
+                  "actorName": {
+                    "type": "string"
+                  },
+                  "at": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "actorName",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "name": {
+                "description": "Session.Name communication address used by other sessions",
+                "type": "string"
+              },
+              "pendingMessages": {
+                "type": "integer"
+              },
+              "pid": {
+                "type": "integer"
+              },
+              "probeDeadline": {
+                "type": "string"
+              },
+              "probePending": {
+                "type": "boolean"
+              },
+              "recoveryId": {
+                "type": "string"
+              },
+              "registrationId": {
+                "type": "string"
+              },
+              "requestedName": {
+                "description": "Name the client asked for when a UUID nickname was assigned instead",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "startedAt": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "suspended": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "harness",
+              "status"
+            ],
+            "type": "object"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "rename_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "name": {
+            "description": "New communication nickname for this connected session; duplicates are rejected",
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "registrationId",
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "renew_lease",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ackThrough": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "activity": {},
+          "channelId": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          },
+          "ingressPending": {
+            "type": "boolean"
+          },
+          "registrationId": {
+            "type": "string"
+          },
+          "runtimeInfo": {}
+        },
+        "required": [
+          "registrationId",
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "activityVersion": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "credentialScopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "holderChallenge": {
+            "additionalProperties": false,
+            "properties": {
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "holder": {
+                "additionalProperties": false,
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "incarnation": {
+                    "type": "string"
+                  },
+                  "pid": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "deviceId",
+                  "pid",
+                  "incarnation"
+                ],
+                "type": "object"
+              },
+              "nonce": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "holder",
+              "revision",
+              "generation",
+              "nonce"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "messageAckVersion": {
+            "type": "integer"
+          },
+          "pendingProbe": {
+            "additionalProperties": false,
+            "properties": {
+              "deadline": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "revision",
+              "deadline"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "runtimeInfoVersion": {
+            "type": "integer"
+          },
+          "session": {
+            "additionalProperties": false,
+            "properties": {
+              "activity": {
+                "additionalProperties": false,
+                "properties": {
+                  "changedAt": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "observedAt": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "receivedAt": {
+                    "type": "string"
+                  },
+                  "sequence": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "sequence"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "automaticDeliveryReady": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              },
+              "deliverySequence": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "deliveryState": {
+                "type": "string"
+              },
+              "epoch": {
+                "type": "string"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "externallyManaged": {
+                "type": "boolean"
+              },
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "handoverFrom": {
+                "additionalProperties": false,
+                "properties": {
+                  "at": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "harness": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "lastManagement": {
+                "additionalProperties": false,
+                "properties": {
+                  "actorName": {
+                    "type": "string"
+                  },
+                  "at": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "actorName",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "name": {
+                "description": "Session.Name communication address used by other sessions",
+                "type": "string"
+              },
+              "pendingMessages": {
+                "type": "integer"
+              },
+              "pid": {
+                "type": "integer"
+              },
+              "probeDeadline": {
+                "type": "string"
+              },
+              "probePending": {
+                "type": "boolean"
+              },
+              "recoveryId": {
+                "type": "string"
+              },
+              "registrationId": {
+                "type": "string"
+              },
+              "requestedName": {
+                "description": "Name the client asked for when a UUID nickname was assigned instead",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "startedAt": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "suspended": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "harness",
+              "status"
+            ],
+            "type": "object"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "report_bug",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "type": "string"
+          },
+          "client": {
+            "additionalProperties": false,
+            "properties": {
+              "arch": {
+                "type": "string"
+              },
+              "authState": {
+                "type": "string"
+              },
+              "clientVersion": {
+                "type": "string"
+              },
+              "events": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "reasonClass": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "event"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "harness": {
+                "type": "string"
+              },
+              "lastFollow": {
+                "type": "string"
+              },
+              "os": {
+                "type": "string"
+              },
+              "receiveReady": {
+                "type": "boolean"
+              },
+              "serverVersion": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientVersion",
+              "serverVersion",
+              "harness",
+              "os",
+              "arch",
+              "authState",
+              "receiveReady"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "expected": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string"
+          },
+          "retryAt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    {
+      "name": "report_ingress_failure",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "resume_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "description": "optional delivery capabilities supported by this receiver on this lease",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "channelId": {
+            "type": "string"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "expectedRevision": {
+            "description": "Registration revision the client last observed; a newer revision rejects this stale resume",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "harness": {
+            "type": "string"
+          },
+          "holder": {
+            "additionalProperties": false,
+            "properties": {
+              "deviceId": {
+                "type": "string"
+              },
+              "incarnation": {
+                "type": "string"
+              },
+              "pid": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "deviceId",
+              "pid",
+              "incarnation"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "holderProof": {
+            "additionalProperties": false,
+            "properties": {
+              "challenge": {
+                "additionalProperties": false,
+                "properties": {
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "holder": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "deviceId": {
+                        "type": "string"
+                      },
+                      "incarnation": {
+                        "type": "string"
+                      },
+                      "pid": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "deviceId",
+                      "pid",
+                      "incarnation"
+                    ],
+                    "type": "object"
+                  },
+                  "nonce": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "holder",
+                  "revision",
+                  "generation",
+                  "nonce"
+                ],
+                "type": "object"
+              },
+              "dead": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "challenge",
+              "dead"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "ingressPending": {
+            "type": "boolean"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "processKey": {
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "registrationId",
+          "harness",
+          "sessionId",
+          "pid",
+          "cwd",
+          "clientId",
+          "channelId",
+          "secret",
+          "requestId"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "activityVersion": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "credentialScopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "holderChallenge": {
+            "additionalProperties": false,
+            "properties": {
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "holder": {
+                "additionalProperties": false,
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "incarnation": {
+                    "type": "string"
+                  },
+                  "pid": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "deviceId",
+                  "pid",
+                  "incarnation"
+                ],
+                "type": "object"
+              },
+              "nonce": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "holder",
+              "revision",
+              "generation",
+              "nonce"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "messageAckVersion": {
+            "type": "integer"
+          },
+          "pendingProbe": {
+            "additionalProperties": false,
+            "properties": {
+              "deadline": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "revision",
+              "deadline"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "runtimeInfoVersion": {
+            "type": "integer"
+          },
+          "session": {
+            "additionalProperties": false,
+            "properties": {
+              "activity": {
+                "additionalProperties": false,
+                "properties": {
+                  "changedAt": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "generation": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "observedAt": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "receivedAt": {
+                    "type": "string"
+                  },
+                  "sequence": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "sequence"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "automaticDeliveryReady": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              },
+              "deliverySequence": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "deliveryState": {
+                "type": "string"
+              },
+              "epoch": {
+                "type": "string"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "externallyManaged": {
+                "type": "boolean"
+              },
+              "generation": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "handoverFrom": {
+                "additionalProperties": false,
+                "properties": {
+                  "at": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "harness": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "lastManagement": {
+                "additionalProperties": false,
+                "properties": {
+                  "actorName": {
+                    "type": "string"
+                  },
+                  "at": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "actorName",
+                  "at"
+                ],
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
+              "name": {
+                "description": "Session.Name communication address used by other sessions",
+                "type": "string"
+              },
+              "pendingMessages": {
+                "type": "integer"
+              },
+              "pid": {
+                "type": "integer"
+              },
+              "probeDeadline": {
+                "type": "string"
+              },
+              "probePending": {
+                "type": "boolean"
+              },
+              "recoveryId": {
+                "type": "string"
+              },
+              "registrationId": {
+                "type": "string"
+              },
+              "requestedName": {
+                "description": "Name the client asked for when a UUID nickname was assigned instead",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "startedAt": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "suspended": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "harness",
+              "status"
+            ],
+            "type": "object"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "retire_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "send_message",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "expectRegistrationId": {
+            "description": "Expected recipient registration ID for replies or known peers; mismatch refuses without enqueueing",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "from": {
+            "description": "registered live sender Session.Name or session ID in this project; registration is required but is not caller authentication",
+            "type": "string"
+          },
+          "to": {
+            "description": "recipient Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "body"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "currentRegistrationId": {
+            "type": "string"
+          },
+          "deliverySequence": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meteredWake": {
+            "type": "boolean"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "wakeStatus": {
+            "type": "string"
+          },
+          "warning": {
+            "type": "string"
+          },
+          "warningMessage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "accepted",
+          "meteredWake",
+          "wakeStatus"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "set_bug_report_status",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "description": "Opaque version returned by list/get; read again on conflict, never blindly retry",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "note": {
+            "description": "At most 500 Unicode characters, valid UTF-8; newline is the only allowed control character; never include secrets",
+            "type": "string"
+          },
+          "state": {
+            "description": "resolved, ignored, or open",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "expectedVersion"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "type": "boolean"
+          },
+          "changedAt": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "historyTruncated": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "statusChanges": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "actor": {
+                  "type": "string"
+                },
+                "at": {
+                  "type": "string"
+                },
+                "from": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "session": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "registrationId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "registrationId"
+                  ],
+                  "type": [
+                    "null",
+                    "object"
+                  ]
+                },
+                "source": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "at",
+                "from",
+                "to",
+                "actor",
+                "source"
+              ],
+              "type": "object"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          }
+        },
+        "required": [
+          "changed"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "stop_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "suspend_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "unsuspend_session",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "wait_for_message",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ackThrough": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "channelId": {
+            "type": "string"
+          },
+          "cursor": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "epoch": {
+            "type": "string"
+          },
+          "recipient": {
+            "description": "Session.Name or session ID whose queue this receiver owns",
+            "type": "string"
+          },
+          "registrationId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "batch": {
+            "additionalProperties": false,
+            "description": "FIFO batch returned by one idle Claude wake; omitted for a single-message response",
+            "properties": {
+              "messages": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "body": {
+                      "type": "string"
+                    },
+                    "deliverySequence": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "fromRegistrationId": {
+                      "type": "string"
+                    },
+                    "sentAt": {
+                      "description": "time the broker accepted the message (RFC 3339, UTC); set by the broker, never by the sender",
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "body"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "messages"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "body": {
+            "type": "string"
+          },
+          "deliverySequence": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expectRegistrationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "from": {
+            "description": "untrusted caller label; never used for authorization or routing",
+            "type": "string"
+          },
+          "fromRegistrationId": {
+            "type": "string"
+          },
+          "registrationId": {
+            "description": "registration whose remote ingress queue delivered this envelope; set by the broker",
+            "type": "string"
+          },
+          "sentAt": {
+            "description": "time the broker accepted the message (RFC 3339, UTC); set by the broker, never by the sender",
+            "type": "string"
+          },
+          "to": {
+            "description": "recipient Session.Name communication address or session ID",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  ],
+  "capabilities": {
+    "attachments": {
+      "experimental": {
+        "message.ack.v1": true,
+        "message.attachment.v1": true,
+        "message.recipient-registration": true,
+        "message.sentAt": true,
+        "receiver-holder-v1": true,
+        "recommendedClientVersion": "1.0.1"
+      },
+      "logging": {},
+      "tools": {
+        "listChanged": true
+      }
+    },
+    "default": {
+      "experimental": {
+        "message.ack.v1": true,
+        "message.recipient-registration": true,
+        "message.sentAt": true,
+        "receiver-holder-v1": true,
+        "recommendedClientVersion": "1.0.1"
+      },
+      "logging": {},
+      "tools": {
+        "listChanged": true
+      }
+    }
+  }
+}
