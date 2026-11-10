@@ -9,7 +9,7 @@ Upstream supplementary license/NOTICE files are retained in full; their own scop
 
 
 Component: Go standard library
-Version: go1.27.3
+Version: go1.27.4
 License: BSD-3-Clause
 
 --- LICENSE ---

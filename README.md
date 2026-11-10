@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.1
+    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.2
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.1
+npm install -g @xelexis/x-broker@1.0.2
 x-broker --version
 ```
 

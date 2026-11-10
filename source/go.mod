@@ -2,7 +2,7 @@ module github.com/xelexis-dev/agent-session-broker/source
 
 go 1.27
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require (
 	github.com/google/jsonschema-go v0.4.3
