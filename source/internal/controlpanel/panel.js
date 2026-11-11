@@ -1,5 +1,21 @@
 "use strict";
 
+// Messages come from the page's JSON data block (html/template encodes it; no inline script runs). The other panel
+// scripts load after this deferred script and use window.ASB.t. Replacement is a single pass, so values are never
+// read as placeholders. A missing key shows the key, which the catalog tests keep out of releases.
+const ASB = window.ASB = (() => {
+  let messages = {};
+  try { messages = JSON.parse(document.getElementById("asb-i18n")?.textContent || "{}"); } catch { messages = {}; }
+  const lang = document.documentElement.lang || "en";
+  function t(key, vars = {}) {
+    let text = messages[key];
+    if (text && typeof text === "object") text = vars.n === 1 && text.one ? text.one : text.other;
+    if (typeof text !== "string") return key;
+    return text.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (match, name) => (Object.hasOwn(vars, name) ? String(vars[name]) : match));
+  }
+  return Object.freeze({ lang, t });
+})();
+
 // Keep the native submit path (including validation and submitter name/value).
 // Window bubbling runs after confirmation handlers on the form or document.
 const pendingSubmissions = new Map();
@@ -71,37 +87,37 @@ if (confirmationDialog) {
     switch (form.dataset.confirmAction) {
       case "attachments":
         return form.elements.namedItem("attachments").value === "true"
-          ? ["메시지 파일 첨부 켜기", "세션이 보낸 파일이 이 서버를 거쳐 받는 PC에 저장됩니다. 메시지 파일 첨부를 켜시겠습니까?", "첨부 켜기"]
-          : ["메시지 파일 첨부 끄기", "새 첨부를 막고 서버에 남은 첨부 파일을 모두 지웁니다. 지운 파일은 되돌릴 수 없습니다. 메시지 파일 첨부를 끄시겠습니까?", "끄고 서버 파일 삭제"];
+          ? [ASB.t("js.confirm.attachments_on_title"), ASB.t("js.confirm.attachments_on_body"), ASB.t("js.confirm.attachments_on_ok")]
+          : [ASB.t("js.confirm.attachments_off_title"), ASB.t("js.confirm.attachments_off_body"), ASB.t("js.confirm.attachments_off_ok")];
 
       case "scope-issuance":
         if (form.elements.namedItem("enabled").value !== "true") return null;
-        return ["제한 권한·자동 등록 발급 켜기", "제한 권한·자동 등록 토큰 발급을 켭니다. 사용자가 이 대화의 연결을 요청하면 승인 없이 등록합니다. 새 대화가 시작되는 것만으로 등록하지 않습니다. 켜시겠습니까?"];
+        return [ASB.t("js.confirm.scope_issuance_title"), ASB.t("js.confirm.scope_issuance_body")];
       case "http-policy":
         if (form.elements.namedItem("allowHTTP").value !== "true") return null;
-        return ["HTTP 연결 허용", "HTTP 연결을 허용합니다. HTTP는 암호화되지 않습니다. 허용하시겠습니까?"];
+        return [ASB.t("js.confirm.http_title"), ASB.t("js.confirm.http_body")];
       case "broker-announcement": {
         const project = form.elements.namedItem("project");
-        const scope = project.selectedOptions[0]?.textContent || "전체 프로젝트";
+        const scope = project.selectedOptions[0]?.textContent || ASB.t("js.all_projects");
         const body = form.elements.namedItem("body").value;
-        return ["공지 접수", `${scope}의 수신 준비된 세션에 broker-admin으로 보냅니다. 답신은 받을 수 없습니다.\n\n${body}`];
+        return [ASB.t("js.confirm.announcement_title"), ASB.t("js.confirm.announcement_body", { scope, body })];
       }
       case "session-suspend":
-        return ["세션 일시 중지", `${target} 연결을 차단합니다. 등록과 토큰은 유지되고, 대기 중인 메시지는 폐기됩니다.`];
+        return [ASB.t("js.confirm.suspend_title"), ASB.t("js.confirm.suspend_body", { target })];
       case "token-revoke":
-        return ["토큰 취소", `${target} 토큰을 취소합니다. 되돌릴 수 없습니다.`];
+        return [ASB.t("js.confirm.token_revoke_title"), ASB.t("js.confirm.token_revoke_body", { target })];
       case "project-token-revoke":
-        return ["프로젝트 토큰 취소", `${target} 프로젝트 토큰과 이 토큰으로 승인된 세션을 모두 취소합니다. 되돌릴 수 없습니다.`];
+        return [ASB.t("js.confirm.project_token_revoke_title"), ASB.t("js.confirm.project_token_revoke_body", { target })];
       case "session-grant-release":
-        return ["닉네임 예약 해제", `${target} 세션 토큰을 취소하고 닉네임 예약을 해제합니다. 되돌릴 수 없습니다.`];
+        return [ASB.t("js.confirm.reservation_release_title"), ASB.t("js.confirm.reservation_release_body", { target })];
       case "session-detach":
-        return ["세션 연결 해제", `${target} 연결을 해제하고 등록·닉네임 예약·사용한 토큰을 제거합니다. 되돌릴 수 없습니다.`];
+        return [ASB.t("js.confirm.detach_title"), ASB.t("js.confirm.detach_body", { target })];
       case "member-remove":
-        return ["멤버 제외", `${target}을 프로젝트에서 제외하고 이 사용자의 프로젝트 토큰을 모두 취소합니다. 되돌릴 수 없습니다.`];
+        return [ASB.t("js.confirm.member_remove_title"), ASB.t("js.confirm.member_remove_body", { target })];
       case "member-role": {
         const role = form.elements.namedItem("role").value;
         if (roleRank[role] < roleRank[form.dataset.currentRole]) {
-          return ["역할 강등", `${target}의 역할을 ${form.dataset.currentRole}에서 ${role}로 바꾸고 이 사용자의 프로젝트 토큰을 모두 취소합니다. 되돌릴 수 없습니다.`];
+          return [ASB.t("js.confirm.role_demote_title"), ASB.t("js.confirm.role_demote_body", { target, from: form.dataset.currentRole, to: role })];
         }
         return null;
       }
@@ -191,7 +207,7 @@ document.querySelectorAll("[data-member-autocomplete]").forEach((widget) => {
   function choose(option) {
     input.value = option.textContent;
     dismiss();
-    status.textContent = `${input.value} 선택됨`;
+    status.textContent = ASB.t("js.member.selected", { name: input.value });
     input.focus();
   }
 
@@ -209,11 +225,11 @@ document.querySelectorAll("[data-member-autocomplete]").forEach((widget) => {
     dismiss();
     const query = input.value.trim();
     if (!query || composing) {
-      status.textContent = "아이디 일부를 입력하세요.";
+      status.textContent = ASB.t("js.member.type_more");
       return;
     }
     const requestSequence = sequence;
-    status.textContent = "등록된 사용자를 찾는 중입니다.";
+    status.textContent = ASB.t("js.member.searching");
     timer = setTimeout(async () => {
       controller = new AbortController();
       const params = new URLSearchParams({ project: widget.dataset.project, q: query });
@@ -243,12 +259,12 @@ document.querySelectorAll("[data-member-autocomplete]").forEach((widget) => {
         list.hidden = usernames.length === 0;
         input.setAttribute("aria-expanded", String(usernames.length > 0));
         status.textContent = usernames.length
-          ? `${usernames.length}명의 후보가 있습니다. 위아래 화살표로 이동하고 Enter로 선택하세요.`
-          : "추가할 수 있는 사용자가 없습니다.";
+          ? ASB.t("js.member.candidates", { n: usernames.length })
+          : ASB.t("js.member.none");
       } catch (error) {
         if (requestSequence !== sequence || error.name === "AbortError") return;
         dismiss();
-        status.textContent = "사용자 후보를 불러오지 못했습니다. 아이디를 다시 입력해 주세요.";
+        status.textContent = ASB.t("js.member.load_failed");
       }
     }, 180);
   }
@@ -271,7 +287,7 @@ document.querySelectorAll("[data-member-autocomplete]").forEach((widget) => {
       event.preventDefault();
       event.stopPropagation();
       dismiss();
-      status.textContent = "후보 목록을 닫았습니다.";
+      status.textContent = ASB.t("js.member.closed");
     } else if (event.key === "Tab") {
       dismiss();
     }
@@ -333,7 +349,7 @@ document.querySelectorAll("[data-table-filter]").forEach((input) => {
       row.hidden = !match;
       if (match) shown += 1;
     });
-    if (status) status.textContent = query ? `${shown}개 항목이 검색되었습니다.` : "";
+    if (status) status.textContent = query ? ASB.t("js.filter.count", { n: shown }) : "";
   };
   input.addEventListener("input", apply);
   apply();
@@ -374,7 +390,7 @@ document.querySelectorAll('form[action="/auth/code"]').forEach((form) => {
 // local timezone, with whole seconds and an explicit date.
 for (const node of document.querySelectorAll('time[data-local-time]')) {
   const date = new Date(node.getAttribute('datetime'));
-  if (!Number.isFinite(date.getTime())) { node.textContent = '시각 확인 불가'; continue; }
+  if (!Number.isFinite(date.getTime())) { node.textContent = ASB.t('js.time.unknown'); continue; }
   const pad = value => String(value).padStart(2,'0');
   node.textContent = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
@@ -397,11 +413,11 @@ function initializeScopeEditor(dialog, savedScroll = 0, backgroundScroll) {
     boxes.forEach(box => {
       const delta = box.closest('.check').querySelector('[data-scope-delta]');
       const changed = box.checked !== (box.dataset.scopeBaseline === 'true');
-      delta.textContent = changed ? (box.checked ? '추가' : '제거') : '';
+      delta.textContent = changed ? (box.checked ? ASB.t('js.scope.added') : ASB.t('js.scope.removed')) : '';
       delta.classList.toggle('is-removed', changed && !box.checked);
     });
-    form.querySelector('[data-scope-added]').textContent = `추가 ${added.length}개 · ${added.join(', ') || '없음'}`;
-    form.querySelector('[data-scope-removed]').textContent = `제거 ${removed.length}개 · ${removed.join(', ') || '없음'}`;
+    form.querySelector('[data-scope-added]').textContent = ASB.t('js.scope.added_list', { count: added.length, list: added.join(', ') || ASB.t('js.scope.none') });
+    form.querySelector('[data-scope-removed]').textContent = ASB.t('js.scope.removed_list', { count: removed.length, list: removed.join(', ') || ASB.t('js.scope.none') });
     form.querySelector('[data-scope-receive-added]').hidden = !added.includes('message:receive');
     form.querySelector('[data-scope-receive-removed]').hidden = !removed.includes('message:receive');
     const noop = added.length + removed.length === 0;
@@ -475,7 +491,7 @@ function initializeScopeEditor(dialog, savedScroll = 0, backgroundScroll) {
         notice.dataset.scopeNetworkError = '';
         heading.closest('.section-heading').after(notice);
       }
-      notice.textContent = '권한 검토 요청을 완료하지 못했습니다. 다시 시도해 주세요.';
+      notice.textContent = ASB.t('js.scope.review_failed');
       pending = false;
       form.removeAttribute('aria-busy');
       update();
@@ -509,7 +525,7 @@ if (issuedAPI) {
     const status = issuedAPI.querySelector("[data-copy-status]");
     try {
       await navigator.clipboard.writeText(token.textContent);
-      status.textContent = "토큰을 복사했습니다.";
+      status.textContent = ASB.t("js.copy.copied");
     } catch {
       const range = document.createRange();
       range.selectNodeContents(token);
@@ -517,7 +533,7 @@ if (issuedAPI) {
       selection.removeAllRanges();
       selection.addRange(range);
       token.focus();
-      status.textContent = "토큰을 선택했습니다. 복사하세요.";
+      status.textContent = ASB.t("js.copy.selected");
     }
   });
 }

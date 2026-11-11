@@ -21,6 +21,7 @@ func TestAttachmentUIFullChrome(t *testing.T) {
 	var hideTitle atomic.Bool
 	for _, state := range []string{"off", "on", "low", "unknown", "long", "off-low", "off-unknown"} {
 		s := attachmentUIFixture(t, state)
+		useKorean(t, s)
 		h := New(s, &ownedPanelBackend{}, http.NotFoundHandler())
 		admin := loginPanelUser(t, h, "admin")
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

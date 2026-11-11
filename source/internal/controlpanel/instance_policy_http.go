@@ -53,7 +53,7 @@ func (p *panel) instanceHTTPPolicyMutate(w http.ResponseWriter, r *http.Request,
 			p.show(w, r, session, "admin-settings", "", http.StatusConflict, settingsConflictMessage, "")
 			return
 		}
-		p.show(w, r, session, "admin-settings", "", http.StatusBadRequest, "HTTP 연결 정책을 저장하지 못했습니다.", "")
+		p.show(w, r, session, "admin-settings", "", http.StatusBadRequest, "admin.http.error_save", "")
 		return
 	}
 	p.redirectNotice(w, r, "/admin/settings", "instance-http-policy-saved")

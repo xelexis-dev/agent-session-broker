@@ -16,8 +16,8 @@ func (tooltipBackend) Sessions(context.Context, string) ([]Session, error) {
 func TestSessionStatusDescriptionsAreTooltips(t *testing.T) {
 	h := New(userStore(t), &tooltipBackend{}, http.NotFoundHandler())
 	body := loginPanelUser(t, h, "owner").call("GET", "/projects/sessions?project=demo", nil).Body.String()
-	table := layoutTables(t, body)["프로젝트 연결 세션"]
-	if strings.Join(table.headers, "|") != "계정|세션|하네스|상태|관리" {
+	table := layoutTables(t, body)[en("sessions.caption")]
+	if strings.Join(table.headers, "|") != strings.Join([]string{en("sessions.col_account"), en("sessions.col_session"), en("sessions.col_harness"), en("sessions.col_status"), en("sessions.col_manage")}, "|") {
 		t.Errorf("project column remains: %v", table.headers)
 	}
 	trigger := regexp.MustCompile(`(?s)<button[^>]*aria-describedby="([^"]+)"[^>]*>.*?</button>`).FindStringSubmatch(body)
@@ -31,7 +31,7 @@ func TestSessionStatusDescriptionsAreTooltips(t *testing.T) {
 	if len(popup) != 2 {
 		t.Fatal("badge description not in tooltip")
 	}
-	for _, text := range []string{"missing", "수신 연결 실패", "상태 응답 대기"} {
+	for _, text := range []string{"missing", enHTML("session.reason.ingress-failed"), en("session.tooltip.probe_pending")} {
 		if !strings.Contains(popup[1], text) {
 			t.Errorf("tooltip lacks %s", text)
 		}
@@ -41,7 +41,7 @@ func TestSessionStatusDescriptionsAreTooltips(t *testing.T) {
 		t.Fatal("status cell missing")
 	}
 	outside := strings.Replace(cell[1], popup[0], "", 1)
-	for _, text := range []string{"missing", "수신 연결 실패", "상태 응답 대기"} {
+	for _, text := range []string{"missing", enHTML("session.reason.ingress-failed"), en("session.tooltip.probe_pending")} {
 		if strings.Contains(outside, text) {
 			t.Errorf("description still outside tooltip: %s", text)
 		}

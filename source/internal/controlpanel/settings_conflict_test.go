@@ -95,7 +95,7 @@ func TestSettingsConflictForms(t *testing.T) {
 			before := misuseSnapshot(t, s)
 			tc.stale.Set("settings_version", old)
 			w := b.call("POST", tc.action, tc.stale)
-			if w.Code != 409 || !strings.Contains(w.Body.String(), settingsConflictMessage) {
+			if w.Code != 409 || !strings.Contains(w.Body.String(), en("error.settings_conflict")) {
 				t.Fatalf("conflict=%d", w.Code)
 			}
 			if misuseSnapshot(t, s) != before {

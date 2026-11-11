@@ -45,7 +45,7 @@ func TestUICopyTrimRemovedLongStringsAndDescriptions(t *testing.T) {
 					t.Error("page title removed")
 				}
 				if view == "admin-settings" {
-					if !strings.Contains(heading, "<p>모든 프로젝트에 적용됩니다.</p>") {
+					if !strings.Contains(heading, "<p>"+en("heading.instance_settings_desc")+"</p>") {
 						t.Error("admin description missing")
 					}
 				} else if strings.Contains(heading, "<p>") {

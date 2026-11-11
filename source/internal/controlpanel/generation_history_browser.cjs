@@ -7,7 +7,9 @@ const config=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
 const out=process.env.ASB_HISTORY_EVIDENCE;
 if(!out) throw new Error('ASB_HISTORY_EVIDENCE is required');
 fs.mkdirSync(out,{recursive:true});
-const notices={unknown:'프로젝트 세대를 확인할 수 없는 기록입니다. 현재 프로젝트의 기록과 구분해 표시합니다.',previous:'현재 프로젝트와 다른 세대의 기록입니다.',mixed:'현재 세대에 속하지 않거나 세대를 확인할 수 없는 기록입니다.'};
+// The accounts are Korean (useKorean) while the bug report pages are still Korean-only (MR-5).
+const ko=require('./i18n_fixture.cjs').catalog('ko');
+const notices={unknown:ko['history.notice_unknown'],previous:ko['history.notice_previous'],mixed:ko['history.notice_mixed']};
 (async()=>{
  const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
  const results=[];
@@ -29,7 +31,7 @@ const notices={unknown:'프로젝트 세대를 확인할 수 없는 기록입니
      const target=new URL(await back.getAttribute('href'),auth.Base);
      assert.equal(target.pathname,'/admin/bug-reports');assert.equal(target.searchParams.get('bucket'),'history');
      assert.equal(await page.getByText('이전 세대 리포트는 읽기 전용입니다.',{exact:true}).count(),1);
-    }else assert.equal(await page.locator('a[aria-current="page"]').filter({hasText:'이전 기록'}).count(),1);
+    }else assert.equal(await page.locator('a[aria-current="page"]').filter({hasText:view==='audit'?ko['audit.previous']:'이전 기록'}).count(),1);
     assert.equal(await page.locator('form[action^="/admin/bug-reports/status"]').count(),0);
     assert.equal(await page.locator('a[href^="/projects/settings?project="],a[href^="/projects/sessions?project="]').count(),0);
     if(view==='reports')assert.equal(await page.locator('input[name="bucket"]').inputValue(),'history');

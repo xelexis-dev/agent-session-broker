@@ -271,14 +271,14 @@ func TestTokenPanelRegistrationAndEligibleOwners(t *testing.T) {
 	if strings.Contains(w.Body.String(), `name="ownerID"`) {
 		t.Error("token owner must be fixed to the issuer")
 	}
-	if strings.Contains(w.Body.String(), ">등록 완료</span>") {
+	if strings.Contains(w.Body.String(), ">"+en("tokens.registered")+"</span>") {
 		t.Error("approval alone displayed as completed registration")
 	}
 	if err = grant.Connected(req.identity()); err != nil {
 		t.Fatal(err)
 	}
 	w = admin.call("GET", "/projects/settings?project=demo", nil)
-	if !strings.Contains(w.Body.String(), ">등록 완료</span>") {
+	if !strings.Contains(w.Body.String(), ">"+en("tokens.registered")+"</span>") {
 		t.Error("completed registration not displayed")
 	}
 }

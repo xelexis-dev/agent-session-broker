@@ -164,7 +164,7 @@ func TestScopeIssuancePanelGuardsAndCapture(t *testing.T) {
 	}
 	capture := func(name string) {
 		w := admin.call("GET", "/admin/settings", nil)
-		for _, text := range []string{"클라이언트 0.15", "끄면 새 제한·자동 토큰 발급과 자동 등록을 막습니다. 기존 토큰은 유지됩니다.", "data-confirm-action=\"scope-issuance\""} {
+		for _, text := range []string{enHTML("admin.scope.desc"), "data-confirm-action=\"scope-issuance\""} {
 			if !strings.Contains(w.Body.String(), text) {
 				t.Fatal("settings explanation absent")
 			}

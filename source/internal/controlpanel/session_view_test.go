@@ -78,21 +78,21 @@ func TestSessionsPageShowsSummaryOwnerAndKeepsActions(t *testing.T) {
 	h := New(s, layoutBackend{}, http.NotFoundHandler())
 	body := loginPanelUser(t, h, "owner").call("GET", "/projects/sessions?project=demo", nil).Body.String()
 	for _, want := range []string{
-		`<span class="metric__label">등록 세션</span><strong class="metric__value" data-session-summary="Registered">1</strong>`,
-		`<span class="metric__label">수신 준비</span>`,
-		`<span class="metric__label">확인 불가</span>`,
-		`<span class="metric__label">중지</span>`,
-		`data-label="계정">developer<`,
-		`data-label="계정"><span class="muted" aria-label="소유 계정 정보 없음">—</span>`,
+		`<span class="metric__label">` + en("sessions.metric_registered") + `</span><strong class="metric__value" data-session-summary="Registered">1</strong>`,
+		`<span class="metric__label">` + en("session.connection.ready") + `</span>`,
+		`<span class="metric__label">` + en("session.connection.unreachable") + `</span>`,
+		`<span class="metric__label">` + en("session.connection.suspended") + `</span>`,
+		`data-label="` + en("sessions.col_account") + `">developer<`,
+		`data-label="` + en("sessions.col_account") + `"><span class="muted" aria-label="` + en("sessions.owner_unknown") + `">—</span>`,
 		`action="/sessions/suspend"`, `action="/sessions/detach"`,
-		`data-table-filter="session-table"`, `<caption class="sr-only">프로젝트 연결 세션</caption>`,
+		`data-table-filter="session-table"`, `<caption class="sr-only">` + en("sessions.caption") + `</caption>`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("sessions page lacks %s", want)
 		}
 	}
 	tables := layoutTables(t, body)
-	if got := strings.Join(tables["프로젝트 연결 세션"].headers, "|"); got != "계정|세션|하네스|상태|관리" {
+	if got := strings.Join(tables[en("sessions.caption")].headers, "|"); got != strings.Join([]string{en("sessions.col_account"), en("sessions.col_session"), en("sessions.col_harness"), en("sessions.col_status"), en("sessions.col_manage")}, "|") {
 		t.Errorf("session headers = %s", got)
 	}
 }

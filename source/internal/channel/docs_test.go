@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"unicode"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/clientstate"
@@ -74,6 +75,9 @@ func TestLocalDocsREADMEGeneratedEmbeddedAndCaps(t *testing.T) {
 		}
 		seen[topic] = true
 		body := strings.TrimSpace(string(pair[2])) + "\n"
+		if strings.ContainsFunc(body, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+			t.Errorf("%s: client help must be English", topic)
+		}
 		generated, err := os.ReadFile("docs/" + topic + ".md")
 		if err != nil {
 			t.Fatal(err)
@@ -111,6 +115,9 @@ func TestLocalDocsIndexAndUnknown(t *testing.T) {
 		result, out := readDocs(t, client, topic)
 		if out.ClientVersion != "0.17.3" || out.Markdown != docsIndex || len(out.Markdown) > 1024 {
 			t.Fatal("missing bounded index/version")
+		}
+		if strings.ContainsFunc(out.Markdown, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+			t.Fatal("help index must be English")
 		}
 		if (topic != "") != result.IsError || (topic != "" && out.Code != "unknown-topic") {
 			t.Fatal("unknown topic not classified")
@@ -232,7 +239,7 @@ func TestLocalDocsSetupIsBoundedAndOffline(t *testing.T) {
 	if len(out.Markdown) > 3584 {
 		t.Fatal("setup exceeds 3.5 KiB")
 	}
-	for _, want := range []string{"npm install -g @xelexis/x-broker@1.0.4", `"command": "x-broker"`, `command = "x-broker"`, "npx", "100 MB", "Windows", "auth_status", "attach_session", "upgrade", "errors"} {
+	for _, want := range []string{"npm install -g @xelexis/x-broker@1.1.0", `"command": "x-broker"`, `command = "x-broker"`, "npx", "100 MB", "Windows", "auth_status", "attach_session", "upgrade", "errors"} {
 		if !strings.Contains(out.Markdown, want) {
 			t.Errorf("setup missing %s", want)
 		}

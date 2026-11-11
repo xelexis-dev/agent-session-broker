@@ -96,8 +96,8 @@ func TestBugReportAdminList(t *testing.T) {
 	store := &fakeBugReports{reports: []bugreport.Report{bugReportFixture()}}
 	c := loginPanelUser(t, bugReportTestHandler(t, store), "admin")
 	for path, wants := range map[string][]string{
-		"/admin/bug-reports":                        {"버그 리포트", "worker-04", "demo", "0.17.1", "치명적", "1 / 1"},
-		"/admin/bug-reports/detail?id=bug-demo-004": {"worker-04", "demo", "REG-DEMO-004", "client 진단", "0.17.0", "접수 서버 버전"},
+		"/admin/bug-reports":                        {en("title.bug_reports"), "worker-04", "demo", "0.17.1", en("bug.severity.critical"), "1 / 1"},
+		"/admin/bug-reports/detail?id=bug-demo-004": {"worker-04", "demo", "REG-DEMO-004", en("bug.diagnostics"), "0.17.0", en("bug.field.server_version")},
 	} {
 		w := c.call("GET", path, nil)
 		if w.Code != 200 {
@@ -171,12 +171,12 @@ func TestBugReportFiltersPagesAndEmpty(t *testing.T) {
 			t.Errorf("invalid filter accepted %q", q)
 		}
 	}
-	for query, want := range map[string]string{"": "받은 버그 리포트가 없습니다.", "?status=open&severity=low": "조건에 맞는 버그 리포트가 없습니다."} {
+	for query, want := range map[string]string{"": enHTML("bug.empty"), "?status=open&severity=low": enHTML("bug.empty_filtered")} {
 		w := c.call("GET", "/admin/bug-reports"+query, nil)
 		if w.Code != 200 || !strings.Contains(w.Body.String(), want) || strings.Contains(w.Body.String(), `class="bug-pagination"`) {
 			t.Fatal("empty state/pagination incorrect")
 		}
-		if query != "" && !strings.Contains(w.Body.String(), "필터 초기화") {
+		if query != "" && !strings.Contains(w.Body.String(), en("bug.reset_filters")) {
 			t.Fatal("filter reset missing")
 		}
 	}
@@ -198,11 +198,11 @@ func TestBugReportStatusAndErrors(t *testing.T) {
 			t.Fatal("actor/status not recorded")
 		}
 		body := c.call("GET", w.Header().Get("Location"), nil).Body.String()
-		want := "admin · 열림 → 해결 ·"
-		button := "다시 열기"
+		want := "admin · " + en("bug.state.open") + " → " + en("bug.state.resolved") + " ·"
+		button := en("bug.action.reopen")
 		if status == "open" {
-			want = "admin · 해결 → 열림 ·"
-			button = "해결"
+			want = "admin · " + en("bug.state.resolved") + " → " + en("bug.state.open") + " ·"
+			button = en("bug.action.resolve")
 		}
 		if !strings.Contains(body, want) || !strings.Contains(body, ">"+button+"</button>") {
 			t.Fatal("latest status line/button incorrect")
@@ -243,17 +243,17 @@ func TestBugReportDiagnosticsAndEscaping(t *testing.T) {
 	store := &fakeBugReports{reports: []bugreport.Report{r}}
 	c := loginPanelUser(t, bugReportTestHandler(t, store), "admin")
 	body := c.call("GET", "/admin/bug-reports/detail?id=bug-demo-004", nil).Body.String()
-	for _, want := range []string{"client 진단 없음", "진단 정보가 전송되지 않았습니다.", "&lt;script&gt;", "first\nsecond &lt;b&gt;raw&lt;/b&gt;"} {
+	for _, want := range []string{en("bug.no_diagnostics"), en("bug.no_diagnostics_help"), "&lt;script&gt;", "first\nsecond &lt;b&gt;raw&lt;/b&gt;"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %q", want)
 		}
 	}
-	if strings.Contains(body, "<script>alert") || strings.Contains(body, "<dt>재현 단계</dt>") {
+	if strings.Contains(body, "<script>alert") || strings.Contains(body, "<dt>"+en("bug.field.steps")+"</dt>") {
 		t.Fatal("unsafe/raw or optional empty field")
 	}
 	store.reports[0].Client = &bugreport.ClientDiagnostics{LastFollow: "must-not-show-for-codex"}
 	body = c.call("GET", "/admin/bug-reports/detail?id=bug-demo-004", nil).Body.String()
-	if !strings.Contains(body, "최근 진단 이벤트가 없습니다.") || !strings.Contains(body, "준비 안 됨") || strings.Contains(body, "must-not-show") {
+	if !strings.Contains(body, en("bug.events_empty")) || !strings.Contains(body, en("bug.diag.not_ready")) || strings.Contains(body, "must-not-show") {
 		t.Fatal("partial diagnostics wrong")
 	}
 	store.reports[0].Reporter.Harness = "claude"

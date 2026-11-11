@@ -16,6 +16,7 @@ func TestProfileRolesFullChrome(t *testing.T) {
 		t.Skip("opt-in full Chrome")
 	}
 	s := userStore(t)
+	useKorean(t, s)
 	for _, item := range []struct{ name, role string }{{"development", "developer"}, {"project-with-a-long-readable-name-that-wraps-in-mobile-profile", "viewer"}} {
 		if err := s.CreateProjectFor("admin", item.name); err != nil {
 			t.Fatal(err)

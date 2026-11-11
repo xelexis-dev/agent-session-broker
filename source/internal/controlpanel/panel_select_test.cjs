@@ -8,6 +8,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
 const { chromium } = require("playwright");
+const { dataBlock } = require("./i18n_fixture.cjs");
 
 let browser;
 let server;
@@ -17,8 +18,8 @@ const rows = Array.from({ length: 14 }, (_, i) => `<tr><td>user-${i}</td><td><di
 const html = `<!doctype html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="/assets/tokens.css"><link rel="stylesheet" href="/assets/focus.css"><link rel="stylesheet" href="/assets/panel.css"><link rel="stylesheet" href="/assets/design.css"><link rel="stylesheet" href="/assets/select.css">
-<script type="module" src="/assets/select.js"></script>
-</head><body class="asb"><main>
+<script src="/assets/panel.js" defer></script><script type="module" src="/assets/select.js"></script>
+</head><body class="asb">${dataBlock("ko")}<main>
 <form id="basic" method="post" action="/submit"><input type="hidden" name="csrf" value="fixture-csrf">
 <label>프로젝트 역할<select name="role" data-select><option value="viewer">viewer</option><option value="developer">developer</option><option value="owner">owner</option></select></label>
 <label>필수 선택<select name="required-role" required data-select aria-describedby="required-help"><option value="">선택하세요</option><option value="user">사용자</option></select><small id="required-help">도움말</small></label>
@@ -39,7 +40,7 @@ document.addEventListener("change", (e) => window.changes.push(e.target.name + "
 before(async () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "asset-manifest.json"), "utf8"));
   const assets = new Map(manifest.assets.map((a) => [a.path, { file: a.file, mime: a.contentType }]));
-  for (const name of ["focus.css", "panel.css", "design.css", "select.css", "select.js"]) {
+  for (const name of ["focus.css", "panel.css", "design.css", "select.css", "select.js", "panel.js"]) {
     assets.set(`/assets/${name}`, { file: name, mime: name.endsWith(".css") ? "text/css" : "text/javascript" });
   }
   server = http.createServer((request, response) => {

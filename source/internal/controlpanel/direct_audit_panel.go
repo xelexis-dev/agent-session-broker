@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strconv"
+	"strings"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 const directAuditLimit = 100
@@ -24,14 +26,15 @@ type directAuditView struct {
 
 // Projection is built under the same policy lock as filtering. It never returns
 // AuditEvent's binding digest, token identifiers, credential hashes or bodies.
-func (s *Store) directAuditViewFor(actor, project string) (directAuditView, error) {
-	return s.directAuditViewBucketFor(actor, project, "current")
+// Labels are in language: the page's language for the panel, English for the API.
+func (s *Store) directAuditViewFor(actor, project, language string) (directAuditView, error) {
+	return s.directAuditViewBucketFor(actor, project, "current", language)
 }
 
-func (s *Store) directAuditViewBucketFor(actor, project, bucket string) (directAuditView, error) {
-	return s.directAuditViewWindowFor(actor, project, bucket, time.Time{}, directAuditLimit)
+func (s *Store) directAuditViewBucketFor(actor, project, bucket, language string) (directAuditView, error) {
+	return s.directAuditViewWindowFor(actor, project, bucket, language, time.Time{}, directAuditLimit)
 }
-func (s *Store) directAuditViewWindowFor(actor, project, bucket string, before time.Time, limit int) (directAuditView, error) {
+func (s *Store) directAuditViewWindowFor(actor, project, bucket, language string, before time.Time, limit int) (directAuditView, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	events, err := s.directAuditRecordsLocked(actor, project, AuditFilter{Bucket: bucket})
@@ -68,11 +71,24 @@ func (s *Store) directAuditViewWindowFor(actor, project, bucket string, before t
 		}
 	}
 	unknown, previous := false, false
-	kinds := map[string]string{"handover": "handover", "request": "요청", "grant": "자격 발급", "registration": "등록", "rejected": "거절", "revoked": "회수", "expired": "만료", "detached": "연결 해제", "suspended": "일시 중지", "unsuspended": "재개"}
+	kinds := map[string]string{"request": "audit.event.request", "grant": "audit.event.grant", "registration": "audit.event.registration", "rejected": "audit.event.rejected", "revoked": "audit.event.revoked", "expired": "audit.event.expired", "detached": "audit.event.detached", "suspended": "audit.event.suspended", "unsuspended": "audit.event.unsuspended"}
+	event := func(kind string) string {
+		if key, ok := kinds[kind]; ok {
+			return i18n.T(language, key)
+		}
+		return kind
+	}
+	codes := func(scopes []string) string {
+		if len(scopes) == 0 {
+			return i18n.T(language, "audit.none")
+		}
+		return strings.Join(scopes, ", ")
+	}
+	notRecorded, noInformation := i18n.T(language, "audit.not_recorded"), i18n.T(language, "audit.no_information")
 	for _, e := range events {
 		label := ""
 		if history {
-			label = historyLabel(e.ProjectGenerationID)
+			label = historyLabel(language, e.ProjectGenerationID)
 			unknown = unknown || e.ProjectGenerationID == ""
 			previous = previous || e.ProjectGenerationID != ""
 		}
@@ -80,29 +96,29 @@ func (s *Store) directAuditViewWindowFor(actor, project, bucket string, before t
 		if a := e.TokenScopes; a != nil {
 			name := a.Label
 			if name == "" {
-				name = "프로젝트 토큰"
+				name = i18n.T(language, "audit.project_token")
 			}
-			reason := "실행: " + a.ActorID + " · 추가 " + codesText(scopeDifference(a.After, a.Before)) + " · 제거 " + codesText(scopeDifference(a.Before, a.After)) + " · 변경 자격 " + strconv.Itoa(a.ChangedChildren) + "개"
-			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: "권한 변경", Name: name, Parent: name, Registration: "해당 없음", Peer: "저장 안 됨", Reason: reason})
+			reason := i18n.T(language, "audit.scope_reason", "actor", a.ActorID, "added", codes(scopeDifference(a.After, a.Before)), "removed", codes(scopeDifference(a.Before, a.After)), "count", a.ChangedChildren)
+			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: i18n.T(language, "audit.event.scopes"), Name: name, Parent: name, Registration: i18n.T(language, "audit.not_applicable"), Peer: notRecorded, Reason: reason})
 			continue
 		}
 		if h := e.Handover; h != nil {
-			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: "handover", Name: h.Name, Registration: h.RegistrationID, Peer: "저장 안 됨"})
+			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: event(e.Kind), Name: h.Name, Registration: h.RegistrationID, Peer: notRecorded})
 			continue
 		}
 		if m := e.Management; m != nil {
 			parent := m.TargetParentLabel
 			if parent == "" {
-				parent = "정보 없음"
+				parent = noInformation
 			}
 			actor := m.ActorName
 			if actor == "panel" {
-				actor = "관리 화면"
+				actor = i18n.T(language, "audit.panel")
 			}
-			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: kinds[e.Kind], Name: m.TargetName, Registration: m.TargetRegistrationID, Parent: parent, Peer: "저장 안 됨", Reason: "실행: " + actor})
+			v.Rows = append(v.Rows, directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: event(e.Kind), Name: m.TargetName, Registration: m.TargetRegistrationID, Parent: parent, Peer: notRecorded, Reason: i18n.T(language, "audit.by", "actor", actor)})
 			continue
 		}
-		row := directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: kinds[e.Kind], Name: names[e.GrantID], Parent: labels[e.ParentID], Reason: e.Reason, Peer: "저장 안 됨"}
+		row := directAuditRow{Project: e.Project, GenerationLabel: label, At: activityTime(e.At), AtLabel: e.At.UTC().Format("2006-01-02 15:04:05 UTC"), Kind: e.Kind, Event: event(e.Kind), Name: names[e.GrantID], Parent: labels[e.ParentID], Reason: e.Reason, Peer: notRecorded}
 		if binding, ok := bindings[e.GrantID]; ok {
 			row.Registration = binding.RegistrationID
 			if row.Registration != "" && !binding.DetachPending && s.canManageSessionLocked(actor, project, binding.Identity, binding.OwnerID) {
@@ -110,17 +126,17 @@ func (s *Store) directAuditViewWindowFor(actor, project, bucket string, before t
 			}
 		}
 		if row.Name == "" {
-			row.Name = "정보 없음"
+			row.Name = noInformation
 		}
 		if row.Registration == "" {
-			row.Registration = "정보 없음"
+			row.Registration = noInformation
 		}
 		if row.Parent == "" {
-			row.Parent = "정보 없음"
+			row.Parent = noInformation
 		}
 		v.Rows = append(v.Rows, row)
 	}
-	v.Notice = historyNotice(unknown, previous)
+	v.Notice = historyNotice(language, unknown, previous)
 	return v, nil
 }
 
@@ -149,17 +165,18 @@ func (p *panel) directAudit(w http.ResponseWriter, r *http.Request, session logi
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	audit, err := p.store.directAuditViewBucketFor(user.ID, project, bucket)
+	language := p.requestLanguage(r, user.ID)
+	audit, err := p.store.directAuditViewBucketFor(user.ID, project, bucket, language)
 	if err != nil {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	v := page{View: "audit", User: user, CSRF: session.csrf, Project: project, Role: p.store.ProjectRole(user.ID, project), Projects: []Project{{Name: project}}, DirectAudit: audit, Roles: map[string]string{}}
+	v := page{Lang: language, View: "audit", User: user, CSRF: session.csrf, Project: project, Role: p.store.ProjectRole(user.ID, project), Projects: []Project{{Name: project}}, DirectAudit: audit, Roles: map[string]string{}}
 	for _, item := range v.Projects {
 		v.Roles[item.Name] = p.store.ProjectRole(user.ID, item.Name)
 	}
 	if !audit.History && project != "" {
 		v.Error = p.projectDataNotice(r, project)
 	}
-	p.render(w, 200, v)
+	p.render(w, r, 200, v)
 }

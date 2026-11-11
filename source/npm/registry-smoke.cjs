@@ -165,7 +165,7 @@ async function scenario(args, work) {
     const version = await run('npx', ['--offline', ...command, '--version'], runtimeOptions); assert.equal(version.stdout, `asb-client ${args.version}\n`);
     const warmStart = registry.requests.length; await mcp(true); await mcp(true, true); check(registry.requests.length === warmStart, 'warm offline runs issue zero HTTP requests');
     const sessions = (await request('GET', '/projects/sessions?project=npm-smoke')).text;
-    check(sessions.includes('아직 등록된 세션이 없습니다.'), 'temporary broker registered session count remains zero'); evidence.registeredSessions = 0;
+    check(sessions.includes('No sessions are registered yet.'), 'temporary broker registered session count remains zero'); evidence.registeredSessions = 0;
     registry.setFault(name);
     const absent = await run('npx', [...command, '--version'], { cwd: empty('missing-consumer'), env: { ...env, npm_config_cache: empty('missing-cache') } }, 1);
     assert.equal(absent.stdout, ''); assert(absent.stderr.includes('E404')); registry.setFault('');

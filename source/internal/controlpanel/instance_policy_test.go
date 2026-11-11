@@ -71,7 +71,7 @@ func TestTokenOnlyUIAndOldHTTPAPIs(t *testing.T) {
 			}
 		}
 	}
-	if w := admin.call("GET", "/admin/settings", nil); w.Code != 200 || !strings.Contains(w.Body.String(), "HTTP 연결 허용") {
+	if w := admin.call("GET", "/admin/settings", nil); w.Code != 200 || !strings.Contains(w.Body.String(), en("admin.http.allow_aria")) {
 		t.Errorf("instance settings page = %d", w.Code)
 	}
 	for _, allowed := range []string{"true", "false"} {

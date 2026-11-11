@@ -125,7 +125,7 @@ func TestDeviceRESTIssuesApprovesAndExchangesWithProjectTokenOnly(t *testing.T) 
 	}
 	page := owner.call("GET", "/projects/settings?project=demo", nil)
 	html := page.Body.String()
-	if !strings.Contains(html, "shared harnesses") || !strings.Contains(html, "승인 1건") || strings.Contains(html, sessionToken) || strings.Contains(html, projectToken) {
+	if !strings.Contains(html, "shared harnesses") || !strings.Contains(html, en("tokens.approval_count", "n", 1)) || strings.Contains(html, sessionToken) || strings.Contains(html, projectToken) {
 		t.Fatal("settings page does not describe tokens safely")
 	}
 	if detail := owner.call("GET", "/projects/sessions?project=demo", nil).Body.String(); strings.Contains(detail, sessionToken) || strings.Contains(detail, projectToken) {
@@ -191,7 +191,7 @@ func TestAuthCodeApprovalRequiresLoginCSRFRoleAndUniqueNickname(t *testing.T) {
 		t.Fatalf("first approval: %d %s", w.Code, w.Body.String())
 	}
 	duplicate := owner.call("POST", "/auth/code", url.Values{"action": {"approve"}, "code": {secondCode}, "nickname": {"agent-a"}})
-	if duplicate.Code != 409 || !strings.Contains(duplicate.Body.String(), `role="alert"`) || !strings.Contains(duplicate.Body.String(), "이미") || !strings.Contains(duplicate.Body.String(), `name="nickname"`) {
+	if duplicate.Code != 409 || !strings.Contains(duplicate.Body.String(), `role="alert"`) || !strings.Contains(duplicate.Body.String(), enHTML("device.error_nickname_taken", "nickname", "agent-a")) || !strings.Contains(duplicate.Body.String(), `name="nickname"`) {
 		t.Fatalf("duplicate nickname: %d %s", duplicate.Code, duplicate.Body.String())
 	}
 	if w := owner.call("POST", "/auth/code", url.Values{"action": {"approve"}, "code": {secondCode}, "nickname": {"agent-b"}}); w.Code != 303 {

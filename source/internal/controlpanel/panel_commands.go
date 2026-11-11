@@ -29,7 +29,7 @@ func (p *panel) authorizeMutation(actor, path, project string) error {
 type sessionMutationError struct {
 	cause   error
 	status  int
-	message string
+	message string // catalog key, translated by the page
 }
 
 func (e *sessionMutationError) Error() string { return e.message }
@@ -42,15 +42,15 @@ func (p *panel) manageSession(ctx context.Context, actor, project, op, id, grant
 	}
 	defer release()
 	if (op != "/sessions/detach" && op != "/sessions/suspend" && op != "/sessions/unsuspend") || (id == "" && grantID == "") || (id != "" && grantID != "") || len(id) > 256 || len(grantID) > 256 || (grantID != "" && op != "/sessions/detach") {
-		return "", &sessionMutationError{nil, 400, "올바른 세션을 선택해 주세요."}
+		return "", &sessionMutationError{nil, 400, "error.session_select"}
 	}
 	sessions, err := p.backend.Sessions(ctx, project)
 	if err != nil {
-		return "", &sessionMutationError{err, 400, "세션 정보를 불러오지 못했습니다."}
+		return "", &sessionMutationError{err, 400, "error.sessions_unavailable"}
 	}
 	if grantID != "" {
 		if err := p.store.releaseReservedGrantFor(actor, project, grantID, sessions); err != nil {
-			return "", &sessionMutationError{err, 400, "닉네임 예약을 해제하지 못했습니다. 현재 등록 상태와 권한을 확인해 주세요."}
+			return "", &sessionMutationError{err, 400, "error.session_reservation_release"}
 		}
 		return "session-grant-released", nil
 	}
@@ -71,7 +71,7 @@ func (p *panel) manageSession(ctx context.Context, actor, project, op, id, grant
 			SetSuspended(context.Context, string, string, bool) error
 		})
 		if !ok || manager.SetSuspended(ctx, project, id, op == "/sessions/suspend") != nil {
-			return "", &sessionMutationError{nil, 409, "세션 일시 중지 상태를 변경하지 못했습니다."}
+			return "", &sessionMutationError{nil, 409, "error.session_suspend"}
 		}
 		if op == "/sessions/suspend" {
 			p.cancelSuspendedRequests(project, targetName)
@@ -80,7 +80,7 @@ func (p *panel) manageSession(ctx context.Context, actor, project, op, id, grant
 		return "session-unsuspended", nil
 	}
 	if err := p.backend.Detach(ctx, project, id); err != nil {
-		return "", &sessionMutationError{err, 409, "세션 연결을 해제하지 못했습니다."}
+		return "", &sessionMutationError{err, 409, "error.session_detach"}
 	}
 	return "session-detached", nil
 }

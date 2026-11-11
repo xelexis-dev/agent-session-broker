@@ -1,8 +1,10 @@
 package controlpanel
 
 import (
-	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 )
 
 type runtimeInfoView struct {
@@ -12,8 +14,8 @@ type runtimeInfoView struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
-func (s Session) RuntimeInfoView() runtimeInfoView {
-	v := runtimeInfoView{Label: "모델·effort 알 수 없음"}
+func (s Session) RuntimeInfoView(language string) runtimeInfoView {
+	v := runtimeInfoView{Label: i18n.T(language, "session.runtime.unknown")}
 	if s.GrantID != "" {
 		v.Label = "—"
 		return v
@@ -32,10 +34,10 @@ func (s Session) RuntimeInfoView() runtimeInfoView {
 	if v.Model != "" || v.Effort != "" {
 		model, effort := v.Model, v.Effort
 		if model == "" {
-			model = "알 수 없음"
+			model = i18n.T(language, "session.runtime.unknown_part")
 		}
 		if effort == "" {
-			effort = "알 수 없음"
+			effort = i18n.T(language, "session.runtime.unknown_part")
 		}
 		v.Label = model + " / " + effort
 	}

@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 type activityView struct {
@@ -18,31 +20,36 @@ type activityView struct {
 	ExpiresAt  string `json:"expiresAt,omitempty"`
 }
 
-func activityLabel(state string) string {
+func activityLabel(state string) i18n.Message {
 	switch state {
 	case "working":
-		return "턴 진행"
+		return i18n.M("session.activity.working")
 	case "idle":
-		return "대기"
+		return i18n.M("session.activity.idle")
 	case "none":
-		return "—"
+		return i18n.M("session.activity.none")
 	default:
-		return "활동 확인 불가"
+		return i18n.M("session.activity.unknown")
 	}
 }
+
+var activityReasons = map[string]string{"unsupported": "session.activity.reason.unsupported", "evidence-missing": "session.activity.reason.evidence-missing", "identity-mismatch": "session.activity.reason.identity-mismatch", "malformed-evidence": "session.activity.reason.malformed-evidence", "stale-evidence": "session.activity.reason.stale-evidence", "budget-exceeded": "session.activity.reason.budget-exceeded", "lease-inactive": "session.activity.reason.lease-inactive", "observer-unavailable": "session.activity.reason.observer-unavailable", "observation-expired": "session.activity.reason.observation-expired"}
+
 func activityTime(value time.Time) string {
 	if value.IsZero() {
 		return ""
 	}
 	return value.UTC().Format(time.RFC3339Nano)
 }
-func (s Session) ActivityView() activityView {
-	v := activityView{State: "unknown", Label: activityLabel("unknown"), Reason: "활동 근거 없음"}
+
+// ActivityView is the activity in the page's language; the API passes English.
+func (s Session) ActivityView(language string) activityView {
+	v := activityView{State: "unknown", Label: activityLabel("unknown").In(language), Reason: i18n.T(language, "session.activity.reason.evidence-missing")}
 	if s.GrantID != "" {
-		return activityView{State: "none", Label: "—"}
+		return activityView{State: "none", Label: activityLabel("none").In(language)}
 	}
 	if s.DisplayState() != "ready" || s.Status == "missing" || s.Status == "suspended" || s.Status == "degraded" || s.ErrorCode == "ingress-failed" || s.ErrorCode == "identity-mismatch" {
-		v.Reason = "현재 연결의 활동을 확인할 수 없음"
+		v.Reason = i18n.T(language, "session.activity.reason.lease-inactive")
 		return v
 	}
 	a := s.Activity
@@ -51,20 +58,22 @@ func (s Session) ActivityView() activityView {
 	}
 	switch a.Source {
 	case "claude-session-file":
-		v.Source = "Claude 세션 상태"
+		v.Source = i18n.T(language, "session.activity.source.claude")
 	case "codex-rollout":
-		v.Source = "Codex 턴 기록"
+		v.Source = i18n.T(language, "session.activity.source.codex")
 	}
-	reasons := map[string]string{"unsupported": "지원하지 않는 관측 환경", "evidence-missing": "활동 근거 없음", "identity-mismatch": "세션 식별 불일치", "malformed-evidence": "활동 근거 형식 확인 불가", "stale-evidence": "오래된 활동 근거", "budget-exceeded": "관측 시간 또는 크기 제한", "lease-inactive": "현재 연결의 활동을 확인할 수 없음", "observer-unavailable": "관측기 사용 불가", "observation-expired": "활동 관측 만료"}
-	v.Reason = reasons[a.Reason]
+	v.Reason = ""
+	if key, ok := activityReasons[a.Reason]; ok {
+		v.Reason = i18n.T(language, key)
+	}
 	v.ObservedAt, v.ChangedAt, v.ReceivedAt, v.ExpiresAt = activityTime(a.ObservedAt), activityTime(a.ChangedAt), activityTime(a.ReceivedAt), activityTime(a.ExpiresAt)
 	if !a.ExpiresAt.IsZero() && time.Now().Before(a.ExpiresAt) && !a.ReceivedAt.IsZero() && (a.State == "working" || a.State == "idle") {
 		v.State = string(a.State)
 	}
 	if !a.ExpiresAt.IsZero() && !time.Now().Before(a.ExpiresAt) {
-		v.Reason = "활동 관측 만료"
+		v.Reason = i18n.T(language, "session.activity.reason.observation-expired")
 	}
-	v.Label = activityLabel(v.State)
+	v.Label = activityLabel(v.State).In(language)
 	return v
 }
 
@@ -86,45 +95,46 @@ func (s Session) RowShape(canManage bool, owner string) string {
 	sum := sha256.Sum256(raw)
 	return hex.EncodeToString(sum[:])
 }
-func (s Session) ConnectionLabel() string {
+func (s Session) ConnectionLabel() i18n.Message {
 	switch s.DisplayState() {
 	case "unregistered":
-		return "등록 없음"
+		return i18n.M("session.connection.unregistered")
 	case "ready":
-		return "수신 준비"
+		return i18n.M("session.connection.ready")
 	case "suspended":
-		return "중지"
+		return i18n.M("session.connection.suspended")
 	case "detached":
-		return "해제됨"
+		return i18n.M("session.connection.detached")
 	case "waiting":
-		return "대기"
+		return i18n.M("session.connection.waiting")
 	default:
-		return "확인 불가"
+		return i18n.M("session.connection.unreachable")
 	}
 }
-func (s Session) ActivityTooltip() []string {
-	v := s.ActivityView()
+func (s Session) ActivityTooltip(language string) []string {
+	v := s.ActivityView(language)
 	if v.State == "none" {
-		return []string{"활동: — · 등록 없음"}
+		return []string{i18n.T(language, "session.tooltip.activity_none")}
 	}
-	lines := []string{"활동: " + v.Label + " · 연결 상태와 다름"}
-	for _, item := range []struct{ label, value string }{{"근거", v.Source}, {"사유", v.Reason}} {
-		if item.value != "" {
-			lines = append(lines, item.label+": "+item.value)
-		}
+	lines := []string{i18n.T(language, "session.tooltip.activity", "label", v.Label)}
+	if v.Source != "" {
+		lines = append(lines, i18n.T(language, "session.tooltip.source", "value", v.Source))
+	}
+	if v.Reason != "" {
+		lines = append(lines, i18n.T(language, "session.tooltip.reason", "value", v.Reason))
 	}
 	return lines
 }
 
 type activityTooltipTime struct{ Label, Kind, Value, Fallback string }
 
-func (s Session) ActivityTooltipTimes() []activityTooltipTime {
-	v := s.ActivityView()
+func (s Session) ActivityTooltipTimes(language string) []activityTooltipTime {
+	v := s.ActivityView(language)
 	if v.State == "none" {
 		return nil
 	}
 	var times []activityTooltipTime
-	for _, item := range []activityTooltipTime{{Label: "관측 시각", Kind: "observedAt", Value: v.ObservedAt}, {Label: "변경 시각", Kind: "changedAt", Value: v.ChangedAt}, {Label: "서버 수신", Kind: "receivedAt", Value: v.ReceivedAt}, {Label: "신선도 만료", Kind: "expiresAt", Value: v.ExpiresAt}} {
+	for _, item := range []activityTooltipTime{{Label: i18n.T(language, "session.tooltip.observed_at"), Kind: "observedAt", Value: v.ObservedAt}, {Label: i18n.T(language, "session.tooltip.changed_at"), Kind: "changedAt", Value: v.ChangedAt}, {Label: i18n.T(language, "session.tooltip.received_at"), Kind: "receivedAt", Value: v.ReceivedAt}, {Label: i18n.T(language, "session.tooltip.expires_at"), Kind: "expiresAt", Value: v.ExpiresAt}} {
 		if value, err := time.Parse(time.RFC3339Nano, item.Value); err == nil {
 			item.Fallback = value.UTC().Format("2006-01-02 15:04:05 UTC")
 			times = append(times, item)

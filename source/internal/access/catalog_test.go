@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"unicode"
 )
 
 func TestScopeCatalogMatchesREADME(t *testing.T) {
@@ -15,6 +16,9 @@ func TestScopeCatalogMatchesREADME(t *testing.T) {
 	scopes := []string{}
 	for _, d := range rows {
 		scopes = append(scopes, d.Scope)
+		if strings.ContainsFunc(d.Label+d.Description, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+			t.Errorf("agent scope text is not English: %s", d.Scope)
+		}
 	}
 	if !ValidScopes(scopes) {
 		t.Fatal("catalog is not a canonical complete scope set")
@@ -40,10 +44,10 @@ func TestScopeCatalogMatchesREADME(t *testing.T) {
 
 func TestAutoRegistrationScopeExplainsExplicitConnectionRequest(t *testing.T) {
 	detail := ScopeDetails([]string{SessionRegisterAuto})[0]
-	if detail.Label != "연결 요청 시 승인 없이 등록" {
+	if detail.Label != "Register without approval on request" {
 		t.Errorf("label = %q", detail.Label)
 	}
-	for _, want := range []string{"사용자가 이 대화의 연결을 요청하면 승인 절차 없이 등록합니다.", "새 대화가 시작되는 것만으로 등록하지 않습니다.", "프로젝트 토큰으로 사람의 승인 없이 직접 등록", "세션 자격증명에는 위임되지 않습니다."} {
+	for _, want := range []string{"Register without approval when the user asks to connect this conversation.", "Starting a new conversation alone does not register it.", "Request direct registration with a project token without human approval", "this permission is not delegated to session credentials."} {
 		if !strings.Contains(detail.Description, want) {
 			t.Errorf("auto scope explanation missing %q", want)
 		}
@@ -51,7 +55,7 @@ func TestAutoRegistrationScopeExplainsExplicitConnectionRequest(t *testing.T) {
 }
 
 func TestSessionManageScopeExplainsOtherSessionControl(t *testing.T) {
-	const want = "stop_session으로 이 세션의 연결을 해제하며, stop_session·retire_session·suspend_session·unsuspend_session으로 토큰 소유자가 관리할 수 있는 다른 세션의 연결을 해제·일시 중지·재개합니다. retire_session은 등록과 사용한 세션 자격을 회수해 이름 예약을 해제합니다. 자기 retire와 이 세션의 일시 중지·재개는 허용되지 않습니다. 활성 인스턴스 관리자 소유 토큰은 list_bug_reports·get_bug_report·set_bug_report_status로 현재 프로젝트 세대의 버그 리포트를 조회·처리할 수 있습니다."
+	const want = "Disconnect this session with stop_session. Use stop_session, retire_session, suspend_session and unsuspend_session to disconnect, retire, suspend or resume other sessions the token owner can manage. retire_session retires the registration and revokes the session credentials it used, releasing the name reservation. Retiring, suspending or resuming this session itself is not allowed. Tokens owned by an enabled instance administrator can use list_bug_reports, get_bug_report and set_bug_report_status to read and handle bug reports in the current project generation."
 	got := ScopeDetails([]string{SessionManage})[0]
 	if got.Description != want {
 		t.Errorf("session:manage description = %q", got.Description)

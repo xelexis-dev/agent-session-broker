@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
@@ -79,6 +80,9 @@ func TestServerToolSurfaceGolden(t *testing.T) {
 		sort.Slice(listed.Tools, func(i, j int) bool { return listed.Tools[i].Name < listed.Tools[j].Name })
 		current := make([]serverToolSurface, 0, len(listed.Tools))
 		for _, tool := range listed.Tools {
+			if strings.ContainsFunc(tool.Description, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+				t.Errorf("%s description must be English", tool.Name)
+			}
 			current = append(current, serverToolSurface{tool.Name, tool.InputSchema, tool.OutputSchema})
 		}
 		if tools == nil {

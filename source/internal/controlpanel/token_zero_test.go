@@ -60,7 +60,7 @@ func TestAutoTokenZeroFormMarkupAndFailedRender(t *testing.T) {
 			}
 		}
 	}
-	for _, hint := range []string{"기본 8개 · 0을 입력하면 무제한 · 최대 100000개", "기본 30일 · 0을 입력하면 무기한 · 최대 36500일"} {
+	for _, hint := range []string{en("tokens.default_8_0_for_unlimited_maximum_100000"), en("tokens.default_30_days_0_for_no_expiry")} {
 		if !strings.Contains(body, hint) {
 			t.Error("zero limit hint missing")
 		}
@@ -77,7 +77,7 @@ func TestAutoTokenZeroFormMarkupAndFailedRender(t *testing.T) {
 			t.Errorf("%s unlimited failed render is not enabled zero", name)
 		}
 	}
-	if !strings.Contains(w.Body.String(), "자동 등록 한도는 0(무제한) 또는 1~100000개, 수명은 0(무기한) 또는 1~36500일입니다.") {
+	if !strings.Contains(w.Body.String(), "the automatic registration limit is 0 (unlimited) or 1–100000, and the lifetime is 0 (no expiry) or 1–36500 days.") {
 		t.Fatal("invalid-limit guidance does not explain zero")
 	}
 }

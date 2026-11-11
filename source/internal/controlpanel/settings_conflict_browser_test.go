@@ -21,6 +21,7 @@ func TestSettingsConflictFullChrome(t *testing.T) {
 				if err := s.CreateUser("admin", "admin2", testPassword, "admin"); err != nil {
 					t.Fatal(err)
 				}
+				useKorean(t, s)
 				h := New(s, &panelBackend{}, http.NotFoundHandler())
 				a := loginPanelUser(t, h, "admin")
 				actorB := "admin2"
@@ -37,7 +38,7 @@ func TestSettingsConflictFullChrome(t *testing.T) {
 				config := struct {
 					Base, Name, Theme, Page, Action, CookieName, CookieA, CookieB, Message string
 					First                                                                  map[string]string
-				}{server.URL, tc.name, theme, tc.page, tc.action, a.cookie.Name, a.cookie.Value, b.cookie.Value, settingsConflictMessage, first}
+				}{server.URL, tc.name, theme, tc.page, tc.action, a.cookie.Name, a.cookie.Value, b.cookie.Value, ko(settingsConflictMessage), first}
 				raw, err := json.Marshal(config)
 				if err != nil {
 					t.Fatal("browser config failed")

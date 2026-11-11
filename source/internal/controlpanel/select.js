@@ -69,7 +69,7 @@ function enhance(select) {
   let search = null;
   if (searchable) {
     const box = element("div", "select__search");
-    search = element("input", "select__search-input", { type: "text", role: "combobox", "aria-autocomplete": "list", "aria-expanded": "false", "aria-controls": `${id}-list`, autocomplete: "off", spellcheck: "false", "aria-label": name ? `${name} 검색` : "검색", placeholder: "검색" });
+    search = element("input", "select__search-input", { type: "text", role: "combobox", "aria-autocomplete": "list", "aria-expanded": "false", "aria-controls": `${id}-list`, autocomplete: "off", spellcheck: "false", "aria-label": name ? window.ASB.t("js.select.search_named", { name }) : window.ASB.t("js.select.search"), placeholder: window.ASB.t("js.select.search") });
     box.append(search);
     popup.append(box);
   }
@@ -151,7 +151,7 @@ function enhance(select) {
     options.forEach((item) => { item.hidden = query !== "" && !item.textContent.toLocaleLowerCase().includes(query); });
     const order = visible();
     empty.hidden = order.length > 0;
-    empty.textContent = order.length ? "" : "일치하는 항목이 없습니다.";
+    empty.textContent = order.length ? "" : window.ASB.t("js.select.empty");
     setActive(order.length ? order[0] : -1);
   }
 
@@ -309,7 +309,7 @@ function enhance(select) {
   select.addEventListener("invalid", (event) => {
     event.preventDefault();
     trigger.setAttribute("aria-invalid", "true");
-    error.textContent = select.validationMessage || "값을 선택하세요.";
+    error.textContent = select.validationMessage || window.ASB.t("js.select.required");
     error.hidden = false;
     sync();
     trigger.focus();

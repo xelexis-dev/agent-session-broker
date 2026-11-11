@@ -1,6 +1,6 @@
 # Building x-broker from source
 
-Run these commands in the `source` directory with the Go version named in `go.mod`. The server and the local MCP client are separate programs. Installation, registration and upgrades are described in the [README](../README.md) and in [README_AGENT.md](../README_AGENT.md) (Korean).
+Run these commands in the `source` directory with the Go version named in `go.mod`. The server and the local MCP client are separate programs. Installation, registration and upgrades are described in the [README](../README.md) and in [README_AGENT.md](../README_AGENT.md).
 
 ## Build
 

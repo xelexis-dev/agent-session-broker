@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
-const wantSessionManageHelp = "세션 자신은 연결 해제만 할 수 있고, 다른 세션은 연결 해제·일시 중지·재개할 수 있습니다. Owner 토큰은 프로젝트의 모든 세션을, Developer 토큰은 같은 소유자의 세션만 관리합니다."
+var wantSessionManageHelp = en("tokens.scope_manage_help")
 
 func TestSessionManageHelpInEveryIssuanceState(t *testing.T) {
 	for _, tc := range []struct {
@@ -44,7 +45,7 @@ func TestSessionManageHelpInEveryIssuanceState(t *testing.T) {
 			if (!tc.ready) != strings.Contains(body, `class="token-scope-options" disabled`) {
 				t.Error("issuance gate changed")
 			}
-			if !strings.Contains(body, `>세션 감사</a>`) {
+			if !strings.Contains(body, (">" + en("tokens.session_audit") + "</a>")) {
 				t.Error("audit link not renamed")
 			}
 		})
@@ -58,17 +59,19 @@ func TestSessionAuditTitlesAndEmptyCopy(t *testing.T) {
 	owner := loginPanelUser(t, h, "owner")
 	response := owner.call("GET", "/projects/audit?project=demo", nil)
 	body := response.Body.String()
-	for _, want := range []string{"<title>demo · 세션 감사 · ASB · Control Panel</title>", "<h1>demo 세션 감사</h1>", `id="direct-audit-title">세션 감사</h2>`, "표시할 세션 감사 이력이 없습니다."} {
+	for _, want := range []string{"<title>demo · " + en("title.audit") + " · ASB · Control Panel</title>", "<h1>" + en("heading.project_audit", "project", "demo") + "</h1>", `id="direct-audit-title">` + en("title.audit") + `</h2>`, enHTML("audit.empty")} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %s", want)
 		}
 	}
-	if strings.Contains(body, "자동 등록 감사") || strings.Contains(body, "표시할 자동 등록 이력이 없습니다.") {
+	useKorean(t, s)
+	korean := owner.call("GET", "/projects/audit?project=demo", nil).Body.String()
+	if !strings.Contains(korean, `id="direct-audit-title">`+i18n.T(i18n.Korean, "title.audit")+`</h2>`) || strings.Contains(korean, "자동 등록 감사") || strings.Contains(korean, "표시할 자동 등록 이력이 없습니다.") {
 		t.Error("old audit title remains")
 	}
 	s.data.ScopeIssuanceReady = false
 	off := owner.call("GET", "/projects/audit?project=demo", nil).Body.String()
-	if !strings.Contains(off, "자동 등록이 활성화되지 않았습니다.") {
+	if !strings.Contains(off, i18n.T(i18n.Korean, "audit.auto_off")) {
 		t.Error("audit enable gate changed")
 	}
 }

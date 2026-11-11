@@ -89,7 +89,7 @@ func TestPanelSetupLoginPolicyAndLogout(t *testing.T) {
 		t.Fatalf("login = %d", code)
 	}
 	status, body = get("/")
-	if status != 200 || !strings.Contains(body, "프로젝트") {
+	if status != 200 || !strings.Contains(body, en("projects.projects")) {
 		t.Fatalf("dashboard = %d", status)
 	}
 	token = csrf(body)
@@ -306,7 +306,7 @@ func TestTokenUIIssueOnceRevokeAndCreateSafety(t *testing.T) {
 		t.Fatal("revoke failed", w.Code)
 	}
 	refreshed = call("GET", "/projects/settings?project=private", nil)
-	if strings.Contains(refreshed.Body.String(), `value="`+projectID+`"`) || strings.Contains(refreshed.Body.String(), "취소됨") || !strings.Contains(refreshed.Body.String(), "표시할 프로젝트 토큰이 없습니다.") {
+	if strings.Contains(refreshed.Body.String(), `value="`+projectID+`"`) || (strings.Contains(refreshed.Body.String(), "취소됨") || strings.Contains(refreshed.Body.String(), "Revoked")) || !strings.Contains(refreshed.Body.String(), en("tokens.no_project_tokens_to_display")) {
 		t.Fatal("revoked token remains in the UI list")
 	}
 	// Legacy tokens stay revocable by id even though the UI no longer lists them.

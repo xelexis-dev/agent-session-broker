@@ -21,7 +21,7 @@ func TestSessionStatsAreCompactInsideProjectManagement(t *testing.T) {
 		t.Fatal("project management card not closed")
 	}
 	manage := body[start : start+end]
-	for _, stat := range []struct{ label, value, field string }{{"등록 세션", "3", "Registered"}, {"수신 준비", "1", "Ready"}, {"확인 불가", "1", "Unreachable"}, {"중지", "1", "Suspended"}, {"등록 없음", "1", "Reserved"}} {
+	for _, stat := range []struct{ label, value, field string }{{en("sessions.metric_registered"), "3", "Registered"}, {en("session.connection.ready"), "1", "Ready"}, {en("session.connection.unreachable"), "1", "Unreachable"}, {en("session.connection.suspended"), "1", "Suspended"}, {en("session.connection.unregistered"), "1", "Reserved"}} {
 		fragment := `<span class="metric__label">` + stat.label + `</span><strong class="metric__value" data-session-summary="` + stat.field + `">` + stat.value + `</strong>`
 		if !strings.Contains(manage, fragment) {
 			t.Errorf("count %s=%s is outside project management card", stat.label, stat.value)

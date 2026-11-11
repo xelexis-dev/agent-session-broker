@@ -55,6 +55,7 @@ func TestInstanceYBrowser(t *testing.T) {
 		if err := s.Setup(testPassword); err != nil {
 			t.Fatal(err)
 		}
+		useKorean(t, s)
 		for _, name := range []string{"acc", "asb", "customer-experience-platform-observability-production-system"} {
 			if err := s.CreateProjectFor("admin", name); err != nil {
 				t.Fatal(err)
@@ -75,7 +76,7 @@ func TestInstanceYBrowser(t *testing.T) {
 				} else {
 					v.AnnouncementComplete = true
 				}
-				if err := pages.ExecuteTemplate(w, "admin-settings", v); err != nil {
+				if err := koPages.ExecuteTemplate(w, "admin-settings", v); err != nil {
 					t.Error("fixture template render failed")
 				}
 				return

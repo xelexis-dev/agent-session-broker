@@ -561,8 +561,12 @@ func (s *Store) authenticateAPI(raw string) (apiPrincipal, error) {
 }
 
 // apiCommitLocked keeps state and API audit in the same SQLite transaction.
-func (s *Store) apiCommitLocked(candidate state, event apiAuditEvent) error {
-	return s.commitAuditedAPI(candidate, nil, &event)
+func (s *Store) apiCommitLocked(candidate state, event apiAuditEvent, rows ...map[string][]byte) error {
+	var extra map[string][]byte
+	if len(rows) > 0 {
+		extra = rows[0]
+	}
+	return s.commitAuditedAPI(candidate, nil, &event, extra)
 }
 
 // strictAPIBytes is also used for durable rows: unknown versions never authenticate.

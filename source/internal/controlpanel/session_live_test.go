@@ -111,7 +111,7 @@ func TestSessionActivityPresentationDoesNotChangeConnection(t *testing.T) {
 			s := base
 			tc.change(&s)
 			before := s.DisplayState()
-			v := s.ActivityView()
+			v := s.ActivityView("en")
 			if v.State != tc.want || s.DisplayState() != before || strings.Contains(v.Reason, "untrusted") {
 				t.Fatalf("view=%+v", v)
 			}
@@ -169,21 +169,21 @@ func TestSessionActivityIsTooltipOnlyWithAccessibleIndicator(t *testing.T) {
 				t.Fatalf("triggers=%d", len(triggers))
 			}
 			visible := regexp.MustCompile(`<[^>]+>`).ReplaceAllString(triggers[0][1], "")
-			for _, word := range []string{"턴 진행", "활동 확인 불가", "—"} {
+			for _, word := range []string{en("session.activity.working"), en("session.activity.unknown"), "—"} {
 				if strings.Contains(visible, word) {
 					t.Fatalf("activity wording visible: %q", visible)
 				}
 			}
-			if strings.Contains(visible, "대기") {
+			if strings.Contains(visible, en("session.activity.idle")) {
 				t.Fatalf("activity wording visible: %q", visible)
 			}
-			if !strings.Contains(triggers[0][1], `role="img" aria-label="활동: `+string(state)+`"`) {
+			if !strings.Contains(triggers[0][1], `role="img" aria-label="`+enHTML("sessions.activity_aria", "label", activityLabel(string(state)).In("en"))+`"`) {
 				t.Fatal("accessible activity label missing")
 			}
 			if strings.Contains(triggers[1][1], "data-activity-state") {
 				t.Fatal("reserved grant has an activity indicator")
 			}
-			if !strings.Contains(body, "활동: "+activityLabel(string(state))+" · 연결 상태와 다름") {
+			if !strings.Contains(body, `<span data-activity-line>`+enHTML("session.tooltip.activity", "label", activityLabel(string(state)).In("en"))+`</span>`) {
 				t.Fatal("activity tooltip missing")
 			}
 			header := regexp.MustCompile(`(?s)<div class="section-heading panel__header">(.*?)<small class="autocomplete-status"`).FindStringSubmatch(body)
@@ -213,12 +213,12 @@ func TestSessionActivityTooltipSemanticTimes(t *testing.T) {
 		t.Fatal("raw ISO visible outside machine attributes")
 	}
 	session.GrantID = "reserved"
-	if len(session.ActivityTooltipTimes()) != 0 {
+	if len(session.ActivityTooltipTimes("en")) != 0 {
 		t.Fatal("reserved grant exposes activity timestamps")
 	}
 	session.GrantID = ""
 	session.Status = "missing"
-	if len(session.ActivityTooltipTimes()) != 0 {
+	if len(session.ActivityTooltipTimes("en")) != 0 {
 		t.Fatal("missing connection exposes previous binding times")
 	}
 }

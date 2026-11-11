@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	navRE  = regexp.MustCompile(`(?s)<nav aria-label="주 메뉴"[^>]*>(.*?)</nav>`)
+	navRE  = regexp.MustCompile(`(?s)<nav aria-label="` + en("nav.main") + `"[^>]*>(.*?)</nav>`)
 	menuRE = regexp.MustCompile(`(?s)<div id="user-menu-items"(.*?)</aside>`)
 )
 
@@ -45,7 +45,7 @@ func TestSidebarGroupsFollowRoleAndProject(t *testing.T) {
 			}
 			body := page.Body.String()
 			nav := fragment(t, navRE, body)
-			for _, want := range []string{`href="/"`, ">프로젝트 목록<", `href="/profile"`, `href="/auth/code"`, ">프로젝트<", ">계정<"} {
+			for _, want := range []string{`href="/"`, ">" + en("nav.projects") + "<", `href="/profile"`, `href="/auth/code"`, ">" + en("nav.group_projects") + "<", ">" + en("nav.group_account") + "<"} {
 				if !strings.Contains(nav, want) {
 					t.Errorf("nav lacks %s", want)
 				}
@@ -53,7 +53,7 @@ func TestSidebarGroupsFollowRoleAndProject(t *testing.T) {
 			if strings.Contains(nav, `href="/projects/sessions?project=demo"`) != tc.project || strings.Contains(nav, `href="/projects/settings?project=demo"`) != tc.project {
 				t.Errorf("project items visibility = %v", !tc.project)
 			}
-			if strings.Contains(nav, `href="/admin/users"`) != tc.admin || strings.Contains(nav, `href="/admin/settings"`) != tc.admin || strings.Contains(nav, "관리자 전용") != tc.admin {
+			if strings.Contains(nav, `href="/admin/users"`) != tc.admin || strings.Contains(nav, `href="/admin/settings"`) != tc.admin || strings.Contains(nav, en("nav.group_admin")) != tc.admin {
 				t.Errorf("admin group visibility = %v", !tc.admin)
 			}
 			if got := strings.Count(nav, `aria-current="page"`); got != 1 || !regexp.MustCompile(regexp.QuoteMeta(tc.current)+`[^>]*aria-current="page"`).MatchString(nav) {
@@ -68,7 +68,7 @@ func TestSidebarGroupsFollowRoleAndProject(t *testing.T) {
 			if strings.Contains(menu, `href="/admin/users"`) != tc.admin {
 				t.Errorf("admin panel link visibility = %v", !tc.admin)
 			}
-			if !strings.Contains(body, `data-user-menu-toggle`) || !strings.Contains(body, `id="user-menu-items" class="user-menu-items" role="menu" aria-label="사용자 메뉴" hidden`) {
+			if !strings.Contains(body, `data-user-menu-toggle`) || !strings.Contains(body, `id="user-menu-items" class="user-menu-items" role="menu" aria-label="`+en("shell.user_menu")+`" hidden`) {
 				t.Error("user menu button or hidden menu missing")
 			}
 		})
@@ -100,11 +100,11 @@ func TestProjectListIsSearchableTableWithRowLinks(t *testing.T) {
 	h := New(s, &panelBackend{}, http.NotFoundHandler())
 	owner := loginPanelUser(t, h, "owner")
 	body := owner.call("GET", "/", nil).Body.String()
-	table, ok := layoutTables(t, body)["프로젝트 목록"]
-	if !ok || len(table.rows) != 2 || strings.Join(table.headers, "|") != "프로젝트|내 역할|상태|업데이트" {
+	table, ok := layoutTables(t, body)[en("projects.projects")]
+	if !ok || len(table.rows) != 2 || strings.Join(table.headers, "|") != strings.Join([]string{en("projects.project"), en("projects.my_role"), en("projects.status"), en("projects.updated")}, "|") {
 		t.Fatalf("project table = %+v", table)
 	}
-	if !strings.Contains(table.rows[0][0].text, "demo") || table.rows[0][1].text != "Owner" || !strings.Contains(table.rows[0][2].text, "사용 중") {
+	if !strings.Contains(table.rows[0][0].text, "demo") || table.rows[0][1].text != "Owner" || !strings.Contains(table.rows[0][2].text, en("projects.enabled")) {
 		t.Fatalf("first row = %+v", table.rows[0])
 	}
 	for _, want := range []string{`data-table-filter="project-table"`, `id="project-table"`, `data-row-links`, `class="row-link" data-filter-text="demo"`, `class="row-link-target" href="/projects/sessions?project=demo"`, `type="search"`} {
@@ -119,7 +119,7 @@ func TestProjectListIsSearchableTableWithRowLinks(t *testing.T) {
 		t.Errorf("legacy detail redirect = %d %s", w.Code, w.Header().Get("Location"))
 	}
 	developer := loginPanelUser(t, h, "developer").call("GET", "/", nil).Body.String()
-	if rows := layoutTables(t, developer)["프로젝트 목록"].rows; len(rows) != 1 || rows[0][1].text != "Developer" {
+	if rows := layoutTables(t, developer)[en("projects.projects")].rows; len(rows) != 1 || rows[0][1].text != "Developer" {
 		t.Errorf("developer rows = %+v", rows)
 	}
 }
@@ -128,23 +128,23 @@ func TestProjectDetailAndSettingsLinkEachOther(t *testing.T) {
 	h := New(userStore(t), layoutBackend{}, http.NotFoundHandler())
 	viewer := loginPanelUser(t, h, "viewer")
 	detail := viewer.call("GET", "/projects/sessions?project=demo", nil).Body.String()
-	for _, want := range []string{`aria-label="프로젝트 설정"`, `href="/projects/settings?project=demo"`, `data-table-filter="session-table"`, `id="session-table"`, `class="icon icon--settings"`} {
+	for _, want := range []string{`aria-label="` + en("nav.project_settings") + `"`, `href="/projects/settings?project=demo"`, `data-table-filter="session-table"`, `id="session-table"`, `class="icon icon--settings"`} {
 		if !strings.Contains(detail, want) {
 			t.Errorf("detail lacks %s", want)
 		}
 	}
 	tables := layoutTables(t, detail)
-	if _, ok := tables["프로젝트 연결 세션"]; !ok {
+	if _, ok := tables[en("sessions.caption")]; !ok {
 		t.Error("detail lacks the session table")
 	}
-	if _, ok := tables["프로젝트 토큰 목록"]; ok {
+	if _, ok := tables[en("tokens.project_tokens")]; ok {
 		t.Error("detail still lists tokens")
 	}
 	settings := viewer.call("GET", "/projects/settings?project=demo", nil).Body.String()
-	if !strings.Contains(settings, `href="/projects/sessions?project=demo"`) || !strings.Contains(settings, "← 프로젝트 상세") {
+	if !strings.Contains(settings, `href="/projects/sessions?project=demo"`) || !strings.Contains(settings, en("heading.back_project")) {
 		t.Error("settings lacks the back link to detail")
 	}
-	if !strings.Contains(settings, "<h1>demo 설정</h1>") || !strings.Contains(detail, "<h1>demo</h1>") {
+	if !strings.Contains(settings, "<h1>"+en("heading.project_settings", "project", "demo")+"</h1>") || !strings.Contains(detail, "<h1>demo</h1>") {
 		t.Error("page headings do not distinguish detail and settings")
 	}
 }

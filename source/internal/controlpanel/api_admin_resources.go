@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 type apiSessionList struct {
@@ -265,7 +267,7 @@ func (p *panel) apiProjectAudit(w http.ResponseWriter, r *http.Request, a apiPri
 		apiError(w, err)
 		return
 	}
-	view, err := s.directAuditViewWindowFor(a.userID, project, "current", cursor.Before, maxAuditEvents)
+	view, err := s.directAuditViewWindowFor(a.userID, project, "current", i18n.English, cursor.Before, maxAuditEvents)
 	if err != nil {
 		apiError(w, err)
 		return
@@ -303,7 +305,7 @@ func (p *panel) apiAdminAudit(w http.ResponseWriter, r *http.Request, a apiPrinc
 	}
 	rows := make([]any, 0)
 	if kind == "registration" {
-		view, e := s.directAuditViewWindowFor(a.userID, "", "current", cursor.Before, maxAuditEvents)
+		view, e := s.directAuditViewWindowFor(a.userID, "", "current", i18n.English, cursor.Before, maxAuditEvents)
 		if e != nil {
 			apiError(w, e)
 			return

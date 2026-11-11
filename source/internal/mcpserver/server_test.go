@@ -95,8 +95,8 @@ func TestSessionToolMetadataExplainsNameBasedCommunicationAddressing(t *testing.
 	sendDescription := byName["send_message"].Description
 	for _, required := range []string{
 		"calling agent interprets",
-		"interpret 'mes-dev' 세션에서 이 개발 항목을 수행해줘 as",
-		`send_message(to: "mes-dev", body: "이 개발 항목을 수행해줘")`,
+		"interpret 'do this development task in session mes-dev' as",
+		`send_message(to: "mes-dev", body: "Do this development task.")`,
 	} {
 		if !strings.Contains(sendDescription, required) {
 			t.Errorf("send_message description is missing %q: %q", required, sendDescription)

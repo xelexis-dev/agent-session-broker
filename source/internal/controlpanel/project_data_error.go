@@ -10,7 +10,7 @@ import (
 
 const projectDataUnavailableMessage = "project data unavailable: the server could not read this project's stored data. Ask the administrator to restore it from a backup."
 
-const projectDataUnavailableNotice = "이 프로젝트의 저장 데이터를 읽을 수 없습니다. 관리자가 백업에서 복원해야 합니다."
+const projectDataUnavailableNotice = "error.project_data_unavailable"
 
 func projectDataNoticeMessage(err error, fallback string) string {
 	if errors.Is(err, sqlitestore.ErrCorrupt) {

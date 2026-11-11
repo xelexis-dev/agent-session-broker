@@ -29,6 +29,7 @@ type apiLoginResponse struct {
 	UserTokenView
 }
 type apiMeView struct {
+	Language    string `json:"language"`
 	ID          string `json:"id"`
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name"`
@@ -38,14 +39,15 @@ type apiMeView struct {
 	Version     string `json:"version"`
 }
 
-func apiUserView(u User) apiMeView {
-	return apiMeView{u.ID, u.Username, u.DisplayName, u.Email, u.Role, u.Enabled, profileSettingsVersion(u)}
+func (s *Store) apiUserView(u User) apiMeView {
+	return apiMeView{s.languageLocked(u.ID), u.ID, u.Username, u.DisplayName, u.Email, u.Role, u.Enabled, profileSettingsVersion(u, s.languageLocked(u.ID))}
 }
 
 type apiProfileRequest struct {
-	DisplayName *string `json:"display_name,omitempty"`
-	Email       *string `json:"email,omitempty"`
-	Version     *string `json:"version,omitempty"`
+	Language    apiLanguage `json:"language,omitempty"`
+	DisplayName *string     `json:"display_name,omitempty"`
+	Email       *string     `json:"email,omitempty"`
+	Version     *string     `json:"version,omitempty"`
 }
 type apiPasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
@@ -235,7 +237,10 @@ func decodeAPIJSON(reader io.Reader, target any) error {
 	}
 	dec := json.NewDecoder(strings.NewReader(string(raw)))
 	dec.DisallowUnknownFields()
-	if dec.Decode(target) != nil {
+	if err := dec.Decode(target); err != nil {
+		if errors.Is(err, ErrInvalid) {
+			return ErrInvalid
+		}
 		return errAPIJSON
 	}
 	return nil
@@ -383,7 +388,7 @@ func (p *panel) apiMe(w http.ResponseWriter, r *http.Request, a apiPrincipal) {
 		apiError(w, err)
 		return
 	}
-	apiJSON(w, 200, apiUserView(s.data.Users[a.userID].User))
+	apiJSON(w, 200, s.apiUserView(s.data.Users[a.userID].User))
 }
 func (p *panel) apiTokens(w http.ResponseWriter, r *http.Request, a apiPrincipal) {
 	s := p.store
@@ -409,7 +414,7 @@ func (p *panel) apiProfile(w http.ResponseWriter, r *http.Request, a apiPrincipa
 		return
 	}
 	u := s.data.Users[a.userID]
-	if err := checkSettingsVersion(apiVersion(req.Version), profileSettingsVersion(u.User)); err != nil {
+	if err := checkSettingsVersion(apiVersion(req.Version), profileSettingsVersion(u.User, s.languageLocked(a.userID))); err != nil {
 		apiError(w, err)
 		return
 	}
@@ -423,14 +428,29 @@ func (p *panel) apiProfile(w http.ResponseWriter, r *http.Request, a apiPrincipa
 		apiError(w, ErrInvalid)
 		return
 	}
+	var rows map[string][]byte
+	if req.Language != "" {
+		if !validLanguage(string(req.Language)) {
+			apiError(w, ErrInvalid)
+			return
+		}
+		raw, _ := json.Marshal(userSettings{V: 1, Language: string(req.Language)})
+		rows = map[string][]byte{userSettingsPrefix + a.userID: raw}
+	}
 	candidate := s.data
 	candidate.Users = maps.Clone(s.data.Users)
 	candidate.Users[a.userID] = u
-	if err := s.apiCommitLocked(candidate, apiAuditEvent{Action: "profile_update", Actor: a.userID, Result: "success"}); err != nil {
+	if err := s.apiCommitLocked(candidate, apiAuditEvent{Action: "profile_update", Actor: a.userID, Result: "success"}, rows); err != nil {
 		apiError(w, err)
 		return
 	}
-	apiJSON(w, 200, apiUserView(u.User))
+	if req.Language != "" {
+		if s.languages == nil {
+			s.languages = map[string]string{}
+		}
+		s.languages[a.userID] = string(req.Language)
+	}
+	apiJSON(w, 200, s.apiUserView(u.User))
 }
 func (p *panel) apiPassword(w http.ResponseWriter, r *http.Request, a apiPrincipal) {
 	var req apiPasswordRequest

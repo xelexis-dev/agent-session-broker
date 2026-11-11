@@ -51,7 +51,7 @@ func TestReservedGrantListedAndDetachReleasesOnlySelectedNickname(t *testing.T) 
 	b := &reservedGrantBackend{}
 	c := loginPanelUser(t, New(f.store, b, http.NotFoundHandler()), "developer")
 	body := c.call("GET", "/projects/sessions?project=demo", nil).Body.String()
-	for _, want := range []string{"reserved-a", "reserved-b", "등록 없음", `name="grant_id" value="` + id + `"`, `data-confirm-action="session-grant-release"`} {
+	for _, want := range []string{"reserved-a", "reserved-b", en("session.connection.unregistered"), `name="grant_id" value="` + id + `"`, `data-confirm-action="session-grant-release"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("list lacks %s", want)
 		}
@@ -198,7 +198,7 @@ func TestReservedGrantRowAppearsWithoutRegistration(t *testing.T) {
 	f.approve(t, "owner", "11111111-1111-4111-8111-111111111111", "reserved-row")
 	c := loginPanelUser(t, New(f.store, &reservedGrantBackend{}, http.NotFoundHandler()), "viewer")
 	body := c.call("GET", "/projects/sessions?project=demo", nil).Body.String()
-	if !strings.Contains(body, "reserved-row") || !strings.Contains(body, "등록 없음") {
+	if !strings.Contains(body, "reserved-row") || !strings.Contains(body, en("session.connection.unregistered")) {
 		t.Fatal("unregistered grant row is missing")
 	}
 	if strings.Contains(body, `name="grant_id"`) {

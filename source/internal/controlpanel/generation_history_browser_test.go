@@ -16,7 +16,8 @@ func TestGenerationHistoryFullChrome(t *testing.T) {
 	type browserAuth struct{ Base, CookieName, Cookie string }
 	config := map[string]browserAuth{}
 	for name, kinds := range map[string][]string{"unknown": {"current", "unknown"}, "previous": {"current", "previous"}, "mixed": {"current", "unknown", "previous"}} {
-		_, _, h := generationHistoryFixture(t, kinds)
+		s, _, h := generationHistoryFixture(t, kinds)
+		useKorean(t, s)
 		server := httptest.NewServer(h)
 		defer server.Close()
 		c := loginPanelUser(t, h, "admin")

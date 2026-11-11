@@ -181,7 +181,7 @@ func TestProjectDeleteOwnerConfirmationAndRetry(t *testing.T) {
 	if s.Authorize("demo", "") || s.CreateProjectFor("owner", "demo") == nil || s.SaveProjectFor("owner", "demo", "token", true) == nil {
 		t.Fatal("pending deletion reopened")
 	}
-	if w = c.call("GET", "/projects/settings?project=demo", nil); !strings.Contains(w.Body.String(), "삭제 대기") {
+	if w = c.call("GET", "/projects/settings?project=demo", nil); !strings.Contains(w.Body.String(), en("tokens.deletion_is_pending_and_access_is_blocked")) || !strings.Contains(w.Body.String(), en("projects.retry_permanent_deletion")) {
 		t.Fatal("missing retry UI")
 	}
 	b.fail = false

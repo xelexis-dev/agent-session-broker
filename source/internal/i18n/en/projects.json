@@ -1,0 +1,38 @@
+{
+  "projects.count": {
+    "one": "{n} project",
+    "other": "{n} projects"
+  },
+  "projects.projects": "Projects",
+  "projects.search_projects": "Search projects",
+  "projects.search_by_project_name": "Search by project name",
+  "projects.project": "Project",
+  "projects.my_role": "My role",
+  "projects.status": "Status",
+  "projects.updated": "Updated",
+  "projects.token_authentication": "Token authentication",
+  "projects.deletion_pending": "Deletion pending",
+  "projects.disabled": "Disabled",
+  "projects.no_projects_yet": "No projects yet",
+  "projects.there_are_no_projects": "There are no projects.",
+  "projects.add_project": "Add project",
+  "projects.project_name": "Project name",
+  "projects.lowercase_letters_digits_dot_underscore_and_hyphen": "Lowercase letters, digits, dot (.), underscore (_) and hyphen (-)",
+  "projects.the_creator_becomes_the_owner": "The creator becomes the Owner.",
+  "projects.cancel": "Cancel",
+  "projects.create_project": "Create project",
+  "projects.member_count": {
+    "one": "{n} member",
+    "other": "{n} members"
+  },
+  "projects.apply_role_for": "Apply project role for {name}",
+  "projects.role_for": "Project role for {name}",
+  "projects.remove_member_for": "Remove member {name}",
+  "projects.confirm_name": "Enter project name {name} to confirm",
+  "projects.delete_project_permanently": "Delete project permanently",
+  "projects.delete_all_session_registrations_tokens_and_shared": "Delete all session registrations, tokens and shared memory. This cannot be undone.",
+  "projects.retry_permanent_deletion": "Retry permanent deletion",
+  "projects.error_delete_pending": "Deletion pending: not all data could be deleted. Check the name and retry.",
+  "projects.error_confirm_name": "Enter the exact project name.",
+  "projects.enabled": "Enabled"
+}

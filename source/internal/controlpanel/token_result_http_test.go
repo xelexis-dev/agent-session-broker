@@ -46,7 +46,7 @@ func TestProjectTokenResultRefreshAndSessionBinding(t *testing.T) {
 	}
 	for range 3 {
 		refreshed := owner.call("GET", target, nil)
-		if refreshed.Code != 200 || strings.Contains(refreshed.Body.String(), raw) || strings.Contains(refreshed.Body.String(), "프로젝트 토큰 발급 완료") {
+		if refreshed.Code != 200 || strings.Contains(refreshed.Body.String(), raw) || strings.Contains(refreshed.Body.String(), en("tokens.project_token_issued")) {
 			t.Fatal("refresh replays the one-time result")
 		}
 	}

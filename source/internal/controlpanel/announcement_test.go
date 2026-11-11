@@ -20,7 +20,7 @@ type announcementBackend struct {
 func (b *announcementBackend) Announce(_ context.Context, actor, project, body string) ([]AnnouncementResult, error) {
 	b.calls++
 	b.actor, b.project, b.body = actor, project, body
-	return []AnnouncementResult{{Project: "demo", Name: "ready", Accepted: true}, {Project: "demo", Name: "full", Error: "대기 큐가 가득 찼습니다."}}, nil
+	return []AnnouncementResult{{Project: "demo", Name: "ready", Accepted: true}, {Project: "demo", Name: "full", Error: "queue-full"}}, nil
 }
 func TestAnnouncementHTTPAdminAndValidation(t *testing.T) {
 	b := &announcementBackend{}
@@ -62,7 +62,7 @@ func TestAnnouncementHTTPAdminAndValidation(t *testing.T) {
 			t.Errorf("scope %q = %d %+v", project, w.Code, b)
 		}
 		w = a.call("GET", w.Header().Get("Location"), nil)
-		for _, text := range []string{"ready", "full", "대기 큐가 가득 찼습니다.", "접수 1개 · 실패 1개"} {
+		for _, text := range []string{"ready", "full", enHTML("admin.announce.error_queue_full"), enHTML("admin.announce.counts", "accepted", 1, "failed", 1)} {
 			if !strings.Contains(w.Body.String(), text) {
 				t.Errorf("result lacks %s", text)
 			}
@@ -120,7 +120,7 @@ func TestAnnouncementDuplicatePOSTDoesNotEnqueue(t *testing.T) {
 	}
 	if second.Header().Get("Location") != "" {
 		result := a.call("GET", second.Header().Get("Location"), nil)
-		if result.Code != 200 || !strings.Contains(result.Body.String(), "이미 접수됨") {
+		if result.Code != 200 || !strings.Contains(result.Body.String(), enHTML("admin.announce.duplicate")) {
 			t.Error("duplicate result lacks already accepted notice")
 		}
 	}
@@ -135,7 +135,7 @@ func TestAnnouncementPOSTRedirectAndRefreshKeepsCounts(t *testing.T) {
 	}
 	for i := 0; i < 2; i++ {
 		result := a.call("GET", post.Header().Get("Location"), nil)
-		if result.Code != 200 || !strings.Contains(result.Body.String(), "접수 1개 · 실패 1개") {
+		if result.Code != 200 || !strings.Contains(result.Body.String(), enHTML("admin.announce.counts", "accepted", 1, "failed", 1)) {
 			t.Error("GET result lacks aggregate")
 		}
 		if policy := result.Header().Get("Referrer-Policy"); policy != "same-origin" {

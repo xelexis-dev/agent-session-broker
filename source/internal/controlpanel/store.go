@@ -102,8 +102,10 @@ type state struct {
 }
 
 type Store struct {
-	api         apiState
-	listRecords func() (map[string][]byte, error)
+	languages           map[string]string
+	invalidUserSettings int
+	api                 apiState
+	listRecords         func() (map[string][]byte, error)
 
 	attachmentStore        *attachments.Store
 	attachmentEnabled      bool
@@ -620,10 +622,10 @@ func (s *Store) confirmConnection(project, id, identity string, generation <-cha
 func (s *Store) commit(candidate state) error { return s.commitAudited(candidate, nil) }
 
 func (s *Store) commitAudited(candidate state, events []AuditEvent) error {
-	return s.commitAuditedAPI(candidate, events, nil)
+	return s.commitAuditedAPI(candidate, events, nil, nil)
 }
 
-func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent *apiAuditEvent) error {
+func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent *apiAuditEvent, extra map[string][]byte) error {
 	candidate, events = s.prepareAutoCommit(candidate, events)
 	events = s.auditAutoTransitions(candidate, events)
 	if !validProjectGenerations(candidate) || !validAutoState(candidate) {
@@ -651,6 +653,11 @@ func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent 
 	if err != nil || len(data) > controlMaxBytes || (candidate.Version < scopeIntroductionVersion && len(data) > legacyControlMaxBytes) {
 		return ErrStorage
 	}
+	puts := maps.Clone(extra)
+	if puts == nil {
+		puts = map[string][]byte{}
+	}
+	puts["state"] = data
 	// Remove the previous project's audit in the same transaction as its
 	// deletion. Also discard orphaned audit before a same-name recreation.
 	pruneAudit := false
@@ -661,11 +668,11 @@ func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent 
 		}
 	}
 	if len(events) > 0 || pruneAudit {
-		if err = s.writeAuditBatch(data, events, candidate.Projects, apiEvent); err != nil {
+		if err = s.writeAuditBatch(puts, events, candidate.Projects, apiEvent); err != nil {
 			return ErrStorage
 		}
 	} else if apiEvent != nil {
-		if err = s.apiBatchLocked(map[string][]byte{"state": data}, nil, *apiEvent); err != nil {
+		if err = s.apiBatchLocked(puts, nil, *apiEvent); err != nil {
 			return ErrStorage
 		}
 	} else if err = s.write(data); err != nil {

@@ -74,16 +74,16 @@ func TestAttachmentUIStates(t *testing.T) {
 			admin := loginPanelUser(t, h, "admin")
 			w := admin.call("GET", "/admin/settings", nil)
 			body := w.Body.String()
-			badge, toggle, next := "ON", "끄기", "false"
+			badge, toggle, next := "ON", en("admin.attach.turn_off_aria"), "false"
 			if state == "off" {
-				badge, toggle, next = "OFF", "켜기", "true"
+				badge, toggle, next = "OFF", en("admin.attach.turn_on_aria"), "true"
 			}
-			for _, want := range []string{`id="attachment-badge"`, `>` + badge + `</span>`, `메시지 파일 첨부 ` + toggle, `name="attachments" value="` + next + `"`, `100 MiB`, `업로드 후 30분`, `클라이언트 <strong>0.18 이상</strong>`} {
+			for _, want := range []string{`id="attachment-badge"`, `>` + badge + `</span>`, `aria-label="` + toggle + `"`, `name="attachments" value="` + next + `"`, `100 MiB`, en("admin.attach.rule_expiry_4", "n", 30), en("admin.attach.rule_client_1") + `<strong>` + en("admin.attach.rule_client_2") + `</strong>`} {
 				if !strings.Contains(body, want) {
 					t.Errorf("missing UI contract %s", want)
 				}
 			}
-			want := map[string]string{"off": "파일 첨부가 꺼져 있습니다.", "on": "새 첨부를 받을 수 있습니다.", "low": "남은 공간이 1 GiB 미만이라 새 첨부를 받지 않습니다.", "unknown": "서버 디스크: 남은 공간을 확인할 수 없어 새 첨부를 받지 않습니다.", "long": "새 첨부를 받을 수 있습니다."}[state]
+			want := map[string]string{"off": enHTML("admin.attach.status_off"), "on": enHTML("admin.attach.status_on"), "low": enHTML("admin.attach.status_low"), "unknown": enHTML("admin.attach.status_unknown"), "long": enHTML("admin.attach.status_on")}[state]
 			if !strings.Contains(body, want) || strings.Contains(body, "synthetic-private-provider-detail") {
 				t.Fatal("status/error disclosure")
 			}
@@ -91,7 +91,7 @@ func TestAttachmentUIStates(t *testing.T) {
 				t.Fatal("WIP checkbox remains")
 			}
 			if state == "unknown" {
-				if !strings.Contains(body, `id="attachment-free">확인 불가`) || !strings.Contains(body, `id="attachment-free-unit" hidden`) {
+				if !strings.Contains(body, `id="attachment-free">`+en("admin.attach.disk_unknown")) || !strings.Contains(body, `id="attachment-free-unit" hidden`) {
 					t.Fatal("unknown disk units")
 				}
 			} else {
@@ -107,7 +107,7 @@ func TestAttachmentUIStates(t *testing.T) {
 				}
 			}
 			if state == "off" {
-				if !strings.Contains(body, `id="attachment-history">설정 변경 이력이 없습니다.`) {
+				if !strings.Contains(body, `id="attachment-history">`+en("admin.no_changes")) {
 					t.Fatal("no history")
 				}
 			} else {
@@ -140,10 +140,10 @@ func TestAttachmentOffDiskCopy(t *testing.T) {
 			h := New(s, &ownedPanelBackend{}, http.NotFoundHandler())
 			admin := loginPanelUser(t, h, "admin")
 			body := admin.call("GET", "/admin/settings", nil).Body.String()
-			if !strings.Contains(body, "첨부가 꺼져 있어 서버의 첨부 파일은 지워졌습니다. 메시지 전달은 계속됩니다.") {
+			if !strings.Contains(body, enHTML("admin.attach.detail_off_full")) {
 				t.Error("OFF disk warning lacks deleted-file copy")
 			}
-			if strings.Contains(body, "이미 보관한 첨부의 다운로드와 메시지 전달은 계속됩니다.") {
+			if strings.Contains(body, enHTML("admin.attach.detail_full")) {
 				t.Error("OFF promises retained downloads")
 			}
 		})

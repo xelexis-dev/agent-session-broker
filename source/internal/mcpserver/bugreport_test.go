@@ -77,6 +77,14 @@ func TestBugReportRequiresRegisteredCredentialWithoutExtraScope(t *testing.T) {
 				t.Fatal("credential-only legacy report not stored correctly")
 			}
 			assertBugReportTimeFields(t, response, "receivedAt", "retryAt")
+			rawMessage, err := json.Marshal(response.StructuredContent)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var reported struct{ Message string }
+			if json.Unmarshal(rawMessage, &reported) != nil || reported.Message != "Reported to the administrator." {
+				t.Fatal("report confirmation must be English")
+			}
 			for i := 0; i < 9; i++ {
 				out, e := client.CallTool(t.Context(), &mcp.CallToolParams{Name: "report_bug", Arguments: bugreport.Input{Title: "quota", Summary: "fixture"}})
 				if e != nil || out.IsError {

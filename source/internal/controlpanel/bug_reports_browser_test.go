@@ -21,6 +21,7 @@ func TestBugReportFullChrome(t *testing.T) {
 		t.Skip("opt-in full Chrome")
 	}
 	s := userStore(t)
+	useKorean(t, s)
 	dir := t.TempDir()
 	db, err := sqlitestore.Open(filepath.Join(dir, "bugreports"), "bugreports.db")
 	if err != nil {
@@ -79,6 +80,7 @@ func TestBugReportFullChrome(t *testing.T) {
 	// cannot change the normal-render fixtures or another theme's history.
 	for _, key := range []string{"1280-light", "1280-dark", "390-light", "390-dark"} {
 		control := userStore(t)
+		useKorean(t, control)
 		store, err := bugreport.Open(t.TempDir())
 		if err != nil {
 			t.Fatal(err)

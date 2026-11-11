@@ -26,6 +26,7 @@ func TestBugReportDeleteFullChrome(t *testing.T) {
 		for _, theme := range []string{"light", "dark"} {
 			for _, state := range []string{"success", "not-confirmed", "card", "conflict", "deleted", "requested"} {
 				control := userStore(t)
+				useKorean(t, control)
 				dir := t.TempDir()
 				db, err := sqlitestore.Open(filepath.Join(dir, "bugreports"), "bugreports.db")
 				if err != nil {

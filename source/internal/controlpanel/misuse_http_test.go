@@ -17,7 +17,8 @@ import (
 )
 
 var misuseRoutes = map[string]string{
-	"/admin/admin-api": "post", "/profile/api-tokens": "page", "/profile/api-tokens/new": "page", "/profile/api-tokens/revoke": "post", "/profile/api-tokens/revoke-all": "post", "/admin/users/api-tokens/revoke": "post", "/admin/users/api-tokens/revoke-all": "post",
+	"/profile/language": "post",
+	"/admin/admin-api":  "post", "/profile/api-tokens": "page", "/profile/api-tokens/new": "page", "/profile/api-tokens/revoke": "post", "/profile/api-tokens/revoke-all": "post", "/admin/users/api-tokens/revoke": "post", "/admin/users/api-tokens/revoke-all": "post",
 	"/api/":        "user-bearer",
 	"/attachments": "bearer", "/attachments/": "bearer", "/admin/attachments": "post",
 	"/healthz": "upstream", "/mcp": "bearer", "/oauth/transport-policy": "public-read", "/oauth/capabilities": "public-read", "/oauth/session_registration": "bearer", "/oauth/device_authorization": "bearer", "/oauth/token": "bearer", "/assets/": "asset", "/favicon.ico": "asset", "/setup": "access", "/login": "access",

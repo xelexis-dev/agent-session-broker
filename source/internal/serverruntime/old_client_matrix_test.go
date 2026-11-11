@@ -26,9 +26,11 @@ import (
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/clientstate"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/controlpanel"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/memory"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/sqlitestore"
+	"html/template"
 )
 
 const matrixSID = "11111111-1111-4111-8111-111111111111"
@@ -308,7 +310,7 @@ func matrixCase(t *testing.T, binary, helper, version, mode string) {
 			form.Set("auto_days", "30")
 		}
 		w := browser.browser("POST", "/tokens/project", form)
-		matrixRequire(t, w.Code == 400 && strings.Contains(w.Body.String(), "호환성 검증 완료"), "gate-off restricted/auto issuance")
+		matrixRequire(t, w.Code == 400 && strings.Contains(w.Body.String(), template.HTMLEscapeString(i18n.T(i18n.English, "error.token_scope_upgrade"))), "gate-off restricted/auto issuance")
 	}
 	status, _ := browser.rest("/oauth/session_registration?project=test", parent, url.Values{"client_id": {"asb-client-v1"}})
 	matrixRequire(t, status == 403, "gate-off direct endpoint")

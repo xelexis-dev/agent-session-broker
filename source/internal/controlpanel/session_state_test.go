@@ -15,12 +15,12 @@ func TestSessionsSeparateRegistrationHistoryAndCurrentState(t *testing.T) {
 		code, reason string
 		detach       bool
 	}{
-		{"detached", "연결 해제됨", false},
-		{"server-restarted", "서버 재시작", true},
-		{"ingress-failed", "수신 연결 실패", true},
-		{"ingress-expired", "수신 연결 만료", true},
-		{"probe-unanswered", "응답 없음 · 등록은 유지됩니다", true},
-		{"identity-mismatch", "세션 식별 확인 실패 · 등록은 유지됩니다", true},
+		{"detached", enHTML("session.reason.detached"), false},
+		{"server-restarted", enHTML("session.reason.server-restarted"), true},
+		{"ingress-failed", enHTML("session.reason.ingress-failed"), true},
+		{"ingress-expired", enHTML("session.reason.ingress-expired"), true},
+		{"probe-unanswered", enHTML("session.reason.probe-unanswered"), true},
+		{"identity-mismatch", enHTML("session.reason.identity-mismatch"), true},
 		{"unknown-reason", "unknown-reason", true},
 	} {
 		t.Run(tc.code, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestSessionsSeparateRegistrationHistoryAndCurrentState(t *testing.T) {
 			w = httptest.NewRecorder()
 			render(w, 200, page{View: "settings", Selected: Project{Mode: "token"}, User: User{Username: "owner"}, CanIssue: true, CanEdit: true, Form: url.Values{}, ProjectTokens: []tokenView{{SessionToken: SessionToken{Kind: tokenProject, Label: "example", Approvals: 1, LastRegisteredAt: time.Date(2026, 9, 13, 1, 2, 0, 0, time.UTC)}, State: "registered"}}})
 			body = w.Body.String()
-			if !strings.Contains(body, "등록 이력") || !strings.Contains(body, "최근 등록") || !strings.Contains(body, ">등록 완료<") || strings.Contains(body, ">사용 중<") || strings.Contains(body, ">연결됨<") {
+			if !strings.Contains(body, en("tokens.registration_history")) || !strings.Contains(body, en("tokens.last_registered")) || !strings.Contains(body, ">"+en("tokens.registered")+"<") || strings.Contains(body, ">"+en("tokens.active")+"<") || (strings.Contains(body, ">Connected<") || strings.Contains(body, ">연결됨<")) {
 				t.Error("token registration history implies a current connection")
 			}
 		})
@@ -63,7 +63,7 @@ func TestUnchangedMemberRoleHasAccurateFeedback(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, req)
-	if !strings.Contains(w.Body.String(), "변경된 멤버 정보가 없습니다.") || strings.Contains(w.Body.String(), "프로젝트 멤버 정보를 변경했습니다.") {
+	if !strings.Contains(w.Body.String(), en("notice.members-unchanged")) || strings.Contains(w.Body.String(), en("notice.members-saved")) {
 		t.Error("unchanged role reports a mutation")
 	}
 }
@@ -78,8 +78,8 @@ func TestDangerousRowActionsIdentifyTargetsAndUseSharedConfirmation(t *testing.T
 		path string
 		want []string
 	}{
-		{"/projects/settings?project=demo", []string{`data-confirm-action="member-role"`, `data-confirm-action="member-remove"`, `data-confirm-target="developer"`, `aria-label="developer 프로젝트 역할 적용"`}},
-		{"/projects/settings?project=demo", []string{`data-confirm-action="project-token-revoke"`, `data-confirm-target="example"`, `aria-label="example 프로젝트 토큰 취소"`}},
+		{"/projects/settings?project=demo", []string{`data-confirm-action="member-role"`, `data-confirm-action="member-remove"`, `data-confirm-target="developer"`, `aria-label="` + en("projects.apply_role_for", "name", "developer") + `"`}},
+		{"/projects/settings?project=demo", []string{`data-confirm-action="project-token-revoke"`, `data-confirm-target="example"`, `aria-label="example ` + en("tokens.revoke_project_token") + `"`}},
 	} {
 		body := c.call("GET", tc.path, nil).Body.String()
 		for _, want := range append(tc.want, `id="confirm-action"`, `aria-describedby="confirm-action-description"`) {

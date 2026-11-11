@@ -242,7 +242,7 @@ func TestInstanceHTTPPolicyHTTPAPIAndAdminForm(t *testing.T) {
 		t.Fatalf("enabled policy response = %d %q", w.Code, w.Body.String())
 	}
 	page := admin.call(http.MethodGet, "/admin/settings", nil)
-	if page.Code != http.StatusOK || !strings.Contains(page.Body.String(), `action="/admin/http-policy"`) || !strings.Contains(page.Body.String(), `<input type="hidden" name="allowHTTP" value="false"><button aria-label="HTTP 연결 차단">차단</button>`) || !strings.Contains(page.Body.String(), `<span class="badge enabled">허용</span>`) {
+	if page.Code != http.StatusOK || !strings.Contains(page.Body.String(), `action="/admin/http-policy"`) || !strings.Contains(page.Body.String(), `<input type="hidden" name="allowHTTP" value="false"><button aria-label="`+en("admin.http.block_aria")+`">`+en("admin.http.block")+`</button>`) || !strings.Contains(page.Body.String(), `<span class="badge enabled">`+en("admin.http.allowed")+`</span>`) {
 		t.Fatalf("admin policy form missing: %d", page.Code)
 	}
 	settings := admin.call(http.MethodGet, "/projects/settings?project=demo", nil)
@@ -256,7 +256,7 @@ func TestInstanceHTTPPolicyHTTPAPIAndAdminForm(t *testing.T) {
 		t.Fatalf("inverse action did not disable: %d", w.Code)
 	}
 	blocked := admin.call(http.MethodGet, "/admin/settings", nil).Body.String()
-	if !strings.Contains(blocked, `<input type="hidden" name="allowHTTP" value="true"><button aria-label="HTTP 연결 허용">허용</button>`) || !strings.Contains(blocked, `<span class="badge ">차단</span>`) {
+	if !strings.Contains(blocked, `<input type="hidden" name="allowHTTP" value="true"><button aria-label="`+en("admin.http.allow_aria")+`">`+en("admin.http.allow")+`</button>`) || !strings.Contains(blocked, `<span class="badge ">`+en("admin.http.blocked")+`</span>`) {
 		t.Fatal("blocked policy inverse action or badge missing")
 	}
 }

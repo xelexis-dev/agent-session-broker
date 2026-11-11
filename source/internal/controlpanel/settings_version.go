@@ -10,7 +10,7 @@ import (
 
 var errSettingsConflict = errors.New("settings changed")
 
-const settingsConflictMessage = "다른 화면에서 먼저 설정을 바꿨습니다. 최신 값을 확인한 뒤 다시 저장해 주세요."
+const settingsConflictMessage = "error.settings_conflict"
 
 // Version only the fields this form replaces, with a form and target namespace.
 // Values come from the rendered snapshot; nothing is persisted or authenticated
@@ -26,8 +26,8 @@ func projectSettingsVersion(p Project) string {
 func userSettingsVersion(u User) string {
 	return settingsVersion("user-access", u.ID, u.Role, strconv.FormatBool(u.Enabled))
 }
-func profileSettingsVersion(u User) string {
-	return settingsVersion("profile", u.ID, u.DisplayName, u.Email)
+func profileSettingsVersion(u User, language string) string {
+	return settingsVersion("profile", u.ID, u.DisplayName, u.Email, language)
 }
 func policySettingsVersion(kind string, enabled bool) string {
 	return settingsVersion(kind, "instance", strconv.FormatBool(enabled))

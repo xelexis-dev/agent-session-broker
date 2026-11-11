@@ -121,7 +121,7 @@ func TestAPIScopesDTOAndProfilePassword(t *testing.T) {
 	if json.Unmarshal(w.Body.Bytes(), &me) != nil {
 		t.Fatal("JSON")
 	}
-	if len(me) != 7 || me["display_name"] != "changed" {
+	if len(me) != 8 || me["display_name"] != "changed" {
 		t.Fatal("DTO allowlist")
 	}
 	if w = apiRequest(h, "PATCH", "/api/v1/me", `{"role":"admin"}`, write); w.Code != 400 {

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/clientstate"
 	broker "github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
@@ -105,10 +106,10 @@ func TestDeviceIdentitySafeHintsAndCauseChangeEvents(t *testing.T) {
 	for _, code := range []string{"ok", "path-unavailable", "directory-insecure", "directory-unwritable", "lock-failed", "secret-insecure", "secret-malformed", "secret-missing", "secret-changed", "secret-create-failed", "process-identity-unavailable", "secret-created", "secret-created-lock-present"} {
 		identity.cause = code
 		out := opts.deviceIdentityStatus(authStatus{})
-		if out.DeviceIdentity != code || out.DeviceIdentityHint == "" || strings.ContainsAny(out.DeviceIdentityHint, "\r\n") {
+		if out.DeviceIdentity != code || out.DeviceIdentityHint == "" || strings.ContainsFunc(out.DeviceIdentityHint, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) || strings.ContainsAny(out.DeviceIdentityHint, "\r\n") {
 			t.Fatal("cause hint missing", code)
 		}
-		if code == "secret-created-lock-present" && out.DeviceIdentityHint != "잠금 파일이 남아 있는 상태에서 새로 만들었습니다. 이전 비밀값 이력은 알 수 없습니다" {
+		if code == "secret-created-lock-present" && out.DeviceIdentityHint != "Created a new device secret while a lock file remained. The previous secret history is unknown." {
 			t.Fatal("lock-present wording must not infer prior secret deletion")
 		}
 	}

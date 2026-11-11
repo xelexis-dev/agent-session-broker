@@ -79,7 +79,7 @@ func TestAutoTokenOffLongNoticeAbsent(t *testing.T) {
 	h := New(s, tokenViewBackend{}, http.NotFoundHandler())
 	owner := loginPanelUser(t, h, "owner")
 	body := owner.call("GET", "/projects/settings?project=demo", nil).Body.String()
-	if strings.Contains(body, "인스턴스 설정에서 제한 권한·자동 등록 토큰 발급이 꺼져 있습니다") {
+	if strings.Contains(body, en("error.token_scope_upgrade")) {
 		t.Fatal("old long gate-off notice remains")
 	}
 	if !strings.Contains(body, `class="token-scope-options" disabled`) {

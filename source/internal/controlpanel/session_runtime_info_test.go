@@ -23,7 +23,7 @@ func TestSessionRuntimeInfoPanelRenderAndLivePermissions(t *testing.T) {
 	h := New(userStore(t), b, http.NotFoundHandler())
 	c := loginPanelUser(t, h, "owner")
 	page := c.call("GET", "/projects/sessions?project=demo", nil)
-	if page.Code != 200 || !strings.Contains(page.Body.String(), "gpt-6.1-sol / medium") || !strings.Contains(page.Body.String(), "claude-opus-5-5 / xhigh") || !strings.Contains(page.Body.String(), "모델·effort 알 수 없음") {
+	if page.Code != 200 || !strings.Contains(page.Body.String(), "gpt-6.1-sol / medium") || !strings.Contains(page.Body.String(), "claude-opus-5-5 / xhigh") || !strings.Contains(page.Body.String(), en("session.runtime.unknown")) {
 		t.Fatal("panel runtime info rendering absent")
 	}
 	if dir := os.Getenv("ASB_MODEL_CAPTURE_DIR"); dir != "" {

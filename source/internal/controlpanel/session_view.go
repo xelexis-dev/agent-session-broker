@@ -23,8 +23,8 @@ func (s Session) DisplayState() string {
 	}
 }
 
-// sessionSummary backs the four summary cards. Unreachable ("확인 불가")
-// includes waiting sessions; their rows still show the separate 대기 badge.
+// sessionSummary backs the four summary cards. Unreachable
+// includes waiting sessions; their rows still show the separate Waiting badge.
 type sessionSummary struct {
 	Registered, Ready, Unreachable, Suspended, Reserved int
 }

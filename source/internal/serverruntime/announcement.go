@@ -33,12 +33,12 @@ func (b panelBackend) Announce(ctx context.Context, actor, project, body string)
 		}
 		found = true
 		if p.Deleting {
-			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "삭제 중인 프로젝트입니다."})
+			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "project-deleting"})
 			continue
 		}
 		service, err := b.factory.RemoteBackend(ctx, p.Name)
 		if err != nil {
-			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "프로젝트 세션을 조회하지 못했습니다."})
+			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "sessions-unavailable"})
 			continue
 		}
 		sender, ok := service.(interface {
@@ -46,7 +46,7 @@ func (b panelBackend) Announce(ctx context.Context, actor, project, body string)
 		})
 		sessions, err := service.ListSessions(ctx)
 		if err != nil || !ok {
-			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "프로젝트 공지를 사용할 수 없습니다."})
+			results = append(results, controlpanel.AnnouncementResult{Project: p.Name, Error: "announcement-unavailable"})
 			continue
 		}
 		for _, s := range sessions {
@@ -64,7 +64,7 @@ func (b panelBackend) Announce(ctx context.Context, actor, project, body string)
 	for _, t := range targets {
 		result := controlpanel.AnnouncementResult{Project: t.project, SessionID: t.session.ID, Name: t.session.Name}
 		if !t.session.AutomaticDeliveryReady {
-			result.Error = "자동 수신 준비가 되지 않았습니다."
+			result.Error = "not-ready"
 		} else {
 			selector := broker.SelectorSession + t.session.ID
 			if t.session.RegistrationID != "" {
@@ -73,11 +73,11 @@ func (b panelBackend) Announce(ctx context.Context, actor, project, body string)
 			sent, err := t.sender.SendAnnouncement(ctx, selector, body)
 			switch {
 			case errors.Is(err, broker.ErrQueueFull):
-				result.Error = "대기 큐가 가득 찼습니다."
+				result.Error = "queue-full"
 			case errors.Is(err, broker.ErrSessionSuspended):
-				result.Error = "일시 중지된 세션입니다."
+				result.Error = "suspended"
 			case err != nil || !sent.Accepted:
-				result.Error = "세션에 접수하지 못했습니다. 연결 상태를 확인하세요."
+				result.Error = "not-accepted"
 			default:
 				result.Accepted = true
 			}

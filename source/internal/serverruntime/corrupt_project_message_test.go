@@ -3,6 +3,7 @@ package serverruntime
 import (
 	"bytes"
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 const corruptProjectNotice = "project data unavailable: the server could not read this project's stored data. Ask the administrator to restore it from a backup."
@@ -47,9 +50,11 @@ func TestCorruptProjectAdminPagesExplainRecovery(t *testing.T) {
 	defer closeHandler()
 	r := &deviceRuntime{t: t, h: handler}
 	r.login("synthetic-round2-password")
+	// The panel shows the notice in the account language (English by default, i18n MR-2).
+	notice := template.HTMLEscapeString(i18n.T(i18n.English, "error.project_data_unavailable"))
 	for _, page := range []string{"settings", "sessions", "audit"} {
 		out := r.browser(http.MethodGet, "/projects/"+page+"?project=bad", nil)
-		if out.Code != 200 || !strings.Contains(out.Body.String(), `class="notice error" role="alert">이 프로젝트의 저장 데이터를 읽을 수 없습니다. 관리자가 백업에서 복원해야 합니다.</div>`) || strings.Contains(out.Body.String(), "project data unavailable:") {
+		if out.Code != 200 || !strings.Contains(out.Body.String(), `class="notice error" role="alert">`+notice+`</div>`) || strings.Contains(out.Body.String(), "project data unavailable:") {
 			t.Errorf("%s lacks the existing error notice with backup recovery guidance", page)
 		}
 		if bytes.Contains(out.Body.Bytes(), []byte(root)) || strings.Contains(out.Body.String(), "synthetic damaged SQLite header") {
@@ -57,7 +62,7 @@ func TestCorruptProjectAdminPagesExplainRecovery(t *testing.T) {
 		}
 	}
 	out := r.browser(http.MethodGet, "/projects/settings?project=test", nil)
-	if out.Code != 200 || strings.Contains(out.Body.String(), "이 프로젝트의 저장 데이터를 읽을 수 없습니다.") {
+	if out.Code != 200 || strings.Contains(out.Body.String(), notice) || strings.Contains(out.Body.String(), "이 프로젝트의 저장 데이터를 읽을 수 없습니다.") {
 		t.Fatal("healthy project inherited corrupt state")
 	}
 }

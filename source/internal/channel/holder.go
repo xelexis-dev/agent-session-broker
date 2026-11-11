@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const registrationInUseGuidance = "registration-in-use: 다른 client가 이 등록을 쓰고 있습니다. 상태 폴더를 복제했다면 그것이 원인일 수 있습니다."
+const registrationInUseGuidance = "registration-in-use: Another client is using this registration. A copied state directory may be the cause."
 
 func (o durableOptions) currentHolder(ctx context.Context) *broker.ReceiverHolder {
 	if o.receiverIdentity == nil {

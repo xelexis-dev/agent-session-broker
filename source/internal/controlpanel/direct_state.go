@@ -90,7 +90,7 @@ func validAudit(e AuditEvent) bool {
 	}
 	return e.GrantID == "" || len(e.GrantID) == 52
 }
-func (s *Store) writeAuditBatch(data []byte, events []AuditEvent, projects map[string]Project, apiEvents ...*apiAuditEvent) error {
+func (s *Store) writeAuditBatch(puts map[string][]byte, events []AuditEvent, projects map[string]Project, apiEvents ...*apiAuditEvent) error {
 	if s.writeBatch == nil {
 		return ErrStorage
 	}
@@ -98,7 +98,6 @@ func (s *Store) writeAuditBatch(data []byte, events []AuditEvent, projects map[s
 	if next == nil {
 		next = map[string]AuditEvent{}
 	}
-	puts := map[string][]byte{"state": data}
 	var deletes []string
 	now := s.now()
 	for key, e := range next {
@@ -298,7 +297,7 @@ func (s *Store) pruneDirectAuditLocked() error {
 			if err != nil {
 				return ErrStorage
 			}
-			return s.writeAuditBatch(raw, nil, s.data.Projects)
+			return s.writeAuditBatch(map[string][]byte{"state": raw}, nil, s.data.Projects)
 		}
 	}
 	return nil

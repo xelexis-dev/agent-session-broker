@@ -46,6 +46,6 @@ func addBugReportTool(server *mcp.Server, backend Backend, version string) {
 		if err != nil {
 			return nil, bugReportOutput{}, err
 		}
-		return nil, bugReportOutput{ID: report.ID, ReceivedAt: report.ReceivedAt, Message: "관리자에게 전달했습니다"}, nil
+		return nil, bugReportOutput{ID: report.ID, ReceivedAt: report.ReceivedAt, Message: "Reported to the administrator."}, nil
 	})
 }

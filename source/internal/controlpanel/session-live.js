@@ -6,38 +6,43 @@
   const endpoint = new URL(table.dataset.sessionLive, location.href);
   if (endpoint.origin !== location.origin || endpoint.pathname !== '/projects/sessions/live') return;
   const project = endpoint.searchParams.get('project');
+  // Labels come back in this page's language, so a page never mixes languages after an account change.
+  if (document.documentElement.lang === 'en' || document.documentElement.lang === 'ko') endpoint.searchParams.set('lang', document.documentElement.lang);
   const notice = document.querySelector('[data-session-live-status]');
   const rows = new Map(Array.from(table.querySelectorAll('[data-session-row]'), row => [row.dataset.sessionRow, row]));
   const states = new Set(['ready','waiting','unreachable','suspended','detached','unregistered']);
-  const labels = {working:'턴 진행',idle:'대기',unknown:'활동 확인 불가',none:'—'};
+  const labels = {working:ASB.t('js.sessions.activity.working'),idle:ASB.t('js.sessions.activity.idle'),unknown:ASB.t('js.sessions.activity.unknown'),none:ASB.t('js.sessions.activity.none')};
+  const expiredReason = ASB.t('js.sessions.activity.expired_reason');
+  const activityAria = state => ASB.t('js.sessions.activity_aria',{label:labels[state] ?? labels.unknown});
   const evidence = new Map();
   const runtimeEvidence = new Map();
-  const runtimeUnknown = "모델·effort 알 수 없음";
+  const runtimeUnknown = ASB.t('js.sessions.runtime.unknown');
   const safeRuntime = (value,cap) => typeof value === "string" && value.length <= cap && /^[A-Za-z0-9._-]*$/.test(value);
   function runtimeLabel(info) {
     if (!info || !safeRuntime(info.model,96) || !safeRuntime(info.effort,16) || !info.model && !info.effort) return runtimeUnknown;
-    return `${info.model || "알 수 없음"} / ${info.effort || "알 수 없음"}`;
+    return `${info.model || ASB.t('js.sessions.runtime.unknown_part')} / ${info.effort || ASB.t('js.sessions.runtime.unknown_part')}`;
   }
   let clock = {server:Date.parse(table.dataset.liveServerTime),base:0};
   const freshnessNow = () => Number.isFinite(clock.server) ? clock.server + performance.now() - clock.base : Date.now();
   const pad = value => String(value).padStart(2,'0');
+  const clockTime = date => `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   function duration(seconds) {
-    if (seconds < 60) return `${seconds}초`;
-    if (seconds < 3600) return `${Math.floor(seconds/60)}분`;
-    if (seconds < 86400) return `${Math.floor(seconds/3600)}시간`;
-    return `${Math.floor(seconds/86400)}일`;
+    if (seconds < 60) return ASB.t('js.sessions.duration.seconds',{n:seconds});
+    if (seconds < 3600) return ASB.t('js.sessions.duration.minutes',{n:Math.floor(seconds/60)});
+    if (seconds < 86400) return ASB.t('js.sessions.duration.hours',{n:Math.floor(seconds/3600)});
+    return ASB.t('js.sessions.duration.days',{n:Math.floor(seconds/86400)});
   }
   function formatTimes(root = document) {
     const reference = freshnessNow(), today = new Date();
     for (const node of root.querySelectorAll('time[data-activity-time]')) {
       const date = new Date(node.getAttribute('datetime')), value = date.getTime();
-      if (!Number.isFinite(value)) { node.textContent = '시각 확인 불가'; continue; }
+      if (!Number.isFinite(value)) { node.textContent = ASB.t('js.time.unknown'); continue; }
       const sameDay = date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate();
       const day = sameDay ? '' : `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} `;
-      const local = `${day}${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+      const local = `${day}${clockTime(date)}`;
       const delta = (value-reference)/1000;
-      const relative = node.dataset.activityTime === 'expiresAt' ? (delta > 0 ? `만료까지 ${duration(Math.ceil(delta))}` : '만료됨') :
-        (delta > 0 ? `${duration(Math.ceil(delta))} 후` : `${duration(Math.floor(-delta))} 전`);
+      const relative = node.dataset.activityTime === 'expiresAt' ? (delta > 0 ? ASB.t('js.sessions.relative.expires_in',{duration:duration(Math.ceil(delta))}) : ASB.t('js.sessions.relative.expired')) :
+        (delta > 0 ? ASB.t('js.sessions.relative.in',{duration:duration(Math.ceil(delta))}) : ASB.t('js.sessions.relative.ago',{duration:duration(Math.floor(-delta))}));
       node.textContent = `${local} · ${relative}`;
     }
   }
@@ -62,17 +67,17 @@
     const popup = row.querySelector('[data-session-tooltip]');
     if (!popup) return;
     const code = document.createElement('code'); code.textContent = data.status;
-    const lines = [data.reason, data.probePending ? '상태 응답 대기' : ''];
     const a = data.activity;
-    lines.push(a.state === 'none' ? '활동: — · 등록 없음' : `활동: ${labels[a.state]} · 연결 상태와 다름`);
+    const line = document.createElement('span'); line.dataset.activityLine = '';
+    line.textContent = a.state === 'none' ? ASB.t('js.sessions.tooltip.activity_none') : ASB.t('js.sessions.tooltip.activity',{label:labels[a.state]});
+    const lines = [data.reason, data.probePending ? ASB.t('js.sessions.tooltip.probe_pending') : '', line];
     if (a.state !== 'none') {
-      for (const [label,value] of [['근거',a.source],['사유',a.reason]]) {
-        if (value) lines.push(`${label}: ${value}`);
-      }
+      if (a.source) lines.push(ASB.t('js.sessions.tooltip.source',{value:a.source}));
+      if (a.reason) lines.push(ASB.t('js.sessions.tooltip.reason',{value:a.reason}));
     }
     popup.replaceChildren(code);
-    for (const line of lines.filter(Boolean)) popup.append(document.createElement('br'), document.createTextNode(line));
-    if (a.state !== 'none') for (const [label,kind] of [['관측 시각','observedAt'],['변경 시각','changedAt'],['서버 수신','receivedAt'],['신선도 만료','expiresAt']]) {
+    for (const item of lines.filter(Boolean)) popup.append(document.createElement('br'), typeof item === 'string' ? document.createTextNode(item) : item);
+    if (a.state !== 'none') for (const [label,kind] of [[ASB.t('js.sessions.tooltip.observed_at'),'observedAt'],[ASB.t('js.sessions.tooltip.changed_at'),'changedAt'],[ASB.t('js.sessions.tooltip.received_at'),'receivedAt'],[ASB.t('js.sessions.tooltip.expires_at'),'expiresAt']]) {
       const value = a[kind];
       if (!value || !Number.isFinite(Date.parse(value))) continue;
       const node = document.createElement('time'); node.setAttribute('datetime',value); node.dataset.activityTime = kind;
@@ -89,9 +94,9 @@
     }
     for (const [key,item] of evidence) {
       if (!['working','idle'].includes(item.activity.state) || !(performance.now() >= item.expires)) continue;
-      item.activity = {...item.activity,state:'unknown',label:labels.unknown,reason:'활동 관측 만료'};
+      item.activity = {...item.activity,state:'unknown',label:labels.unknown,reason:expiredReason};
       const row = rows.get(key), badge = row?.querySelector('[data-activity-state]');
-      if (badge) { badge.dataset.activityState = 'unknown'; badge.textContent = ''; badge.setAttribute('aria-label','활동: unknown'); }
+      if (badge) { badge.dataset.activityState = 'unknown'; badge.textContent = ''; badge.setAttribute('aria-label',activityAria('unknown')); }
       // Never disturb an open/focused tooltip. The badge still expires on time.
       if (item.data) item.data.activity = item.activity;
       item.tooltipDirty = true;
@@ -103,8 +108,9 @@
       else {
         const popup = row?.querySelector('[data-session-tooltip]');
         if (popup) {
-          for (const node of popup.childNodes) if (node.nodeType === Node.TEXT_NODE && node.textContent.startsWith('활동:')) node.textContent = `활동: ${labels.unknown} · 연결 상태와 다름`;
-          popup.append(document.createElement('br'),document.createTextNode('사유: 활동 관측 만료'));
+          const line = popup.querySelector('[data-activity-line]');
+          if (line) line.textContent = ASB.t('js.sessions.tooltip.activity',{label:labels.unknown});
+          popup.append(document.createElement('br'),document.createTextNode(ASB.t('js.sessions.tooltip.reason',{value:expiredReason})));
         }
       }
       item.tooltipDirty = false;
@@ -131,12 +137,12 @@
       const activity = {...item.activity};
       const expires = deadline(activity.expiresAt,data.serverTime,base);
       if (['working','idle'].includes(activity.state) && (!Number.isFinite(expires) || performance.now() >= expires)) {
-        activity.state = 'unknown'; activity.reason = '활동 관측 만료';
+        activity.state = 'unknown'; activity.reason = expiredReason;
       }
       const activityBadge = row.querySelector('[data-activity-state]');
       if (activityBadge) {
         activityBadge.dataset.activityState = activity.state; activityBadge.dataset.activityExpires = activity.expiresAt || '';
-        activityBadge.textContent = ''; activityBadge.setAttribute('aria-label',`활동: ${activity.state}`);
+        activityBadge.textContent = ''; activityBadge.setAttribute('aria-label',activityAria(activity.state));
       }
       const runtimeNode = row.querySelector("[data-runtime-info]");
       if (runtimeNode) {
@@ -155,7 +161,7 @@
     table.closest('.panel')?.querySelector('[data-table-filter]')?.dispatchEvent(new Event('input'));
     // A fixture/search input can sit outside the panel card too.
     if (!table.closest('.panel')) document.querySelector('[data-table-filter="session-table"]')?.dispatchEvent(new Event('input'));
-    message(changed ? '목록 또는 관리 권한 변경 · 새로고침 필요' : `자동 갱신 · 마지막 성공 ${lastSuccess} · 활동은 연결 상태와 다릅니다.`);
+    message(changed ? ASB.t('js.sessions.status.changed') : ASB.t('js.sessions.status.ok',{time:lastSuccess}));
   }
   function valid(data) {
     return data?.project === project && Number.isFinite(Date.parse(data.serverTime)) && Array.isArray(data.rows) && data.rows.length <= 4096 &&
@@ -173,18 +179,18 @@
       if (version !== sequence || !visible()) return;
       if ([401,403,404].includes(response.status)) {
         stopped = true; pending = null; rows.forEach(disable);
-        message('세션 조회 권한 또는 프로젝트를 확인할 수 없습니다. 새로고침해 주세요.'); return;
+        message(ASB.t('js.sessions.status.denied')); return;
       }
       if (!response.ok || response.redirected || !response.headers.get('Content-Type')?.startsWith('application/json')) throw new Error('status-unavailable');
       const data = await response.json();
       if (version !== sequence || !visible()) return;
       if (!valid(data)) throw new Error('invalid-status');
       clock = {server:Date.parse(data.serverTime),base};
-      failures = 0; lastSuccess = new Date().toLocaleTimeString('ko-KR'); pending = {data,base}; apply();
+      failures = 0; lastSuccess = clockTime(new Date()); pending = {data,base}; apply();
     } catch (_) {
       if (version !== sequence || !visible()) return;
       failures += 1;
-      message(`자동 갱신 실패 · 마지막 성공 ${lastSuccess || '없음'} · 다시 확인 중입니다.`);
+      message(ASB.t('js.sessions.status.failed',{time:lastSuccess || ASB.t('js.sessions.status.never')}));
     } finally {
       clearTimeout(timeout);
       if (controller === own) controller = null;

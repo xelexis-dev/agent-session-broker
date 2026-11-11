@@ -133,7 +133,7 @@ func (p *panel) scopeIssuanceMutate(w http.ResponseWriter, r *http.Request, sess
 			p.show(w, r, session, "admin-settings", "", http.StatusConflict, settingsConflictMessage, "")
 			return
 		}
-		p.show(w, r, session, "admin-settings", "", 400, "토큰 발급 설정을 저장하지 못했습니다.", "")
+		p.show(w, r, session, "admin-settings", "", 400, "admin.scope.error_save", "")
 		return
 	}
 	http.Redirect(w, r, "/admin/settings", http.StatusSeeOther)

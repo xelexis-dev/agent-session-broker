@@ -1,552 +1,564 @@
 # Update history
 
-릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
+English | [한국어](UPDATE.ko.md)
+
+Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
+
+## 1.1.0 (2026-11-11)
+
+- The control panel is available in English and Korean. Each account chooses its language in My profile. English is the default, so existing accounts start in English.
+- Pages before sign-in follow the language last used in the browser (`asb_lang` cookie), and English without it.
+- Every control panel page is translated, including live session updates, the session audit, administrator pages and session approval.
+- Agent-facing text is English: MCP tool descriptions and results, scope labels, Management API errors, client diagnostics and command-line output. Machine codes and schemas are unchanged.
+- The public guides (README_AGENT, UPGRADE_PATH and UPDATE) are English first, with Korean copies in `.ko.md` files. Release notes list English first, then Korean.
+- Client 1.1.0 carries the English agent-facing text. Clients 0.17.3 and later keep working with this server.
+- Data: the server adds one language setting per account. Existing data keeps its format. Rollback is unchanged: restore the complete backup together with the 1.0.4 server.
 
 ## 1.0.4 (2026-11-11)
 
-- 동작과 데이터 형식은 1.0.3과 같습니다.
-- 컨테이너 이미지가 `ghcr.io/xelexis-dev/agent-session-broker`로 옮겨졌습니다. Docker Compose를 쓰면 `compose.yaml`의 `image:`를 이 이름으로 바꾸세요. 이전 이미지 이름 `ghcr.io/xelexis-dev/agent-session-broker-deploy`는 폐기되어 삭제됩니다. 1.0.3은 `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`으로도 받을 수 있고, 그보다 오래된 이미지는 더 이상 제공하지 않습니다. 이전 버전의 서버 실행파일은 https://github.com/xelexis-dev/agent-session-broker-deploy 의 Release에 그대로 있습니다.
-- 클라이언트 1.0.4는 버전만 바뀐 갱신이며 동작은 같습니다.
+- Behavior and data formats are unchanged from 1.0.3.
+- The container image moved to `ghcr.io/xelexis-dev/agent-session-broker`. For Docker Compose, change `image:` in `compose.yaml` to this name. The previous image name, `ghcr.io/xelexis-dev/agent-session-broker-deploy`, is retired and will be deleted. Version 1.0.3 is also available as `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`; older images are no longer provided. Older server executables remain in Releases at https://github.com/xelexis-dev/agent-session-broker-deploy .
+- Client 1.0.4 changes only the version; behavior is unchanged.
 
 ## 1.0.3 (2026-11-11)
 
-- 동작과 데이터 형식은 1.0.2와 같습니다.
-- 이번 버전부터 서버 Release, npm 클라이언트의 provenance와 소스가 https://github.com/xelexis-dev/agent-session-broker 에서 나옵니다. 1.0.2 이하의 파일은 https://github.com/xelexis-dev/agent-session-broker-deploy 에서 계속 받을 수 있습니다.
-- npm 패키지의 저장소 정보가 바뀌어 클라이언트도 1.0.3으로 게시합니다. Docker 이미지 이름은 그대로입니다.
+- Behavior and data formats are unchanged from 1.0.2.
+- From this version, server Releases, npm client provenance and source come from https://github.com/xelexis-dev/agent-session-broker . Files for 1.0.2 and earlier remain available at https://github.com/xelexis-dev/agent-session-broker-deploy .
+- The npm package's repository metadata changed, so client 1.0.3 is also published. The Docker image name is unchanged.
 
 ## 1.0.2 (2026-11-11)
 
-- 동작과 데이터 형식은 1.0.1과 같습니다.
-- Go 1.27.4 보안 릴리스로 빌드했습니다. toolchain이 실행파일에 들어가므로 npm 클라이언트도 1.0.2로 게시합니다.
+- Behavior and data formats are unchanged from 1.0.1.
+- Built with the Go 1.27.4 security release. The toolchain is included in executables, so npm client 1.0.2 is also published.
 
 ## 1.0.1 (2026-11-10)
 
-- 동작과 데이터 형식은 1.0.0과 같습니다.
-- 소스 코드를 MIT 라이선스로 https://github.com/xelexis-dev/agent-session-broker 에 공개합니다.
-- Go module 경로가 `github.com/xelexis-dev/agent-session-broker/source`로 바뀌었습니다. 소스에서 직접 빌드할 때만 영향이 있습니다. 이 경로가 실행파일에 들어가므로 npm 클라이언트도 1.0.1로 게시합니다.
-- 1.0.0 게시 중 공개 저장소 확인 단계가 새 한국어 README가 아직 없는 공개 문서 목록을 거부하던 오류를 고쳤습니다.
+- Behavior and data formats are unchanged from 1.0.0.
+- Source code is published under the MIT license at https://github.com/xelexis-dev/agent-session-broker .
+- The Go module path changed to `github.com/xelexis-dev/agent-session-broker/source`. This affects only building from source. Since the path is embedded in executables, npm client 1.0.1 is also published.
+- Fixed the public repository check rejecting the public document list without the new Korean README during 1.0.0 publication.
 
 ## 1.0.0 (2026-11-10)
 
-- 첫 정식 릴리스입니다. API, 데이터 형식, 클라이언트 동작은 릴리스 후보 0.20.2와 같습니다.
-- 서버 실행파일(macOS arm64·x64, Linux x64, Windows x64), 컨테이너 이미지(linux/amd64·arm64), npm 클라이언트 `@xelexis/x-broker` 1.0.0(Windows x64, macOS arm64·x64, Linux x64)을 함께 게시합니다.
-- 0.20.x에서는 모든 PC의 client를 먼저 1.0.0으로 갱신하고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 교체하세요. 0.19.x 이하에서는 0.17.3 미만 클라이언트가 거부되고 `spawn_session`이 제거되므로 UPGRADE_PATH의 `0.19.x → 1.0` 절차를 따르세요. 제자리 다운그레이드는 지원하지 않으며 전체 백업 복원 뒤 백업 이후 취소한 자격을 다시 취소해야 합니다.
-- 공개 README를 영어로 다시 쓰고 한국어판 README.ko.md를 추가했습니다. npm 패키지 안내도 영어로 바꿨습니다.
+- First stable release. API, data formats and client behavior are unchanged from release candidate 0.20.2.
+- Publishes server executables (macOS arm64·x64, Linux x64, Windows x64), container images (linux/amd64·arm64) and npm client `@xelexis/x-broker` 1.0.0 (Windows x64, macOS arm64·x64, Linux x64) together.
+- From 0.20.x, update clients on every PC to 1.0.0 first, then stop the server, back up all data and replace the server. From 0.19.x or earlier, follow UPGRADE_PATH's `0.19.x → 1.0` steps: clients below 0.17.3 are rejected and `spawn_session` is removed. In-place downgrade is unsupported. After restoring a complete backup, revoke again credentials revoked after that backup.
+- Rewrote the public README in English and added README.ko.md. The npm package guide is also in English.
 
 ## 0.20.2 (2026-11-09)
 
-- 관리 화면 아이콘을 수정하지 않은 Lucide 아이콘(ISC, `THIRD_PARTY_NOTICES` 참고)으로 바꿨습니다.
-- 제3자 고지가 바뀌어 npm 클라이언트도 0.20.2로 게시합니다. 클라이언트 동작은 0.20.1과 같습니다.
-- 0.20.2는 1.0 정식 출시 전 릴리스 후보입니다. API와 데이터 형식은 0.20.1과 같습니다. 모든 PC의 client를 먼저 갱신하고 서버를 중지해 전체 데이터를 백업한 뒤 서버를 교체하세요. 제자리 다운그레이드는 지원하지 않으며 전체 백업 복원 뒤 백업 이후 취소한 자격을 다시 취소해야 합니다.
+- Replaced control panel icons with unmodified Lucide icons (ISC; see `THIRD_PARTY_NOTICES`).
+- Third-party notices changed, so npm client 0.20.2 is also published. Client behavior is unchanged from 0.20.1.
+- 0.20.2 is a release candidate for stable 1.0. API and data formats are unchanged from 0.20.1. Update clients on every PC first, stop the server, back up all data and replace it. In-place downgrade is unsupported. After restoring a complete backup, revoke again credentials revoked after the backup.
 
 ## 0.20.1 (2026-11-09)
 
-- 0.20.0은 npm 클라이언트만 게시됐으며 서버 Release·GHCR 이미지·공개 문서는 게시되지 않았습니다. 0.20.1이 서버와 클라이언트를 함께 제공하는 1.0 릴리스 후보입니다.
-- CI npm provenance 검증의 npm 버전 pin을 실제 고정 도구 이미지와 맞추고, 이미지 설치 시 실제 버전을 확인합니다.
-- **Breaking (0.20.1 RC / 1.0)**: 서버는 0.17.3 미만·버전 누락 클라이언트의 모든 MCP 도구 호출을 거부합니다. 1.0 클라이언트도 서버 0.17.3 이상이 필요하며 placeholder 버전 허용을 제거했습니다. 다른 프로젝트의 PC도 먼저 갱신하고 전체 백업 뒤 서버를 교체하세요. compat schema 2와 클라이언트 입력이 바뀌므로 새 npm 클라이언트가 필요합니다. 첨부·ACK 등 capability fallback과 저장 데이터 reader는 유지합니다.
-- **호환성 변경(1.0 준비):** `spawn_session` 도구와 `session:spawn` 신규 발급을 제거했습니다. 업그레이드 시작 시 저장된 토큰·grant·기기 승인 scope에서 `session:spawn`만 원자적으로 제거합니다(control version 5 유지). 빈 scope 목록이 될 데이터는 변경 없이 시작을 거부합니다. 감사 이력과 과거 scope 읽기 호환은 유지합니다.
+- 0.20.0 published only the npm client, without a server Release, GHCR image or public documents. 0.20.1 is the 1.0 release candidate providing both server and client.
+- Aligned the npm version pin used for CI provenance verification with the pinned tool image and verify the actual version during image installation.
+- **Breaking (0.20.1 RC / 1.0):** the server rejects all MCP tool calls from clients below 0.17.3 or without a version. The 1.0 client also requires server 0.17.3 or later; placeholder versions are no longer allowed. Update PCs in other projects too, then make a complete backup before replacing the server. Compat schema 2 and client inputs change, requiring a new npm client. Capability fallback for attachments/ACK and stored-data readers remain.
+- **Compatibility change (1.0 preparation):** removed `spawn_session` and new `session:spawn` issuance. Upgrade startup atomically removes only `session:spawn` from stored token, grant and device-approval scopes (retaining control version 5). Data that would produce an empty scope list refuses startup without changes. Audit history and reading historical scopes remain compatible.
 
-- 전체 권한 응답에는 구 클라이언트 호환을 위해 2.0까지 기능 없는 `session:spawn`을 유지합니다. 저장값·신규 발급·편집기·권한 카탈로그에서는 제거되며 제한된 응답에는 추가하지 않습니다.
-- 0.20.1은 1.0 정식 출시 전 릴리스 후보입니다. 서버와 새 npm client를 함께 제공합니다. 모든 PC의 client를 먼저 갱신하고 서버를 중지해 전체 데이터를 백업하세요. 제자리 다운그레이드는 지원하지 않으며 전체 백업 복원 뒤 백업 이후 취소한 자격을 다시 취소해야 합니다.
-- 임시 클라이언트 버전 현황 집계를 제거했습니다. 프로젝트별 모든 PC의 버전은 담당자가 직접 확인해야 합니다.
-- 옛 install.sh/install.ps1 배포를 제거했습니다. 서버는 공개 Release, client는 npm 설치 경로를 사용하며 기존 공개 이력과 split archive launcher 검증은 유지합니다. 인스턴스 한도·백업/복원·HSTS 운영 안내를 보강했습니다.
-- 릴리스 후보 호환·업그레이드·복원과 컨테이너 승격 증거 검증을 필수화했습니다. npm은 고정 GitHub Actions workflow의 OIDC·provenance 검증 경로로 게시합니다.
-- 주요 관리 화면과 열린 선택 상자·확인 대화상자를 light/dark 테마에서 axe로 자동 검사합니다. 최초 설정·로그인의 Broker 라벨 대비를 개선했습니다. 자동 판정 보류 항목은 수동 검토 대상으로 남습니다.
-- 0.20.0부터 소프트웨어는 MIT 라이선스로 제공됩니다.
+- Full-permission responses retain nonfunctional `session:spawn` until 2.0 for old-client compatibility. It is removed from storage, new issuance, editors and the scope catalog, and is not added to restricted responses.
+- 0.20.1 is a release candidate for stable 1.0, providing both server and a new npm client. Update clients on all PCs first, then stop the server and back up all data. In-place downgrade is unsupported. After restoring a complete backup, revoke again credentials revoked after the backup.
+- Removed temporary client-version inventory aggregation. Operators must check every PC's version in each project themselves.
+- Removed old install.sh/install.ps1 distribution. Use public Releases for servers and npm for clients. Existing public history and split-archive launcher verification remain. Expanded instance-limit, backup/restore and HSTS guidance.
+- Made release-candidate compatibility, upgrade/restore and container-promotion evidence verification mandatory. npm publication uses OIDC/provenance verification through a pinned GitHub Actions workflow.
+- Automatically checks major control panel pages, open selects and confirmation dialogs with axe in light/dark themes. Improved Broker label contrast on setup/sign-in. Items without an automatic verdict remain for manual review.
+- The software is provided under the MIT license starting with 0.20.0.
 
 ## 0.20.0 (2026-11-08)
 
-- 0.20.0은 MIT 라이선스의 npm 클라이언트만 게시됐습니다. 서버 Release·GHCR 이미지·공개 문서는 게시되지 않았으며, 서버와 클라이언트의 릴리스 후보는 0.20.1입니다.
+- 0.20.0 published only the MIT-licensed npm client. No server Release, GHCR image or public documents were published. The server/client release candidate is 0.20.1.
 
 ## 0.19.3 (2026-11-07)
 
-- 인스턴스 관리자 설정에 **클라이언트 버전 현황**을 추가했습니다. 모든 프로젝트의 버전별 살아 있는 등록, 0.17.3 미만, 미확인, 24시간 호환 거부와 마지막 관측을 표시합니다. 메모리 전용으로 재시작하면 초기화되며 이름·등록 ID·토큰은 표시하지 않습니다. 향후 최소 버전 상향 전에 최소 48시간 관측하고 구 client가 남은 프로젝트에 알리세요.
-- 최초 관리자 설정에는 데이터 폴더의 **일회용 설정 코드**가 필요합니다. 이미 설정한 서버에는 영향이 없습니다. 공개 Compose 예제는 127.0.0.1에만 포트를 열며 설정 코드와 설정 전 백업은 비밀로 보관해야 합니다.
-- 내 프로필에 소속 프로젝트를 모으고 공통 선택 상자를 적용했습니다. 패널 API 토큰은 로그인한 계정으로 비밀번호 재입력 없이 발급하며, 관리 화면의 쿠키와 입력·레이아웃 검증도 보강했습니다.
-- 기기 승인에서 `slow_down` 응답 뒤 서버와 client의 대기 간격이 누적해서 벌어지던 문제를 수정했습니다. 지원 중인 기존 client의 backoff 방식은 유지합니다.
-- **서버와 npm client 0.19.3을 함께 게시합니다.** 새 npm client는 Node.js 22 이상이 필요하며 관리 화면은 최신 Chrome·Edge·Safari를 지원합니다. 기존 client 0.12 이상과 legacy 연결, 최소 서버 0.12.0 및 저장 형식(control version 5)은 유지합니다. 업그레이드 전 서버를 중지하고 전체 인스턴스 데이터를 백업하세요.
-- 비상업적 무료 사용·상업적 별도 서면 허가 조건을 **LICENSE**에 명시했습니다. 전체 **THIRD_PARTY_NOTICES**와 LICENSE를 npm 패키지·서버 Release·컨테이너·공개 문서에 함께 제공합니다. npm 패키지는 정규파일 9개이며 서버 Release는 실행파일 4개와 고지 파일 2개를 제공합니다. 기존 공개 패키지와 이력은 유지합니다.
+- Added **Client version inventory** to instance administrator settings: live registrations by version across all projects, clients below 0.17.3, unknown versions, compatibility rejections over 24 hours and last observation. It is memory-only and resets on restart; names, registration IDs and tokens are omitted. Observe for at least 48 hours before a future minimum-version increase and notify projects with old clients.
+- Initial administrator setup requires a **one-time setup code** from the data directory. Already configured servers are unaffected. The public Compose example exposes ports only on 127.0.0.1. Keep setup codes and pre-setup backups secret.
+- Added project memberships to My profile and applied the shared select component. Panel API tokens are issued as the signed-in account without password re-entry. Strengthened panel cookie, input and layout checks.
+- Fixed server/client poll intervals accumulating delays after device approval `slow_down` responses. Supported existing clients retain their backoff behavior.
+- **Publishes server and npm client 0.19.3 together.** The new npm client requires Node.js 22 or later; the panel supports current Chrome·Edge·Safari. Existing client 0.12+ and legacy connections, minimum server 0.12.0 and storage format (control version 5) remain. Stop the server and back up all instance data before upgrading.
+- Stated noncommercial free use and separate written permission for commercial use in **LICENSE**. Full **THIRD_PARTY_NOTICES** and LICENSE accompany npm packages, server Releases, containers and public documents. The npm package contains 9 regular files; server Releases contain 4 executables and 2 notice files. Existing public packages and history remain.
 
 ## 0.19.2 (2026-11-06)
 
-- Windows에서 Claude Code가 실행 중 자동 업데이트된 뒤 `/mcp reconnect` 또는 해당 세션의 새 MCP 시작이 `unsupported-harness`로 실패하던 문제를 수정했습니다. 이름이 바뀐 Claude 프로세스도 인식합니다. **클라이언트 0.19.2로 갱신하고 MCP를 다시 연결**하세요. 업데이트 후 새로 시작한 세션은 영향이 없었으며, 갱신 전에는 세션을 종료한 뒤 재개하면 우회할 수 있습니다.
-- 부모 프로세스 식별에 실패하면 등록을 막고 `auth_status.parentDiagnostic`에 실패 단계·오류 번호·허용된 프로그램 이름만 표시합니다. 경로·인자·토큰은 포함하지 않습니다.
+- Fixed `unsupported-harness` on Windows when Claude Code automatically updated while running and `/mcp reconnect` or a new MCP in that session started. Renamed Claude processes are recognized. **Update to client 0.19.2 and reconnect MCP.** Sessions newly started after the update were unaffected; before updating, exiting and resuming the session is a workaround.
+- Parent-process identification failure blocks registration. `auth_status.parentDiagnostic` shows only the failed stage, error number and allowed program name, excluding paths, arguments and tokens.
 
 ## 0.19.1 (2026-11-06)
 
-- VS Code Claude 확장 패널에서 broker 메시지를 접힌 "Sender not recorded" peer 행으로 표시하며, 발신자와 본문 앞부분을 확인할 수 있습니다. 새 npm client **0.19.1**을 설치한 뒤 MCP를 다시 연결해야 적용됩니다. 터미널 CLI와 다른 host의 전달 형식은 유지됩니다.
-- Claude가 broker 메시지에 답할 때 native SendMessage 대신 **x-broker send_message**와 수신 메시지의 등록 ID를 사용하도록 안내합니다.
-- 제어판을 태블릿 너비로 줄였을 때 사이드 메뉴의 로고·계정 아이콘과 계정 메뉴가 깨지는 문제를 수정했습니다.
+- In the VS Code Claude extension panel, broker messages appear as collapsed "Sender not recorded" peer rows with sender and body preview. Install npm client **0.19.1** and reconnect MCP to apply. Terminal CLI and other host delivery formats remain unchanged.
+- Guides Claude to reply through **x-broker send_message** with the received registration ID instead of native SendMessage.
+- Fixed sidebar logo/account icons and account menu breaking at tablet widths.
 
 ## 0.19.0 (2026-11-05)
 
-- README는 일반 사용자용 소개로 줄이고, 에이전트용 상세 안내는 README_AGENT.md로 옮겼습니다.
-- **관리 REST API**를 추가했습니다. 서버 주소의 `/api/v1`에서 프로젝트·멤버·프로젝트 토큰·세션·기기 승인·감사·사용자·정책을 관리할 수 있습니다. `/api/v1/openapi.json`에서 41개 operation의 method·scope·JSON 계약을 확인하세요. MCP 메시지 도구와 별도입니다.
-- 관리 API는 **기본 OFF**입니다. 제어판에 **관리 API 스위치(인스턴스 설정), 내 프로필 › API 토큰 목록·등록 페이지, 사용자 상세의 토큰 목록·취소**를 제공합니다. 사용자별 API 토큰은 자기 계정으로 로그인하거나 현재 비밀번호를 확인해 발급하며, 관리자는 다른 사용자의 토큰을 대리 발급할 수 없습니다. 토큰 원문은 한 번만 표시됩니다.
-- HTTPS를 권장합니다. 인스턴스의 **HTTP 연결 허용**이 꺼져 있으면 평문 API도 거부합니다. 평문을 허용하면 비밀번호와 토큰이 통신 경로에 노출될 수 있습니다.
-- 자동화는 프로젝트 멤버십과 scope를 제한한 일반 사용자 계정을 사용하세요. **관리자의 write 토큰은 모든 프로젝트의 Owner로 동작**하며 멤버도 추가할 수 있습니다. 기기 승인에는 기본 선택에 없는 별도 `approve` scope가 필요합니다.
-- 사용자 생성·관리자 승격·재활성화·모든 비밀번호 설정과 HTTP 허용 OFF→ON에는 호출자의 `current_password` 재인증이 필요합니다. 비밀번호·역할·활성 상태가 바뀌면 기존 사용자 토큰은 무효화됩니다. 감사의 거부 집계는 비정상 종료 때 최대 1분, 변경과 별도로 저장하는 성공 감사는 장애 때 1건이 손실될 수 있습니다.
-- 서버는 **0.19.0**, 권장 npm 클라이언트와 설치 예제도 **0.19.0**입니다. 새 minor 호환 행이 클라이언트에 포함되어 npm도 게시합니다. 기존 최소 서버·클라이언트 0.12.0과 legacy 허용은 유지합니다. 관리 API 자체는 서버 기능이며 사용자는 필요에 따라 클라이언트를 직접 설치합니다.
-- **다운그레이드 주의:** 사용자 API 토큰은 0.18.x에서 사용되지 않아도 저장소에 남아 다시 올렸을 때 유효할 수 있습니다. 유출 대응이라면 내리기 전에 해당 토큰을 취소하세요. 이미 내렸다면 그 사용자의 비밀번호를 변경하세요. API 스위치 OFF나 다운그레이드만으로 취소를 대신하지 마세요.
+- Shortened README into an introduction for general users and moved detailed agent instructions to README_AGENT.md.
+- Added the **Management REST API** at `/api/v1` for projects, members, project tokens, sessions, device approval, audits, users and policy. `/api/v1/openapi.json` documents methods, scopes and JSON contracts for 41 operations. It is separate from MCP messaging tools.
+- Management API is **OFF by default**. The panel provides an **API switch in Instance settings, API token list/issuance under My profile, and token listing/revocation in User details**. User API tokens are issued through the user's own sign-in or current-password verification; administrators cannot issue another user's tokens. Raw tokens appear only once.
+- HTTPS is recommended. Plaintext API requests are rejected when **Allow HTTP connections** is off. Allowing plaintext may expose passwords and tokens along the network path.
+- Use an ordinary account with restricted memberships and scopes for automation. **An administrator's write token acts as Owner in every project** and can add members. Device approval requires the separate `approve` scope, not selected by default.
+- Creating users, promoting administrators, re-enabling users, setting any password and switching HTTP allowance OFF→ON require caller `current_password` reauthentication. Password, role or enabled-state changes invalidate existing user tokens. A crash may lose up to one minute of audit denial counts; a failure may lose one success audit stored separately from the change.
+- Server, recommended npm client and installation examples are all **0.19.0**. The client includes a new minor compatibility row, so npm is also published. Minimum server/client 0.12.0 and legacy allowance remain. The Management API itself is a server feature; users install clients themselves as needed.
+- **Downgrade warning:** user API tokens remain stored even when unused by 0.18.x and may be valid again after re-upgrade. For a leak, revoke the affected tokens before downgrading. If already downgraded, change that user's password. API OFF or downgrade alone does not replace revocation.
 
 ## 0.18.1 (2026-11-05)
 
-- README에 **여러 프로젝트에 연결하기** 안내를 추가했습니다. 프로젝트별 MCP entry와 토큰·상태 경로의 구분, 같은 대화에서 사용할 도구 선택, Codex 시작 시 연결 및 메모리 비용을 설명합니다.
-- 클라이언트의 내장 `setup` 도움말과 npm 패키지 안내에서 여러 프로젝트 연결 가이드를 바로 찾을 수 있습니다. 메시지 전달·인증·저장 형식 등 제품 동작은 바뀌지 않습니다.
-- 권장 클라이언트와 설치 예제는 **0.18.1**입니다. 새 내장 도움말이 필요할 때 클라이언트를 갱신하면 되며, 기존 0.18.0 사용자의 갱신은 선택 사항입니다. 최소 호환 버전과 파일 첨부의 0.18.0 하한은 유지합니다.
+- Added **Connecting to multiple projects** to README: per-project MCP entries, tokens and state paths, tool selection within a conversation, Codex startup connection and memory cost.
+- The embedded client `setup` help and npm guide link directly to the multiple-project guide. Product behavior, including delivery, authentication and storage formats, is unchanged.
+- Recommended client and install examples use **0.18.1**. Upgrade for the new embedded help; it is optional for existing 0.18.0 users. Minimum compatibility versions and the 0.18.0 attachment floor remain.
 
 ## 0.18.0 (2026-11-04)
 
-- 권장 클라이언트는 **0.18.0**입니다. 클라이언트 실행 파일·도구 안내·재연결 처리가 바뀌므로 npm 클라이언트도 갱신하고 각 대화의 MCP를 다시 연결해야 적용됩니다. 기존 최소 호환 버전은 유지합니다.
-- **HTTP 정책 강화:** HTTP 연결 허용이 꺼져 있으면 표시 헤더가 없는 평문 MCP·OAuth 요청도 거부합니다. localhost도 예외가 아닙니다. TLS proxy 뒤에서는 `--trusted-proxy <CIDR>`를 명시하고 proxy가 외부 값을 그대로 전달하지 않고 단일 `X-Forwarded-Proto` 값으로 덮어쓰도록 설정하세요. 브라우저 관리 화면 접근 정책은 유지합니다.
-- 응답하지 않는 등록이 30일 이상 마지막 활동이 없고 probe 기한도 지났으면 제한된 묶음으로 분리합니다. 일시 중지된 등록은 제외합니다. 이름·자격 회수는 기존 정책과 검증된 자동 자격 조건에 따르며, 모든 오래된 등록의 이름이 즉시 해제되는 것은 아닙니다.
-- Codex 관찰은 검증된 기록 위치·체크포인트를 재사용하고, 이미 확인된 hook 식별자는 요청 안에서 중복 탐색을 줄입니다. 생성 중 steer 지원이 검증되지 않은 정상 초기 상태를 POSIX에서 `steer-unchecked`로 구분합니다. Windows의 steer 미지원 상태는 그대로입니다.
-- 재개에 성공한 직후 다시 거절되는 수신 연결은 지연과 jitter를 적용해 빠른 반복을 줄입니다. 실제 전달·정상 heartbeat 진행은 재시도 간격을 초기화합니다. 이 변경은 모든 네트워크 오류가 사라진다는 보장은 아닙니다.
-- 인계 대상을 탐색하는 것만으로 무관한 저장 세션의 보존 기간이 연장되지 않게 했습니다. 전달 epoch의 은퇴가 확인되면 해당 전달 진행 JSON을 정리하며, 잠긴 파일·분리 상태만으로는 지우지 않습니다. cleared steer 시도 기록도 검증된 잠금 아래 정리합니다.
-- 서버의 인증 만료·삭제 처리에서 남던 device poll 상태를 함께 정리합니다. LastSeen 기록을 묶고, tool schema를 공유하고, 작은 메모리 노드 읽기 버퍼를 파일 크기에 맞춰 서버 비용을 줄입니다. 정상 lease 갱신은 호출 빈도와 중복 응답을 줄입니다.
-- 클라이언트에서 서버 전용 SQLite 의존성을 제거해 실행 파일과 상주 비용을 줄였습니다. `--tool-profile worker`로 도구 목록을 줄일 수 있으며 권한은 바뀌지 않습니다. `auth_status`는 확인된 조상 프로세스에 중간 launcher가 남아 있으면 설치 안내를 표시합니다.
-- HTTP origin에서 관리자 공지를 연달아 보낼 수 있게 했습니다. 전역 npm 설치를 기본 안내로 제공하며, npx를 쓰는 기존 설정도 계속 사용할 수 있습니다.
+- Recommended client: **0.18.0**. Client executables, tool guidance and reconnection handling changed; update the npm client and reconnect each conversation's MCP to apply. Existing minimum compatibility versions remain.
+- **Stricter HTTP policy:** when HTTP allowance is off, plaintext MCP/OAuth requests are rejected even without forwarding headers. Localhost has no exception. Behind a TLS proxy, explicitly set `--trusted-proxy <CIDR>` and configure the proxy to overwrite a single `X-Forwarded-Proto` value instead of forwarding external input. Browser control panel access policy remains unchanged.
+- Unresponsive registrations are detached in bounded batches after at least 30 days without activity and expiration of the probe deadline. Suspended registrations are excluded. Name/credential revocation follows existing policy and verified automatic-credential conditions; not every old name is immediately released.
+- Codex observation reuses verified record locations/checkpoints; already verified hook identities avoid repeated discovery within a request. POSIX distinguishes the normal initial unverified steer-support state as `steer-unchecked`. Windows steer remains unsupported.
+- Added delay and jitter when a receiver connection is rejected again immediately after successful resume, reducing rapid retries. Actual delivery and normal heartbeat progress reset the interval. This does not guarantee elimination of all network errors.
+- Merely searching for handover targets no longer extends unrelated stored-session retention. Delivery progress JSON is cleaned after verified epoch retirement, not just because a file is locked or state detached. Cleared steer attempt records are also cleaned under verified locking.
+- Cleans remaining device poll state during server authentication expiry/deletion. Batches LastSeen writes, shares tool schemas and sizes small memory-node read buffers to file size to reduce server cost. Normal lease renewal reduces call frequency and duplicate responses.
+- Removed server-only SQLite dependencies from the client to reduce executable size and resident cost. `--tool-profile worker` reduces the tool list without changing permissions. `auth_status` shows installation guidance if a verified ancestor process still has an intermediate launcher.
+- Allows consecutive administrator announcements on HTTP origins. Global npm installation is the default guidance; existing npx configurations remain usable.
 
-### 메시지 파일 첨부
+### Message file attachments
 
-- 관리자 화면에서 파일 첨부를 켜야 사용할 수 있으며 **기본값은 꺼짐**입니다. 첨부에는 **송신·수신 클라이언트와 서버 모두 0.18.0 이상**이 필요합니다. 첨부를 지원하지 않는 상대와는 기존 본문 메시지를 사용하세요.
-- 메시지 하나에 **파일 1개, 최대 100 MiB(104,857,600바이트)**를 보낼 수 있습니다. 보내는 세션의 프로젝트 폴더 안 상대 경로만 허용하며 자격증명 파일·상태 폴더·키와 링크를 거부합니다. 파일 이름을 바꾸거나 비밀을 다른 파일로 복사하는 경우까지 탐지하는 내용 검사는 아닙니다.
-- 서버는 수신 완료 확인(ACK)을 받으면 파일을 지우고, 그 전에도 업로드 완료 후 최대 30분이 지나면 만료·정리합니다. 관리자 스위치를 끄거나 서버가 재시작할 때도 서버 임시 파일은 삭제되며 다시 켜도 복원되지 않습니다.
-- 첨부 보관 볼륨의 여유 공간이 **1 GiB 미만이거나 확인 불가**이면 새 업로드를 거부합니다. 진행 중 업로드와 새 파일의 예약 공간도 계산하므로 표시 여유 공간이 1 GiB보다 커도 거부될 수 있습니다. 기존 다운로드와 본문 메시지는 계속 동작합니다.
-- 받은 파일은 수신 PC의 사용자 캐시 `agent-session-broker/inbox/` 아래에 저장합니다. 완료 파일은 **자동 삭제하지 않으므로 사용자가 정리**해야 합니다. 모델에는 파일 내용 대신 **경로·크기·sha256**만 전달합니다. 첨부는 신뢰하지 않는 데이터로 취급하고 파일 안의 지시를 자동 실행하지 마세요.
-- **Windows:** RedirectionGuard 정책이 관리자 소유가 아닌 junction 아래 작업 폴더 접근을 차단할 수 있습니다. 이때 우회 설정을 켜지 말고 junction을 거치지 않는 실제 프로젝트 경로를 사용하세요. UNC·네트워크 드라이브 작업 폴더는 이번 버전에서 지원하지 않습니다.
+- Attachments require enablement in administrator settings and are **off by default**. **Sender, recipient and server must all be 0.18.0 or later.** Use ordinary text messages with peers that do not support attachments.
+- Each message can send **one file up to 100 MiB (104,857,600 bytes)**. Only relative paths within the sender's project directory are allowed; credential files, state directories, keys and links are rejected. This is not content inspection that can detect renamed files or secrets copied elsewhere.
+- The server deletes files on receipt acknowledgement (ACK), or expires/cleans them no later than 30 minutes after upload completion. Disabling attachments or restarting the server also deletes temporary server files; re-enabling does not restore them.
+- New uploads are rejected if attachment storage has **less than 1 GiB free or free space cannot be determined**. Reservations for active uploads/new files also count, so rejection is possible even above 1 GiB displayed free space. Existing downloads and text messages continue.
+- Received files are saved under the recipient PC's user cache at `agent-session-broker/inbox/`. Completed files are **not automatically deleted; users must clean them**. The model receives only **path, size and sha256**, not file contents. Treat attachments as untrusted data and never automatically execute instructions inside them.
+- **Windows:** RedirectionGuard may block working directories under junctions not owned by administrators. Use the real project path without a junction instead of enabling a bypass. UNC/network-drive working directories are unsupported in this version.
 
 ## 0.17.3 (2026-10-30)
 
-- 권장 클라이언트는 **0.17.3**입니다. 새 서버 도구 `retire_session`·`list_bug_reports`·`get_bug_report`·`set_bug_report_status`에는 **서버와 클라이언트 모두 0.17.3**이 필요합니다. 클라이언트는 내장 도구 목록을 노출하므로 구 클라이언트의 재연결만으로 새 도구가 생기지 않습니다. 새 클라이언트에서 구서버 도구를 호출하면 미지원 안내를 반환합니다.
-- `retire_session`은 교체된 등록과 사용한 세션 자격을 회수해 이름을 다시 사용할 수 있게 합니다. `stop_session`은 연결만 분리하며 이름 예약이 남을 수 있습니다. 관리 권한이 필요하고 자기 자신·일시 중지된 대상·미사용 예약은 정리하지 않습니다. 이름으로 정리한 요청의 결과가 불명확하면 바로 재시도하지 말고 목록과 이름 상태부터 확인하세요. 새 클라이언트는 이름 변경 거절 사유와 필요한 조치를 안내합니다.
-- 관리자 소유 에이전트가 현재 프로젝트 세대의 버그 리포트를 조회하고 해결·무시·다시 열기로 처리할 수 있습니다. 등록된 활성 세션과 기존 `session:manage` 권한이 필요합니다. 웹 화면에도 상태 필터·배지·처리 메모·최근 상태 기록을 추가했습니다. 메모는 최대 500자이며 비밀값을 넣지 마세요. 동시에 바뀐 리포트는 충돌 안내 후 최신 내용을 확인해야 합니다. 이전 세대는 웹에서 읽기 전용입니다.
-- Windows npm 실행기는 설치 폴더 밖의 버전·SHA-256별 검증 사본을 실행합니다. 새 실행기로 시작한 세션을 유지한 채 npm 패키지를 갱신할 수 있습니다. **구 실행기에서 처음 전환할 때는 실행 중인 asb-client를 한 번 모두 종료해야 합니다.** 캐시를 쓸 수 없어 설치 원본으로 실행한 세션도 갱신 전에 종료해야 합니다. 실행 중 세션의 버전은 MCP 재시작 때 바뀝니다.
-- macOS/Linux의 Codex 재개 실행기는 embedded claim/yield와 daemon 재개를 지원하며, 저장된 등록을 첫 프롬프트 없이 복구합니다. 가능한 경우 **daemon 모드**를 사용하세요. 실행기 없는 재개는 첫 프롬프트(hook 설치 시) 또는 `auth_status` 호출이 필요합니다. `CODEX_THREAD_ID`를 MCP `env_vars`나 `-c` 환경 덮어쓰기로 전달하지 마세요.
-- Codex 세션 폴더 전체가 약 4,096항목을 넘으면 활동 상태가 unknown이 되던 제한을 개선했습니다. 중복 UUID 검사와 기존 100ms 시간 제한은 유지하며, 디렉터리당 4,096항목·날짜 디렉터리 4,096개까지 탐색합니다. 아주 크거나 느린 폴더는 여전히 unknown일 수 있습니다.
-- 서버가 권장 npm 클라이언트 버전을 알리고, 오래된 클라이언트의 `auth_status`가 하네스별 수동 업그레이드·재연결 절차를 안내합니다. 같은 장치의 이전 client 종료를 기다릴 때 사망 여부를 더 자주 확인해 기존 5~30초 추가 대기를 줄였습니다. 살아 있거나 생사를 확인할 수 없는 holder와 다른 장치는 계속 보호합니다. 모든 환경의 재연결이 2초 이내라는 보장은 아닙니다.
-- `xbroker_docs`에서 업그레이드·이름·전달·오류·리포트·Kimi 도움말을 로컬로 읽을 수 있습니다. 서버 연결·인증·등록이 없어도 사용 가능합니다. Codex는 세션별 도구 목록을 유지하므로 새 도구를 보려면 세션을 다시 여세요. 원래 실행 방식·플래그를 유지하고, 공유 daemon 재개만으로 새 MCP가 실행됐다고 판단하지 마세요. Claude는 설정 버전을 바꾼 뒤 `/mcp`에서 재연결하고 버전·도구 목록·실제 수신을 확인하세요.
-- 메시지 ACK를 협상한 durable 연결은 **서버 프로세스가 살아 있는 동안 host 인계까지 at-least-once 재전달**합니다. 모델이 읽거나 답했다는 확인은 아닙니다. Claude native inbox는 로컬 frame 쓰기 성공, Codex는 queue 성공 또는 hook 응답 쓰기 완료, Kimi는 helper v2 stdout 쓰기 뒤 확인이 인계 기준입니다. `send_message`의 `accepted`는 계속 큐 접수만 뜻합니다.
-- ACK를 받지 못한 메시지는 재연결·수신 실패 때 다시 전달합니다. 완료 메타데이터로 중복을 줄이지만, host 인계와 메타데이터 저장 사이 종료 시 이미 인계한 묶음이 반복될 수 있습니다. ACK 보류는 역압으로 처리량에 영향을 줍니다. 구 클라이언트로 내릴 때 **발급됐지만 미확인인 메시지**가 남아 있으면 고정 최대 10분 동안 재시도 가능한 `storage`로 복구 사본을 보호합니다. 재시도로 기한이 늘지 않으며, 보호 만료 뒤에는 해당 메시지의 legacy 전달을 허용해 at-most-once로 돌아갑니다. 미발급 대기 메시지만 있거나 빈 등록이면 이 대기는 없습니다.
-- **유실 예외:** 서버 재시작·retire·관리자 분리·identity-invalid·일시 중지는 메모리 메시지를 보존하지 않습니다. 구서버 또는 ACK 미협상 연결은 기존 전달 방식입니다. ACK가 영속 큐나 읽음 영수증을 제공하지는 않습니다.
+- Recommended client: **0.17.3**. New server tools `retire_session`, `list_bug_reports`, `get_bug_report` and `set_bug_report_status` require **both server and client 0.17.3**. Clients expose an embedded tool list, so reconnecting an older client does not add tools. New clients report unsupported tools on old servers.
+- `retire_session` revokes replaced registrations and used session credentials to release names. `stop_session` only disconnects; a name reservation may remain. Retirement requires management permission and excludes self, suspended targets and unused reservations. After an uncertain name-retire result, check the list/name state before retrying. New clients explain rename refusals and required actions.
+- Administrator-owned agents can query current-project-generation bug reports and resolve, ignore or reopen them. Requires a registered active session and existing `session:manage`. The web panel adds filters, badges, processing notes and recent status history. Notes allow up to 500 characters; omit secrets. Concurrent changes require inspecting current content after a conflict. Previous generations remain read-only on the web.
+- The Windows npm launcher runs verified copies keyed by version/SHA-256 outside the installation directory. Packages can be updated while sessions started by the new launcher run. **On the first transition from an old launcher, stop all running asb-client processes once.** Also stop sessions that fell back to the installed original because cache was unavailable. Running sessions change version when MCP restarts.
+- The macOS/Linux Codex resume launcher supports embedded claim/yield and daemon resume, restoring saved registrations without a first prompt. Use **daemon mode** where possible. Without the launcher, resume needs a first prompt with hooks installed or an `auth_status` call. Do not pass `CODEX_THREAD_ID` through MCP `env_vars` or `-c` environment overrides.
+- Improved the Codex activity limit that produced unknown above roughly 4,096 entries across all session directories. Duplicate UUID checks and the existing 100ms deadline remain. Discovery now allows 4,096 entries per directory and 4,096 date directories. Very large/slow directories may still return unknown.
+- Servers advertise the recommended npm client version; older clients' `auth_status` gives harness-specific manual upgrade/reconnection steps. More frequent death checks while waiting for an old client on the same device reduce the previous extra 5–30-second wait. Live/unverifiable holders and other devices remain protected. Reconnection within 2 seconds is not guaranteed in every environment.
+- `xbroker_docs` provides local upgrade, names, delivery, errors, reports and Kimi help without server connection, authentication or registration. Reopen Codex sessions to see new tools because their tool lists are fixed per session. Keep the original execution mode/flags; resuming a shared daemon alone does not prove a new MCP started. For Claude, change the configured version, reconnect through `/mcp`, then verify version, tool list and actual receipt.
+- Durable connections negotiating message ACK provide **at-least-once redelivery up to host handoff while the server process lives**. This does not confirm model reading or replies. Handoff means Claude native inbox frame-write success, Codex queue success or hook-response write completion, or Kimi helper v2 acknowledgement after stdout write. `send_message.accepted` still means only queue acceptance.
+- Unacknowledged messages are redelivered on reconnection/receiver failure. Completion metadata reduces duplicates, but termination between host handoff and metadata storage can repeat a delivered batch. Delayed ACK applies backpressure. On old-client downgrade, **issued but unacknowledged messages** protect their recovery copy with retryable `storage` for a fixed maximum of 10 minutes. Retries do not extend the deadline. After expiry, legacy delivery of those messages is allowed and returns to at-most-once. Empty registrations or those with only unissued pending messages have no such delay.
+- **Loss exceptions:** server restart, retire, administrative detach, identity-invalid and suspension do not preserve in-memory messages. Old servers and connections without ACK negotiation retain their prior delivery behavior. ACK is neither a persistent queue nor a read receipt.
 
-- 업데이트 전 전체 서버 데이터 백업과 이전 실행파일을 보관하세요. ACK 서버 대기열은 메모리 전용입니다. 서버 롤백도 재시작이므로 대기 메시지가 사라집니다. 가능한 한 대기열을 비운 뒤 수행하세요. 클라이언트에는 메시지 본문 없이 등록·epoch별 완료 순번 메타데이터가 저장됩니다.
-- 버그 리포트의 디스크 상태는 open/closed를 유지합니다. 0.17.2는 해결·무시를 닫힘으로 읽지만, 구서버에서 다시 쓰면 resolution·메모·상태 기록을 잃을 수 있고 32KiB 초과 record는 상태 변경이 거부될 수 있습니다. 저장 상한은 64KiB, 제출 입력 상한은 32KiB입니다. retire 감사는 기존 detached 종류를 유지하며 새 scope는 추가하지 않았습니다. 이미 회수한 자격이 롤백으로 복구되지는 않습니다.
+- Keep a complete server-data backup and previous executable before updating. ACK server queues are memory-only; rollback restarts the server and loses pending messages. Drain queues first where possible. Clients store completion-sequence metadata per registration/epoch without message bodies.
+- Bug reports retain open/closed on disk. Version 0.17.2 reads resolved/ignored as closed, but rewriting with an older server may lose resolution, notes and status history, and reject status changes for records above 32KiB. Storage is capped at 64KiB; submission input at 32KiB. Retire audits keep the existing detached kind; no new scope was added. Rollback does not restore revoked credentials.
 
-- 이전에 대화한 이름의 등록이 바뀌면 `recipient-changed`로 송신을 막습니다. `get_session`으로 현재 상대를 확인한 뒤 보내세요. 목록 조회나 같은 요청 반복만으로는 해제되지 않습니다.
-- 웹 관리 패널에서 버그 리포트를 삭제할 수 있습니다. 삭제 이력은 별도 저장되므로 전체 데이터 백업에 포함하세요. 오래된 서버에서 삭제 기록을 보존하는 것은 실제 삭제된 파일을 복원한다는 뜻이 아닙니다.
-- TLS 연결을 종료할 때 상대 응답을 기다리며 서버 종료가 지연되던 문제를 수정했습니다(#344).
-- 진단 기록은 v2 파일에 저장하며 구버전 기록은 읽기만 합니다. 알 수 없는 확장 필드는 보존하고 출력에는 알려진 코드만 표시합니다. `auth_status`에서 장치 식별 실패 원인과 짧은 조치를 확인할 수 있습니다. 비밀값·경로는 출력하지 않습니다.
-- Codex daemon은 ACK 협상과 수명 주기 hook이 활성일 때 실행 중 턴에 `turn/steer`로 전달합니다. 기본 켜짐이며 `--codex-steer off`로 끕니다. 생성 중 응답은 다시 써질 수 있지만 실행 중 명령은 유지합니다. embedded와 Windows는 기존 도구 경계·Stop·queue 경로를 사용합니다.
-- 새 클라이언트가 재승인 가능함을 알린 자동 자격은 stop·분리된 등록 정리 때 함께 회수합니다. 구 클라이언트의 자격은 기존 7일 만료를 유지합니다. 회수 후에는 사용자의 명시적 `attach_session`으로 새 등록을 요청하며 이전 상대는 이름의 새 등록을 확인해야 합니다.
-- 분리된 등록 정리를 일괄 처리해 대규모 목록 조회 비용을 줄이고, 같은 분리에 대한 감사 기록 중복을 줄였습니다.
-- self-stop 뒤 명시적 재등록의 수신·ACK 복구, epoch 변경 후 복구, Linux Codex 재개 helper, 삭제 기록 파일이 손상돼도 프로젝트 삭제 가능, 진단 코드 호환성과 잠금 처리를 보완했습니다.
-- **알려진 제한:** Windows는 steer를 지원하지 않습니다. embedded·Windows 모드로 전환할 때와 기존 hook·queue 인계의 밀리초 단위 저장 창에서는 중복이 남을 수 있습니다.
-- daemon 즉시 전달(`turn/steer`)은 보내기 직전에 본문 없는 시도 기록을 남깁니다. client 재시작이나 daemon 정지 뒤에는 대화 기록과 Codex 대기열을 확인해, 이미 들어간 메시지는 다시 넣지 않습니다. 확인이 끝나지 않으면 그 메시지와 뒤의 메시지를 보류합니다.
-- Windows 네이티브 검사는 제한 계정에서 최종 통합본으로 vet과 Go 전체 시험을 실행했습니다. 확인된 제품 결함은 0건이며, 남은 실패는 테스트 가정·환경 문제입니다(Windows에서 쓰지 않는 중복 방지 저장 경로의 시험 포함). npm·스크립트 재검사와 Linux/macOS amd64 실기 검증은 릴리스 뒤 별도로 진행합니다.
+- A changed registration behind a previously contacted name blocks sends with `recipient-changed`. Inspect the current peer with `get_session` before sending. Listing sessions or repeating the request alone does not clear it.
+- Bug reports can be deleted in the web control panel. Deletion history is stored separately; include it in full-data backups. Preserving deletion records on an older server does not restore actually deleted files.
+- Fixed server shutdown delays while waiting for peer responses during TLS closure (#344).
+- Diagnostics use v2 files; old records are read-only. Unknown extension fields are preserved; output includes only known codes. `auth_status` shows device-identification failure reasons and brief actions, without secrets or paths.
+- Codex daemon delivers into active turns through `turn/steer` when ACK negotiation and lifecycle hooks are active. Enabled by default; disable with `--codex-steer off`. Generated responses may be rewritten, but running commands remain. Embedded and Windows retain tool-boundary, Stop and queue delivery.
+- Automatic credentials whose new clients advertise reapproval support are revoked during stop/detached-registration cleanup. Old-client credentials retain the existing 7-day expiry. After revocation, the user must explicitly request `attach_session` for a new registration; previous peers must confirm the name's new registration.
+- Batches detached-registration cleanup to reduce large-list costs and duplicate audits of the same detach.
+- Improved receiver/ACK recovery after self-stop and explicit re-registration, epoch-change recovery, Linux Codex resume helper, project deletion with corrupt deletion-history files, and diagnostic-code compatibility/locking.
+- **Known limits:** Windows does not support steer. Duplicates may remain on transitions to embedded/Windows and during the millisecond storage window in ordinary hook/queue handoff.
+- Immediate daemon delivery (`turn/steer`) writes an attempt record without a body immediately before sending. After client restart or daemon stop, it checks conversation history and the Codex queue and does not reinject messages already inserted. Until verification completes, that message and later ones remain pending.
+- Native Windows checks ran vet and the full Go suite on the final integrated tree under a restricted account. No product defects were confirmed; remaining failures were test assumptions/environment issues, including tests for a deduplication storage path unused on Windows. npm/script rechecks and Linux/macOS amd64 hardware validation follow separately after release.
 
 ## 0.17.2 (2026-10-25)
 
-- 프로젝트를 삭제하고 같은 이름으로 다시 만들어도 이전 프로젝트의 감사 기록과 버그 리포트가 새 프로젝트의 기록에 섞이지 않습니다. 프로젝트마다 세대 ID를 부여하고 기록의 목록·개수·상세·상태 변경·삭제를 구분합니다. 서버 0.17.2만 올려도 적용되며 기존 클라이언트를 바꿀 필요는 없습니다.
-- 관리자는 세션 감사와 버그 리포트 화면에서 **현재 기록 / 이전 기록**을 전환할 수 있습니다. 현재와 다른 세대의 기록은 '이전 세대', 업그레이드 전 기록처럼 세대를 확인할 수 없는 기록은 '이전 기록(세대 불명)'으로 표시합니다. 과거 기록의 세대를 이름이나 시각으로 추측해 현재 프로젝트에 붙이지 않습니다. 서버 0.17.2의 관리 화면 기능입니다.
-- 이전 기록은 관리자만 읽을 수 있으며 프로젝트 Owner·Developer 권한만으로는 상세 주소로도 접근할 수 없습니다. 이전 버그 리포트의 상태는 바꿀 수 없고, 저장된 프로젝트 이름을 현재 프로젝트로 연결하지 않습니다. 세대 불명 기록은 기존 보관 기간을 따르며 이를 따로 지우거나 현재 세대에 합치는 버튼은 제공하지 않습니다.
-- 서버와 클라이언트가 모두 0.17.2이면 프로젝트 접속 거부 원인을 `auth_status`와 도구 오류에서 구분해 안내합니다. 비활성화는 `project_disabled`, 삭제 진행 중은 `project_deleting`으로 표시하고 제한된 간격으로 다시 확인합니다. 비활성화한 프로젝트를 다시 켜면 정상 재개할 수 있습니다.
-- 접속이 거부된 요청에서 확인해 둔 프로젝트 세대가 달라졌으면 `project_deleted`, 요청한 이름이 없으면 `project_not_found`로 구분합니다. 기능 지원과 이전 세대를 인증된 응답으로 확인한 클라이언트는 삭제된 프로젝트의 자동 재개·재승인을 멈추고 저장된 등록을 보존합니다. 확인된 세대 없이 존재하지 않는 이름을 무조건 '삭제됨'으로 안내하지 않으며, 프록시 HTML이나 코드 없는 404·410만으로 삭제를 확정하지 않습니다.
-- 삭제로 멈춘 연결은 토큰·서버 주소·프로젝트를 바꾸거나 명시적으로 `attach_session`을 요청하면 복구를 시도할 수 있습니다. 지워진 등록을 되살리거나 같은 이름의 새 프로젝트에 자동 등록하지 않습니다. 이전 자격에 묶인 세대 정보도 새 요청에 계속 보내지 않습니다. 이 종료·복구 안내는 서버와 클라이언트 모두 0.17.2가 필요합니다.
-- `send_message`에 선택 입력 `expectRegistrationId`를 추가했습니다. 답장이나 알고 있는 상대에게 보낼 때 등록 ID를 함께 지정하면, 이름의 주인이 바뀐 경우 아무 메시지도 넣지 않고 `recipient-changed`로 거부합니다. 자동으로 새 주인에게 다시 보내지 않습니다. 이름만 보내는 기존 호출은 그대로 동작하며 기대값을 자동으로 붙이지 않습니다. 서버와 클라이언트 모두 0.17.2가 필요합니다.
-- 받은 메시지에 보낸 쪽 등록 ID인 `fromRegistrationId`를 함께 전달합니다. 보낸 쪽이 이후 이름을 바꾸거나 연결을 해제해도 수락된 메시지의 출처는 바뀌지 않으며, 배치·Claude·Codex 전달에서도 유지됩니다. 기존 `registrationId`는 받는 쪽 등록 ID 뜻을 유지합니다. 상대가 바뀌었을 때 현재 등록 ID를 조회하려면 `session:read`가 필요하며, `message:send`만 있으면 거부 코드만 받습니다. 새 입력·출처 활용에는 서버와 클라이언트 모두 0.17.2가 필요합니다.
-- 상태 폴더를 복제한 두 클라이언트가 같은 살아 있는 등록을 번갈아 가져가는 것을 막습니다. 서버와 클라이언트가 모두 0.17.2이면 다른 수신 프로세스가 사용 중인 등록에 `registration-in-use`를 안내하고 5·10·20·30초, 이후 30초 간격으로 기다립니다. 저장된 등록·자격·대기 메시지를 지우거나 새 등록을 만들지 않습니다. 같은 Claude·Codex 부모 아래 있어도 서로 다른 수신 클라이언트는 구분합니다.
-- 같은 장치에서 이전 수신 프로세스가 끝난 것을 확인한 경우에는 살아 있던 등록을 이어받을 수 있습니다. 장치 증거가 다르거나 프로세스 종료를 확인할 수 없으면 연결이 만료될 때까지 기다립니다. 이전 프로세스가 계속 갱신 중이면 30초를 기다렸다는 이유만으로 가져오지 않습니다. 서버 0.17.1에서는 이 보호를 사용할 수 없습니다.
-- 서버 0.17.2에서도 0.17.1 클라이언트끼리의 재연결(legacy→legacy)은 0.17.1 동작을 유지합니다. 이 조합의 복제 상태 경합은 보호하지 못합니다. 새 클라이언트는 살아 있는 0.17.1 수신 클라이언트에게서 즉시 등록을 가져오지 못하며, 반대로 새 수신 클라이언트에게 거절된 0.17.1 클라이언트는 자동 대기하지 않고 `/mcp` 재연결이 필요할 수 있습니다.
-- tmux 등에서 같은 Claude 대화가 두 프로세스로 열려도 MCP 초기화와 도구 목록 조회가 부모 대화 확인·등록·로컬 잠금을 기다리며 지연되지 않도록 수정했습니다. 현재 클라이언트의 조상 프로세스로 대화를 선택하고, 같은 로컬 상태의 다른 클라이언트가 연결 잠금을 보유하면 이를 해제하지 않고 사용 중이라는 안내를 제공합니다. 클라이언트만 0.17.2로 올려도 적용됩니다. `npx @latest`의 확인·다운로드 지연은 별도이므로 MCP 설정에는 게시된 버전을 고정하고 같은 버전의 `--version`을 먼저 실행해 준비하세요.
-- Claude의 `/restart` 뒤 임시 시작 대화에서 저장된 대화로 돌아올 때, 등록은 이어받았지만 native inbox를 사용할 수 없어 `/mcp reconnect`가 필요하던 경로를 수정했습니다. 현재 부모의 대화·프로세스와 실제 inbox 연결 상대를 확인해 전달하며 다른 프로세스나 오래된 연결로는 보내지 않습니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- 관리 화면에서 실행 중인 세션을 분리하면 자동 재승인을 멈춘 클라이언트가 `identity-conflict`로 잘못 안내하던 문제를 고쳤습니다. 서버에 저장된 등록이 없으면 `registration-not-found`로 안내하고 관리자가 분리했거나 제거되었을 수 있다고 알립니다. 새 등록을 자동으로 만들지 않으며 다시 쓰려면 `attach_session`을 요청하세요. 서버와 클라이언트 모두 0.17.2가 필요합니다.
-- 관리 화면에서 기존 프로젝트 토큰의 일반 권한을 토큰 값을 바꾸지 않고 바꿀 수 있습니다. 토큰 목록의 '권한 변경'에서 여는 패널에서 권한을 고르고 추가·제거 내용을 확인한 뒤 적용하면, 그 토큰으로 승인된 세션 자격에도 함께 적용되어 MCP 설정 변경이나 세션 재승인이 필요 없습니다. 권한을 늘리는 것은 프로젝트 Owner와 인스턴스 관리자만 할 수 있고, Developer는 자기 토큰의 권한을 줄이는 것만 할 수 있습니다. 승인 방식·자동 등록 한도·수명은 바꿀 수 없습니다. 메시지 수신을 끄면 그 토큰의 세션은 메시지를 보낼 수도 없습니다. 변경은 감사 기록에 남습니다.
-- 토큰이나 프로젝트를 바꾼 뒤 기존 연결이 `identity-conflict`로 멈추고 `attach_session`을 다시 요청해도 복구되지 않던 문제를 고쳤습니다. 명시적 `attach_session`은 멈춘 자동 복구 상태와 오래된 승인 요청을 정리한 뒤 새 요청을 보냅니다. 같은 소유자의 새 토큰이면 저장된 등록을 그대로 이어받고, 서버가 다른 소유자의 토큰이라고 알려 주면 `registration-owner-mismatch`로 안내하며 기존 등록을 가져가지 않습니다. 10분이 지난 승인 대기는 `pending-expired`로 구분합니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- 관리자가 분리한 등록을 `attach_session`의 `takeover`로 명시 인계할 때, 이전 수신 클라이언트가 분리 상태를 먼저 저장했으면 `handover-refused`로 거절되던 문제를 고쳤습니다. 명시 인계와 명시 연결 요청은 분리된 등록을 되살릴 수 있습니다. `/clear` 등으로 같은 프로세스에서 대화가 바뀔 때의 자동 인계는 분리된 등록을 되살리지 않습니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- 세션이 많을 때 서버 부하를 줄였습니다. 연결 갱신마다 하던 전체 세션 조회와 만료 정리의 불필요한 복사를 없애, 세션 100개 측정에서 서버 CPU 사용량이 크게 줄었습니다. 관리 화면의 CSS·JS·실시간 데이터는 gzip으로 압축하고, 버전이 붙은 정적 파일은 브라우저가 캐시합니다. 클라이언트는 정상 연결 갱신 기록을 묶어 저장해 디스크 쓰기를 줄이고, Codex 대화 파일의 앞부분을 필요한 만큼만 읽습니다.
-- 보안 업데이트: 서버·클라이언트 실행파일을 Go 1.27.3과 최신 `golang.org/x/crypto`·`x/sys`로 빌드해 알려진 표준 라이브러리 취약점을 해소했습니다. 컨테이너 기본 이미지를 Alpine 3.23.7로 올리고 빌드에 쓰는 이미지를 digest로 고정했습니다.
-- Kimi Code CLI에서도 x-broker를 쓸 수 있습니다(2.3.1에서 확인). Kimi 설정 파일(`config.toml`)에 `kimi-hook` hook 3개(SessionStart, UserPromptSubmit, Stop)를 추가하면 `attach_session`으로 등록하고 메시지를 주고받습니다. 설정 예시는 README에 있습니다. Kimi는 쉬는 대화를 외부에서 깨울 수 없어서, 받은 메시지는 다음 프롬프트를 보낼 때나 작업 중인 턴이 끝날 때(턴마다 한 번) 전달됩니다. 그래서 Kimi 세션은 목록에서 자동 수신이 꺼진 것으로 표시되고, Kimi에 보내면 접수한 뒤 이 지연을 알리는 경고를 함께 돌려줍니다. 서버와 클라이언트 모두 0.17.2가 필요하며, 이전 서버에 연결하면 등록을 시도하기 전에 `unsupported-server`로 안내합니다.
-- Claude Code·Codex·Kimi Code가 아닌 프로그램에서 클라이언트를 실행하면 이유 없는 `invalid argument` 대신 `unsupported-harness` 안내를 보여 주고 `auth_status`도 같은 상태를 알려 줍니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- Codex 0.164의 대화 기록에 생기는 `additional_tools` 항목이나 이전 턴의 늦은 완료 기록 때문에 세션 활동이 `unknown`으로 남던 문제를 고쳤습니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- Codex 턴이 모델 오류 등으로 Stop hook 없이 끝나면, 그 사이 도착한 메시지가 클라이언트에 묶여 다음 사용자 입력 전까지 전달되지 않던 문제를 고쳤습니다. 클라이언트가 Codex 대화 기록에서 그 턴이 끝났음을 확인하면 대기 메시지를 Codex로 넘깁니다. 이 복구는 Codex hook 설정이 `turn_id`를 함께 넘길 때만 동작합니다(README의 hook 예시). 0.17.1 클라이언트는 이 값을 거부하므로 클라이언트를 0.17.2로 먼저 올린 뒤 hook 설정을 바꾸세요.
-- Claude 대화를 새 프로세스에서 `claude --resume`으로 다시 열었을 때 수신은 되는데 발신만 `reconnect-required`로 막혀 `/mcp` 재연결이 필요하던 문제를 고쳤습니다. 같은 부모 프로세스와 활성 연결이 확인되면 막힘을 자동으로 풉니다. `auth_status`는 native inbox 문제와 대화 따라가기 확인 대기를 구분해 안내합니다. 클라이언트만 0.17.2로 올려도 적용됩니다.
-- 서버 0.17.2와 클라이언트 0.17.1은 함께 사용할 수 있습니다. 프로젝트 기록 격리와 관리 화면은 서버 업데이트만으로 적용되지만 새 프로젝트 종료 안내·상대 등록 기대값은 클라이언트도 업데이트해야 합니다. 실행 중인 이전 클라이언트에 새 도구 입력이나 전달 필드가 생기지 않습니다. 클라이언트 0.17.2와 서버 0.17.1 조합에서는 프로젝트 종료 판단과 수신 프로세스 보호를 사용할 수 없고, 명시한 `expectRegistrationId`는 `unsupported`로 거부하며 기대값을 빼고 전송하지 않습니다. 서버와 클라이언트가 모두 0.17.2이면 수신 권한을 다시 켠 뒤 다음 성공한 연결 갱신과 정상 복구 과정에서 client 재시작 없이 수신을 재개합니다. 서버 0.17.2와 client 0.17.1 조합은 줄인 권한을 즉시 적용하지만 수신을 다시 켠 뒤에는 client를 재시작해야 하며 같은 저장 등록을 이어받습니다. client 0.17.2와 서버 0.17.1 조합은 새 권한 관측 신호가 없어 기존처럼 수신 거절을 계속 기억합니다.
-- 업데이트 순서는 **전체 인스턴스 데이터 백업 → 서버 0.17.2 → npm 클라이언트 0.17.2 → 각 대화 재연결**입니다. 서버를 중지하고 백업한 뒤 같은 데이터 경로로 시작하세요. 첫 시작에 기존 프로젝트의 세대 ID를 한 번 부여하고 `controlVersion`을 5로 올리며 재시작·백업 복원에서도 ID를 유지합니다. MCP 설정의 npm 버전을 바꾸고 Claude의 `/mcp` 재연결 또는 Claude·Codex 재시작으로 새 클라이언트를 적용하세요. 버전 사이의 데이터 쓰기 호환은 보장하지 않습니다. 롤백은 업그레이드 전 control·registration·bugreport를 포함한 전체 데이터 백업과 이전 실행파일을 함께 복원해야 하며 `control.db`만 되돌리지 마세요. 백업을 복원하지 않고 0.17.2가 쓴 데이터로 0.17.1 서버를 시작하면 `control panel storage unavailable`을 남기고 시작하지 않으며 데이터는 바꾸지 않습니다.
+- Deleting and recreating a project with the same name no longer mixes old audit records or bug reports into the new project. Each project gets a generation ID separating record lists, counts, details, status changes and deletion. Only server 0.17.2 is required; existing clients need no update.
+- Administrators can switch **Current records / History** in session audit and bug reports. Other generations are labeled Previous generation; records without a known generation, such as pre-upgrade records, show History (generation unknown). Historical generations are never inferred from names/times and attached to the current project. This is a server 0.17.2 panel feature.
+- Only administrators can read history; project Owner/Developer roles cannot access even detail URLs. Historical bug-report status cannot be changed, and stored project names do not link to current projects. Unknown-generation records follow existing retention, with no separate deletion or merge-into-current button.
+- With server and client 0.17.2, `auth_status` and tool errors distinguish project connection denials: `project_disabled` for disabled projects and `project_deleting` during deletion, rechecking at bounded intervals. Re-enabling a project allows normal resume.
+- Denied requests distinguish `project_deleted` when a previously verified generation changed and `project_not_found` when the requested name is absent. Clients that verified capability support and the previous generation through authenticated responses stop automatic resume/reapproval for deleted projects and preserve stored registration. An absent name without a verified generation is not blindly called deleted; proxy HTML or a bare 404/410 without a code does not confirm deletion.
+- Connections stopped by deletion can attempt recovery after changing token/server/project or explicitly requesting `attach_session`. They do not revive deleted registrations or automatically register in a new project with the same name. Generation information bound to the old credential is not carried into new requests. Both server and client 0.17.2 are required for this termination/recovery guidance.
+- Added optional `expectRegistrationId` to `send_message`. Supplying a registration ID when replying or contacting a known peer rejects a changed name holder with `recipient-changed`, without enqueueing anything or automatically resending to the new holder. Existing name-only calls are unchanged; expected IDs are not automatically added. Requires server and client 0.17.2.
+- Received messages include sender registration ID `fromRegistrationId`. Accepted-message origin stays unchanged if the sender later renames/disconnects, including batch, Claude and Codex delivery. Existing `registrationId` still means recipient ID. Looking up a changed peer's current registration requires `session:read`; `message:send` alone receives only the refusal code. New input/origin handling requires both server and client 0.17.2.
+- Prevents two clients with cloned state directories from alternately taking the same live registration. With server/client 0.17.2, a registration used by another receiver reports `registration-in-use` and waits 5, 10, 20, 30 seconds, then every 30 seconds. It neither deletes stored registration/credentials/messages nor creates a new registration. Distinct receiver clients remain distinguishable under the same Claude/Codex parent.
+- A live registration can be inherited once the previous receiver on the same device is confirmed dead. Different device evidence or unverifiable process death requires waiting for connection expiry. A still-renewing process is not displaced just because 30 seconds passed. Server 0.17.1 lacks this protection.
+- Even on server 0.17.2, reconnecting between 0.17.1 clients (legacy→legacy) retains 0.17.1 behavior without protection against cloned-state races. New clients cannot immediately take registration from a live 0.17.1 receiver. Conversely, a 0.17.1 client refused by a new receiver does not automatically wait and may need `/mcp` reconnection.
+- Fixed delayed MCP initialization/tool listing while waiting for parent-conversation discovery, registration or local locks when the same Claude conversation is open in two processes, such as tmux. The client's ancestor process selects its conversation; another client's lock on the same local state is preserved and reported in use. Client 0.17.2 alone applies this fix. `npx @latest` lookup/download delays are separate: pin a published MCP version and prepare it with that version's `--version` first.
+- Fixed returning from Claude `/restart`'s temporary startup conversation to a saved conversation inheriting registration but lacking native inbox access until `/mcp reconnect`. Delivery verifies the current parent's conversation/process and actual inbox peer, never another process or stale connection. Client 0.17.2 alone is sufficient.
+- Fixed misleading `identity-conflict` after panel detachment stopped automatic reapproval. If registration is absent on the server, clients now report `registration-not-found` and possible administrator detachment/removal. No registration is automatically recreated; request `attach_session` to use it again. Requires server/client 0.17.2.
+- Existing project-token permissions can be edited in the panel without changing the token value. Choose permissions in the token list's Change permissions panel, review additions/removals and apply. Approved session credentials update too, without MCP configuration changes or session reapproval. Only project Owners/instance administrators can add permissions; Developers can only reduce their own token permissions. Approval mode, automatic registration limit and lifetime cannot change. Disabling receipt also prevents that token's sessions from sending. Changes are audited.
+- Fixed connections stuck at `identity-conflict` after token/project changes even when `attach_session` was requested again. Explicit attach clears stopped recovery and stale approval requests before issuing anew. A new token with the same owner inherits stored registration; a server-confirmed different owner reports `registration-owner-mismatch` without taking it. Approval waits beyond 10 minutes report `pending-expired`. Client 0.17.2 alone applies this fix.
+- Fixed explicit `attach_session` takeover of an administratively detached registration returning `handover-refused` if the old receiver had already saved detached state. Explicit takeover/connection requests can revive detached registrations. Automatic handover after an in-process conversation change such as `/clear` cannot. Client 0.17.2 alone is sufficient.
+- Reduced server load with many sessions by removing full-session queries on each renewal and unnecessary copies during expiry cleanup; a 100-session measurement showed substantially lower server CPU. Panel CSS/JS/live data use gzip, and versioned static files are browser-cached. Clients batch normal renewal records to reduce writes and read only the needed prefix of Codex conversation files.
+- Security update: built server/client executables with Go 1.27.3 and current `golang.org/x/crypto`·`x/sys` to address known standard-library vulnerabilities. Upgraded the container base to Alpine 3.23.7 and pinned build images by digest.
+- Supports x-broker in Kimi Code CLI (verified on 2.3.1). Add three `kimi-hook` hooks (SessionStart, UserPromptSubmit, Stop) to Kimi `config.toml`, then register with `attach_session` and exchange messages; README has examples. Kimi cannot externally awaken idle conversations, so messages arrive at the next prompt or active-turn end, once per turn. Its session list therefore shows automatic delivery off, and accepted sends return a delay warning. Requires both server/client 0.17.2; old servers produce `unsupported-server` before registration attempts.
+- Running the client outside Claude Code, Codex or Kimi Code now gives `unsupported-harness` instead of unexplained `invalid argument`; `auth_status` reports the same state. Client 0.17.2 alone is sufficient.
+- Fixed activity remaining `unknown` because of Codex 0.164 `additional_tools` history entries or late completion records for prior turns. Client 0.17.2 alone is sufficient.
+- Fixed messages stuck until the next user input when a Codex turn ended without Stop, such as on model error. Once the client verifies the turn ended in conversation history, it hands pending messages to Codex. Requires hooks to pass `turn_id` (see README). Client 0.17.1 rejects this field: upgrade to 0.17.2 before changing hooks.
+- Fixed Claude reopened in a new process with `claude --resume` receiving but unable to send due to `reconnect-required` until `/mcp` reconnection. The block clears automatically when the same parent and active connection are verified. `auth_status` distinguishes inbox problems from pending conversation-follow verification. Client 0.17.2 alone is sufficient.
+- Server 0.17.2 works with client 0.17.1. Record isolation and panel changes need only the server update; project termination guidance/expected peer IDs need a client update too. Running older clients do not gain new inputs/delivery fields. Client 0.17.2 with server 0.17.1 lacks project termination detection/receiver protection and rejects explicit `expectRegistrationId` as `unsupported` without dropping the expectation and sending. With both at 0.17.2, re-enabling receipt resumes after the next successful renewal/normal recovery without restart. Server 0.17.2 with client 0.17.1 applies reduced permissions immediately, but re-enabling receipt requires client restart with the same saved registration. Client 0.17.2 with server 0.17.1 lacks the new permission-observation signal and retains the old persistent receipt refusal.
+- Update order: **full instance-data backup → server 0.17.2 → npm client 0.17.2 → reconnect each conversation**. Stop/back up the server, then start with the same data path. First startup assigns existing projects generation IDs once and raises `controlVersion` to 5; IDs survive restart/backup restore. Change the MCP npm version and reconnect Claude `/mcp` or restart Claude/Codex. Cross-version write compatibility is not guaranteed. Rollback requires the previous executable and complete pre-upgrade data, including control/registration/bugreport, not only `control.db`. Starting server 0.17.1 directly on 0.17.2 data without restoring a backup refuses startup with `control panel storage unavailable` and leaves data unchanged.
 
 ## 0.17.1 (2026-10-23)
 
-- Claude 백그라운드 세션을 지원합니다. `claude --bg`, `/resume`으로 붙은 뷰어, `claude stop` 뒤 `claude --resume`에서 연결을 이어 갑니다. `claude --resume`이나 새로 시작한 Claude 안의 `/resume`도 `/mcp` 조작 없이 같은 등록과 이름을 유지합니다.
-- 서버와 클라이언트가 모두 0.17.1이면 `/clear` 뒤 새 대화로 등록을 인계하고, 원래 대화로 `/resume`하면 다시 가져옵니다. 인계가 거부된 뒤에도 원래 대화로 돌아가면 연결을 복구합니다. 구서버에서는 인계하지 않고 도착한 메시지를 보류했다가 원래 대화로 돌아온 뒤 전달합니다. 원래 대화로 돌아오기 전에 Claude를 종료하면 보류한 메시지는 전달되지 않습니다.
-- 수동 승인 토큰도 대화 인계를 지원합니다. `/clear`나 대화 전환 뒤 새 대화에서 사용자가 연결을 요청하고 승인하면 기존 등록의 이름, 등록 ID, 대기 메시지를 이어받습니다. 승인 화면에는 임시 이름(`<이름>-next`)이 보이며 승인 뒤 원래 이름으로 바뀝니다. 승인 없는 자동 인계는 하지 않으며, 설정 파일에 고정한 세션 자격은 지원하지 않습니다.
-- 새 대화는 사용자가 연결을 요청할 때만 등록합니다. 에이전트가 `attach_session`을 호출하면 자동 등록 토큰은 승인 없이 등록하고, 일반 토큰은 승인 코드를 안내합니다. 이미 등록된 대화의 재연결은 자동으로 유지합니다.
-- `session:manage`로 관리 가능한 다른 세션의 연결을 해제·일시 중지·재개할 수 있습니다. Owner 토큰은 프로젝트의 모든 세션, Developer 토큰은 같은 소유자의 세션만 관리합니다. 자신의 연결은 해제만 가능합니다. `suspend_session`·`unsuspend_session`은 클라이언트 0.17.1이 필요하며, 기존 `stop_session`의 다른 세션 해제는 서버만 0.17.1로 올려도 동작합니다.
-- `auth_status`에서 서버의 현재 자격증명 권한과 설명을 조회합니다. 구서버이거나 조회에 실패하면 저장된 정보로 표시하고 `scopeSource`로 출처를 구분합니다.
-- x-broker의 이상 동작을 보고하는 `report_bug`와 관리자 전용 버그 리포트 목록·상세 화면을 추가했습니다. 클라이언트는 버전, OS, 인증·수신 상태와 최근 진단 이벤트 최대 20개를 붙입니다. 자동 진단에는 토큰·경로·메시지 본문이 없으며 서버도 x-broker 토큰을 가립니다. 등록당 시간당 10건, 프로젝트당 하루 200건까지 받습니다. 인스턴스에 최대 2,000건을 180일까지 보관하고 프로젝트 삭제 시 해당 리포트도 삭제합니다. 관리자는 리포트를 닫거나 다시 열 수 있습니다. 서버와 클라이언트 모두 0.17.1이 필요합니다.
-- 자동 등록 기록을 정리할 때 등록 약 10분 뒤 프로젝트 전체 세션이 불필요하게 재연결되던 문제를 수정했습니다. 서버 수정은 0.17.0 클라이언트에도 적용됩니다.
-- 자동 등록의 순간 요청 허용량을 10건으로 늘렸습니다. 제한 시 정확한 대기 시간을 `Retry-After`로 안내합니다.
-- 자동 등록 자격증명의 거부·만료와 프로젝트 토큰 교체 뒤 재연결을 개선했습니다. 기존 등록을 이어 쓰며 관리자가 해제한 등록을 자동으로 새로 만들지 않습니다. 연결 종료·재승인·대화 전환 뒤 복구도 보완했습니다.
-- 클라이언트가 비정상 종료된 직후 연결이 만료되기 전(약 30초)에 수락된 메시지를 버리지 않습니다. 같은 등록이 10분 안에 다시 연결되면 전달합니다. 서버가 재시작되면 대기 메시지는 여전히 사라집니다. 서버 수정이라 0.17.0 클라이언트에도 적용됩니다.
-- 서버가 꺼져 있거나 일시적으로 응답하지 않을 때 시작한 클라이언트가 바로 실패하지 않고, 서버가 돌아올 때까지 간격을 늘려 가며 다시 연결합니다. 인증 거부와 설정 오류는 바로 멈춥니다.
-- 클라이언트 상태 파일이 손상되거나 읽을 수 없으면 원인을 알려 주는 고정 안내를 보여 줍니다. 파일 내용과 경로는 표시하지 않습니다.
-- 세션 이름에 보이지 않는 문자(zero-width 문자, 방향 제어 문자 등)를 쓸 수 없습니다. 이미 그런 이름을 쓰는 등록도 계속 연결되며 이름을 바꿀 수 있습니다.
-- 관리 화면의 프로젝트 토큰 발급 양식을 두 번 제출하거나 뒤로 가기로 다시 제출해도 토큰은 한 번만 발급됩니다. 스크립트로 발급하는 기존 방식은 그대로 동작합니다.
-- 프로젝트를 삭제하면 세션 감사 기록도 함께 삭제합니다. 같은 이름으로 다시 만든 프로젝트에 이전 프로젝트의 기록이 보이지 않습니다. 업그레이드 뒤 첫 저장 때 이미 삭제된 프로젝트에 남아 있던 감사 기록도 정리합니다.
-- 프로젝트 하나의 데이터 파일이 손상되어도 서버가 시작되고 다른 프로젝트는 정상 동작합니다. 손상된 프로젝트만 사용할 수 없으며 파일은 그대로 둡니다.
-- 버그 리포트 저장소가 손상되어도 서버가 시작되고 버그 리포트 기능만 중단됩니다. 정상 파일로 복원하고 서버를 다시 시작하면 다시 사용할 수 있습니다. 삭제된 프로젝트의 리포트는 목록에 표시하지 않습니다.
-- 노트북 잠자기처럼 클라이언트가 30초 넘게 멈췄다가 깨어나도, 멈추기 직전에 받은 메시지를 버리지 않고 전달합니다.
-- PC 시계가 서버와 달라도 서버가 알려 준 재시도 대기 시간을 정확히 계산합니다.
-- 프로젝트 토큰의 자동 등록 한도에 닿으면 한도 초과와 조치 방법(관리 화면에서 쓰지 않는 세션 해제 또는 한도 상향)을 안내합니다. 이전에는 `identity-conflict`로 표시했습니다.
-- 데이터 파일이 손상되어 격리된 프로젝트는 서버 응답(503)에 원인과 조치(관리자가 백업에서 복원)를 담고, 관리 화면의 해당 프로젝트 설정·세션·감사 페이지에 같은 상태를 표시합니다.
-- 두 화면에서 같은 설정을 동시에 저장하면 나중 저장이 앞선 변경을 조용히 덮어쓰지 않습니다. 충돌을 알리고 최신 값으로 다시 보여 줍니다. 프로젝트 접근 설정, 사용자 접근 설정, 프로필, 인스턴스 정책이 대상이며 스크립트 호출은 그대로 동작합니다.
-- 서버 0.17.1과 클라이언트 0.17.0은 함께 사용할 수 있습니다. 실행 중인 0.17.0 클라이언트는 기존 도구 목록을 유지하므로 새 도구에는 클라이언트 업데이트가 필요합니다. 클라이언트 0.17.1과 서버 0.17.0도 연결되지만 `/clear` 인계, 다른 세션 관리, 서버의 현재 권한 조회와 `report_bug`는 지원하지 않습니다.
-- 업데이트 순서는 **전체 데이터 백업 → 서버 0.17.1 → npm 클라이언트 0.17.1 → 각 대화 재연결**입니다. 서버를 중지하고 백업한 뒤 같은 데이터 경로로 시작하세요. 실행 중인 세션은 서버가 돌아오면 약 1초 안에 같은 등록으로 자동 재연결하며 환경에 따라 더 걸릴 수 있습니다. MCP 설정의 npm 버전을 바꾸고 Claude의 `/mcp` 재연결 또는 Claude·Codex 재시작으로 새 클라이언트를 적용하세요. 롤백은 업그레이드 전 전체 백업과 이전 실행파일을 함께 복원해야 합니다.
-- `attach_session` 설명에 `stop_session` 해제와 관리 화면 해제의 이름 유지 차이를 명시했습니다.
+- Supports Claude background sessions: `claude --bg`, viewers attached with `/resume`, and `claude --resume` after `claude stop`. `claude --resume` or `/resume` in a newly started Claude also retains registration/name without `/mcp` operations.
+- With both server/client 0.17.1, `/clear` hands registration to the new conversation; `/resume` back takes it again. Returning to the original conversation restores connection even after refused handover. Old servers hold messages instead of handing over, delivering after return. Exiting Claude before returning loses those pending messages.
+- Manual-approval tokens support conversation handover. After `/clear` or a conversation change, the user requests connection and approves, retaining registration name, ID and pending messages. Approval shows temporary `<name>-next`, replaced by the original afterward. No automatic handover without approval; credentials pinned in configuration are unsupported.
+- New conversations register only on user request. When an agent calls `attach_session`, automatic-registration tokens register without approval; ordinary tokens show an approval code. Existing conversations reconnect automatically.
+- `session:manage` can disconnect, suspend and resume other manageable sessions. Owners manage all project sessions; Developers only same-owner sessions. Self-management allows only disconnection. `suspend_session`/`unsuspend_session` need client 0.17.1; existing `stop_session` can disconnect other sessions with only server 0.17.1.
+- `auth_status` queries current server credential permissions/descriptions. Older servers or failed queries use stored information, distinguished by `scopeSource`.
+- Added `report_bug` and administrator-only bug-report lists/details. Clients attach version, OS, authentication/receiver state and up to 20 recent events, excluding tokens, paths and message bodies; servers also redact x-broker tokens. Limits: 10 per registration/hour, 200 per project/day, at most 2,000 per instance for 180 days. Project deletion removes reports. Administrators can close/reopen. Requires server/client 0.17.1.
+- Fixed unnecessary reconnection of all project sessions roughly 10 minutes after registration during automatic-registration cleanup. The server fix also applies to 0.17.0 clients.
+- Increased the automatic-registration burst allowance to 10 requests. Limits give the exact delay in `Retry-After`.
+- Improved reconnection after automatic-credential denial/expiry and project-token replacement. Existing registrations continue; administratively detached registrations are not automatically recreated. Improved recovery after disconnection, reapproval and conversation changes.
+- Messages accepted after a client crash but before lease expiry (roughly 30 seconds) are retained and delivered if the same registration reconnects within 10 minutes. Server restart still loses pending messages. This server fix also applies to 0.17.0 clients.
+- Clients started while a server is down/unresponsive retry with increasing intervals until it returns instead of failing immediately. Authentication refusal/configuration errors still stop immediately.
+- Corrupt/unreadable client state produces fixed explanatory guidance without file contents or paths.
+- Session names reject invisible characters, including zero-width and directional controls. Existing registrations with such names can still connect and rename.
+- Double-submitting or resubmitting the panel's project-token form through browser Back issues only one token. Existing scripted issuance remains unchanged.
+- Project deletion also deletes session audits so a recreated same-name project cannot show old records. The first post-upgrade save also cleans audits left by already deleted projects.
+- One corrupt project's data does not prevent server startup or other projects from working. Only that project is unavailable; its files remain unchanged.
+- A corrupt bug-report store no longer prevents startup; only bug reporting is disabled. Restore valid files and restart to recover. Deleted projects' reports are omitted from lists.
+- After a pause longer than 30 seconds, such as laptop sleep, clients still deliver messages received just before the pause instead of discarding them.
+- Correctly computes server-supplied retry delays even when PC and server clocks differ.
+- Automatic-registration limits now report the exceeded limit and remedies (detach unused sessions or raise the limit in the panel) instead of `identity-conflict`.
+- A project isolated for corrupt data returns HTTP 503 with the cause and administrator backup-restore guidance. Its panel settings, sessions and audit pages show the same state.
+- Concurrent settings saves no longer silently overwrite earlier changes: conflicts show current values. Applies to project access, user access, profile and instance policies; scripted calls remain unchanged.
+- Server 0.17.1 works with client 0.17.0, which retains its running tool list and needs an update for new tools. Client 0.17.1 also connects to server 0.17.0, without `/clear` handover, other-session management, current server-permission queries or `report_bug`.
+- Update order: **full-data backup → server 0.17.1 → npm client 0.17.1 → reconnect each conversation**. Stop/back up the server, then start with the same path. Running sessions automatically reconnect with the same registration roughly 1 second after server return, potentially longer depending on environment. Change the MCP npm version and reconnect Claude `/mcp` or restart Claude/Codex. Rollback requires the complete pre-upgrade backup and previous executable together.
+- Clarified name-retention differences between `stop_session` and panel disconnection in `attach_session` guidance.
 
 ## 0.17.0 (2026-10-18)
 
-- 세션 간 메시지에 브로커가 접수한 시각 `sentAt`을 UTC·밀리초 단위로 전달합니다. 서버와 클라이언트가 모두 0.17.0이고 `message.sentAt` 기능을 협상한 연결에서 표시됩니다. 0.12–0.16 클라이언트에는 새 필드를 보내지 않아 기존 형식을 유지합니다. 이 기능을 쓰려면 npm 클라이언트도 업데이트하세요.
-- 승인 없이 자동 등록하는 프로젝트 토큰의 등록 수와 수명에 각각 무제한 옵션을 추가했습니다. 유한 값은 등록 수 1–100000개, 수명 1–36500일을 지정할 수 있으며 기본값은 8개·30일입니다. 제한 권한·자동 등록 토큰 발급을 허용하는 인스턴스 설정은 유지합니다. **무제한 토큰을 한 번 발급했거나 기존 범위(64개·90일)를 넘는 값을 사용했다면, 0.16.0 이하로 롤백할 때 업그레이드 전 전체 데이터 폴더 백업을 복원해야 합니다.**
-- 서버·클라이언트 버전별 호환 정책을 별도로 관리합니다. 0.17 서버의 최소 클라이언트는 0.12.0이며 구형 클라이언트도 계속 허용하고, 0.17 클라이언트의 최소 서버는 0.12.0입니다. 새 클라이언트가 비호환을 확인하면 자동 등록 재시도를 멈추고 `auth_status`·세션 조회만 유지하며 업데이트·재연결 방법을 안내합니다.
-- 클라이언트의 대화별 세션·등록 상태는 마지막 사용 후 30일, 진단 기록은 14일이 지나면 자동 정리합니다. 실행 중인 연결이 잠근 상태는 건너뛰며, 클라이언트 시작 후 백그라운드에서 하루에 최대 한 번 정리합니다.
-- npm 런처는 지원되는 POSIX 환경과 Node.js에서 클라이언트 실행파일로 프로세스를 교체해 상주 프로세스와 메모리를 줄입니다. Windows나 해당 기능을 지원하지 않는 Node.js에서는 기존 실행 방식을 유지합니다.
-- 관리 화면의 인스턴스 설정·공지 결과와 프로필 배치를 정리하고 불필요한 안내 문구를 줄였습니다. 세션 PID는 이름 옆에 표시하며 그 아래의 대화·PC 식별자는 표시하지 않습니다. 모든 텍스트를 Pretendard Variable로 통일했습니다. 토큰 권한 선택이 꺼져 있으면 이유와 관리자 설정 안내를 짧게 표시합니다.
-- 구형 로컬 통합 실행파일과 로컬 세션 시작 기능을 제거했습니다. 서버와 npm 클라이언트로 연결하는 방식을 사용하세요. 구형 클라이언트의 호환성을 위해 원격 `spawn_session` 호출은 목록에서 숨긴 채 유지하며, 호출하면 서버가 프로세스를 시작하지 않는다는 안내를 반환합니다.
-- 제어 저장소의 구형 JSON 쓰기 구현을 제거하고 SQLite 저장소로 통일했습니다. 최초 실행 시 기존 JSON 데이터를 가져오는 경로와 0.15·0.16의 기존 SQLite 데이터 업그레이드 경로는 유지합니다. 관리 데이터 형식은 v4를 유지하지만, 교체 전 **전체 데이터 폴더를 먼저 백업**하세요. 0.14.0 이하에서 올리는 경우에는 0.15.0의 업그레이드 안내도 확인하세요.
+- Inter-session messages include broker acceptance time `sentAt` in UTC with millisecond precision. Requires server/client 0.17.0 and negotiated `message.sentAt`. Clients 0.12–0.16 keep their old shape without the field. Update npm clients to use this feature.
+- Added unlimited options for registration count and lifetime on project tokens registering without approval. Finite ranges are 1–100000 registrations and 1–36500 days; defaults remain 8 and 30 days. The instance switch permitting restricted/automatic-registration issuance remains. **After issuing any unlimited token or using values beyond the old 64-registration/90-day range, rollback to 0.16.0 or earlier requires restoring a complete pre-upgrade data-directory backup.**
+- Separately manages server/client compatibility policies. Server 0.17 requires client 0.12.0 minimum and still allows legacy clients; client 0.17 requires server 0.12.0. New clients detecting incompatibility stop automatic-registration retries, retain only `auth_status`/session queries and give upgrade/reconnection guidance.
+- Per-conversation client session/registration state is cleaned 30 days after last use; diagnostics after 14 days. State locked by running connections is skipped. Cleanup runs in the background after startup at most once daily.
+- The npm launcher replaces itself with the client executable on supported POSIX/Node.js environments, reducing resident processes/memory. Windows and unsupported Node.js retain the existing launch path.
+- Tidied Instance settings, announcement results and profile layout, reducing redundant guidance. Session PID appears beside its name; conversation/PC identifiers below it are hidden. All text uses Pretendard Variable. Disabled token-scope selection gives a short reason and administrator-setting guidance.
+- Removed the old combined local executable and local session spawning. Use the server/npm-client connection. Hidden remote `spawn_session` remains for old-client compatibility, returning guidance that the server does not start processes.
+- Removed legacy JSON control-store writes in favor of SQLite. First-run import from existing JSON and SQLite upgrade paths from 0.15/0.16 remain. Control format stays v4, but **back up the entire data directory before replacement**. Also read 0.15.0 upgrade guidance when coming from 0.14.0 or earlier.
 
 ## 0.16.0 (2026-10-16)
 
-- 세션 등록 시 승인 링크를 함께 안내합니다. 링크를 열면 승인 코드와 요청한 닉네임이 미리 입력된 화면에서 요청 정보를 확인하고 승인할 수 있습니다. 로그인하지 않았으면 로그인한 뒤 같은 화면으로 돌아옵니다. 닉네임을 지정하지 않았다면 승인 화면에서 입력합니다.
-- 모델에 보이는 도구 목록을 줄였습니다. `wait_for_message`를 숨기고, Claude 세션임을 확인하면 `ingress_hook`을, 세션 시작을 지원하지 않는 원격 서버 연결에서는 `spawn_session`을 숨깁니다. 목록에서 숨겨도 기존 도구 호출은 유지합니다.
-- `send_message` 실패 안내를 수신 세션 없음, 조회 실패, 발신 신원 불일치로 구분합니다. 원격 서버 연결에서는 세션 시작 안내를 표시하지 않습니다.
-- macOS의 Claude Code에서 등록 전에 대화 식별자가 바뀌는 재개 과정을 개선했습니다. 잠시 식별자가 안정되기를 기다린 뒤 현재 대화와 정확히 일치하는 저장 등록을 먼저 이어받아 불필요한 새 승인을 줄입니다. 같은 프로세스의 초기 수신함이 `/resume`·`/clear` 이후 현재 대화에 연결되는지 확인하며, 이미 등록된 연결의 대화 식별자는 유지합니다. 수신함을 확인할 수 없으면 세션 조회 기능은 유지하되 전송과 수신을 멈추고 `/mcp reconnect`를 안내합니다.
-- `auth_status`에서 설정된 세션 자격증명을 구형(legacy)으로 표시하지 않습니다.
-- 서버 교체 시 기존 클라이언트가 사용자 조작 없이 같은 등록과 이름으로 자동 재연결하는 호환성을 확인했습니다. 서버 중단 중 도구 호출이 실패해도 클라이언트는 종료하지 않습니다. 실패한 메시지는 자동으로 다시 보내지 않으며, 서버 재시작 전 대기열에 남아 있던 메시지도 유지되지 않습니다.
-- 이번 버전은 관리 데이터베이스 형식(v4)을 바꾸지 않습니다. 0.14.0 이하에서 올리는 경우 0.15.0 안내대로 **전체 데이터 폴더를 먼저 백업**하세요.
+- Session registration includes an approval link with prefilled code/requested nickname. Verify and approve there; sign-in returns to the same page. Enter a nickname on the approval page if none was requested.
+- Reduced the model-visible tool list: hides `wait_for_message`, `ingress_hook` for confirmed Claude sessions, and `spawn_session` for remote servers without spawning support. Existing calls remain available despite hidden listings.
+- `send_message` failures distinguish absent recipients, lookup failure and sender identity mismatch. Remote connections omit session-start guidance.
+- Improved macOS Claude resume when conversation identity changes before registration. Briefly waits for identity stability, then prefers an exact saved-registration match to reduce unnecessary approval. Verifies that the initial inbox in the same process follows `/resume`/`/clear`; already registered connections keep their identity. If inbox verification fails, session queries remain but sending/receiving stop with `/mcp reconnect` guidance.
+- `auth_status` no longer labels configured session credentials as legacy.
+- Verified that existing clients automatically reconnect after server replacement with unchanged registration/name and no user action. Clients stay alive if tools fail during downtime. Failed sends are not automatically retried; messages pending before restart are not preserved.
+- Control database format remains v4. Coming from 0.14.0 or earlier, **back up the entire data directory first** as described for 0.15.0.
 
 ## 0.15.0 (2026-10-14)
 
-- 프로젝트 토큰에 권한 범위를 지정할 수 있습니다. 인스턴스 관리자가 설정을 켜야 제한 권한 토큰과 사람의 승인 없이 세션을 등록하는 토큰을 발급할 수 있으며, 이 설정은 기본적으로 꺼져 있습니다. 승인 없는 등록 토큰의 세션 상한은 기본 8개(1~64개), 수명은 기본 30일(1~90일)이며 무기한 발급은 허용하지 않습니다.
-- 관리 패널에 승인 없는 세션 등록의 요청·발급·등록 이력을 확인하는 감사 화면을 추가했습니다.
-- 관리 패널의 사이드 메뉴에서 현재 서버 버전을 확인할 수 있습니다.
-- 세션 목록에 모델과 추론 수준을 표시합니다. 관측할 수 없는 정보는 알 수 없음으로 표시합니다.
-- `auth_status`에서 MCP 클라이언트와 연결된 서버의 버전을 확인할 수 있습니다.
-- 세션 승인 시 입력한 코드와 닉네임의 앞뒤 공백을 정리합니다.
-- Claude 대화를 재개할 때 임시 대화 식별자로 잘못 연결되는 문제를 수정했습니다. 기존 승인과 등록을 다시 사용할 수 있습니다.
-- 활동 표시가 오래된 관측으로 알 수 없음이 된 뒤에도 새 진행 근거가 들어오면 상태를 다시 갱신합니다. 구형 서버에서 새 등록 기능을 지원하지 않으면 기존 승인 흐름을 사용하도록 연결 호환성을 개선했습니다.
-- 구형 클라이언트가 세션 목록과 상세 정보를 계속 읽을 수 있도록 출력 호환성을 유지했습니다. 수신 권한이 없는 발신 전용 세션도 허용된 기능을 사용할 수 있습니다.
-- 클라이언트는 Windows를 포함한 모든 OS에서 npm의 `@xelexis/x-broker`로만 배포합니다. GitHub Release에는 서버 실행파일 4개만 제공합니다. npm 패키지에는 provenance를 첨부하지 않으며, 패키지 integrity·크기와 내장 클라이언트의 체크섬을 검증합니다.
-- 관리 데이터베이스의 저장 형식이 v4로 업그레이드됩니다. 서버를 교체하기 전에 **전체 데이터 폴더를 백업**하세요. 이전 서버 버전으로 되돌릴 때는 업그레이드 전 백업도 함께 복원해야 합니다.
+- Project tokens support scoped permissions. Restricted and approval-free registration tokens require the instance administrator to enable issuance, off by default. Approval-free tokens default to 8 sessions (1–64) and 30 days (1–90); indefinite issuance is forbidden.
+- Added panel audit history for approval-free registration requests, issuance and registrations.
+- The panel sidebar displays the current server version.
+- Session lists display model and reasoning effort; unobservable information shows unknown.
+- `auth_status` displays MCP client and connected-server versions.
+- Trims surrounding whitespace from approval codes and nicknames.
+- Fixed incorrect temporary-conversation identity during Claude resume, allowing existing approval/registration reuse.
+- Activity updates again when fresh evidence follows unknown due to stale observations. Improved compatibility by falling back to existing approval when old servers lack new registration support.
+- Preserved session-list/detail output compatibility for older clients. Send-only sessions without receive permission can still use permitted features.
+- Clients for all OSes, including Windows, are distributed only through npm `@xelexis/x-broker`. GitHub Releases provide only 4 server executables. npm packages do not include provenance; package integrity/size and embedded client checksums are verified.
+- Control database storage upgrades to v4. **Back up the entire data directory** before replacing the server. Restore that pre-upgrade backup when rolling back to an older server.
 
 ## 0.14.0 (2026-10-11)
 
-- 토큰 이력이 정리된 뒤에도 프로젝트 구성원은 자신의 세션 소유권을 유지하고 연결을 해제할 수 있습니다.
-- 자격증명이 회수되거나 만료되면 원인과 복구 방법을 명확하게 안내합니다. 세션 승인은 `attach_session`으로 새 승인 코드를 받거나 기존 단일 세션 토큰을 교체하여 복구할 수 있으며, 기존 등록과 이름을 이어서 사용합니다.
-- 자격증명 거부 뒤 재승인 과정의 안정성을 개선했습니다. 승인 조회가 중복되거나 재등록이 멈추는 문제를 수정했습니다.
-- 기존 데이터와 계정은 유지됩니다. 서버를 교체하기 전에 데이터 폴더를 백업하세요.
+- Project members retain session ownership and can disconnect their sessions after token history cleanup.
+- Revoked/expired credentials give clear causes and recovery steps. Request a new approval code with `attach_session` or replace an existing single-session token, preserving registration/name.
+- Improved reapproval after credential refusal, fixing duplicate approval queries and stalled re-registration.
+- Existing data/accounts remain. Back up the data directory before server replacement.
 
 ## 0.13.0 (2026-10-10)
 
-- 세션 목록에 활동 표시를 추가했습니다. 지원되는 Codex 대화는 작업 중·대기·알 수 없음으로 표시하며, Claude 대화는 현재 알 수 없음으로 표시합니다. 활동 상태는 연결 상태와 별도로 표시됩니다.
-- 활동 상세 툴팁에서 관측 시각과 상태 변경 시각을 현지 시간으로 확인할 수 있으며, 세션 목록의 활동 정보가 자동으로 갱신됩니다.
-- 로그인이 필요할 때 인증을 마치면 원래 열려던 페이지로 돌아갑니다.
-- 키보드로 탐색할 때 버튼과 입력 요소의 포커스 테두리를 일관되게 표시합니다.
-- 세션 연결이 거부되면 허용된 사유와 안전한 안내를 제공합니다. 내부 오류 원문이나 민감한 정보는 노출하지 않습니다.
-- 이전 연결 해제 방식에서 세션 선택이 올바르게 적용되도록 수정했습니다.
-- 프로젝트의 토큰 발급 상한은 회수되지 않고 만료되지 않은 활성 토큰만 계산합니다. 회수·만료 이력은 해당 시점부터 30일간 보관한 뒤 정리하며, 프로젝트 토큰의 승인 횟수와 최근 등록 요약은 유지합니다.
-- 프로젝트 구성원은 자신의 세션을 연결 해제할 수 있으며, 소유자는 프로젝트의 모든 세션을 연결 해제할 수 있습니다.
-- 기존 데이터와 계정은 유지됩니다. 서버를 교체하기 전에 데이터 폴더를 백업하세요.
+- Added session activity indicators: supported Codex conversations show Working, Idle or Unknown; Claude currently shows Unknown. Activity is separate from connection state.
+- Activity tooltips show observation/change times in local time; session activity updates automatically.
+- After required authentication, sign-in returns to the originally requested page.
+- Consistent keyboard focus outlines on buttons and inputs.
+- Connection refusal gives allowed reasons and safe guidance without raw internal errors or sensitive information.
+- Fixed session selection in the legacy detach path.
+- Project-token issuance caps count only active, unrevoked, unexpired tokens. Revoked/expired history is kept 30 days from that event, then cleaned. Project-token approval counts and latest-registration summaries remain.
+- Project members can disconnect their own sessions; Owners can disconnect all project sessions.
+- Existing data/accounts remain. Back up the data directory before server replacement.
 
 ## 0.12.0 (2026-10-09)
 
-- 세션 목록의 상태 설명을 툴팁으로 확인할 수 있습니다. 프로젝트 안의 세션 목록에서 중복된 프로젝트 열을 제거했습니다.
-- 오래 응답하지 않는 세션도 등록 목록에 응답 없음 상태로 유지합니다. 같은 세션이 재연결하거나 자격증명 만료 후 재승인되면 기존 등록 ID와 이름으로 이어집니다. 상태 확인에 응답하지 않아도 자동 삭제하지 않습니다. 등록 상한에 도달하면 새 등록을 거부하며 관리자가 오래된 세션을 연결 해제할 수 있습니다.
-- 클라이언트가 lease 갱신 실패, 수신 종료, 재연결과 인증 상태 변화를 대화별 크기 제한 진단 파일에 기록합니다. auth_status에서 마지막 갱신 성공 시각과 실패 요약을 확인할 수 있습니다. 토큰, URL, 실행 인자, 메시지 본문과 오류 원문은 기록하지 않습니다.
-- 등록되지 않은 정적 자산 요청이 로그인 화면 대신 404로 응답합니다.
-- npm 게시 후 레지스트리 전파를 기다리며 게시된 패키지를 확인하도록 개선했습니다. 전파 지연 때문에 같은 버전을 다시 게시하지 않습니다.
-- 기존 데이터와 계정은 유지됩니다. 서버를 교체하기 전에 데이터 폴더를 백업하세요.
+- Session status explanations are available in tooltips. Removed the redundant project column from within-project session lists.
+- Long-unresponsive sessions remain registered as missing. Reconnection or reapproval after credential expiry retains ID/name. Lack of probe response does not automatically delete them. At the registration cap, new registrations are refused; administrators can detach old sessions.
+- Clients record renewal failure, receiver exit, reconnection and auth changes in bounded per-conversation diagnostic files. auth_status shows last renewal success and failure summaries. No tokens, URLs, arguments, message bodies or raw errors are recorded.
+- Unknown static assets return 404 instead of a sign-in page.
+- npm publication waits for registry propagation and verifies published packages, without republishing the same version because of propagation delay.
+- Existing data/accounts remain. Back up the data directory before server replacement.
 
 ## 0.11.0 (2026-10-08)
 
-- 세션 승인이 해제되거나 거부된 뒤 다시 승인하면 새 인증 정보로 연결하도록 수정했습니다.
-- 연결된 세션에 등록이 없지만 닉네임을 예약 중인 항목을 표시합니다. 권한이 있는 사용자는 해당 닉네임 예약만 해제하고 같은 이름을 다시 승인할 수 있습니다.
-- 세션 통계를 프로젝트 관리 영역 안에 작게 표시합니다. 등록 없는 닉네임 예약은 별도로 집계합니다.
-- 프로젝트 설정 메뉴의 아이콘을 설정 아이콘으로 맞췄습니다.
-- 인스턴스 관리자는 연결된 수신 가능 세션에 일괄 공지를 보낼 수 있습니다. 공지 발신자 이름 broker-admin은 예약되며, 같은 요청의 중복 접수를 방지합니다. 접수는 모델의 실제 수신 확인을 뜻하지 않습니다.
-- 메시지 전달 중 Interrupt 처리가 실패하면 해당 세션의 연결로 오류를 보고하도록 수정했습니다.
-- 기존 데이터와 계정은 유지됩니다. 서버를 교체하기 전에 데이터 폴더를 백업하세요.
+- Reapproval after session approval removal/refusal now connects with fresh credentials.
+- Connected-session lists show nickname reservations without registrations. Authorized users can release just the reservation and approve the same name again.
+- Compact session statistics appear within project management; unregistered nickname reservations are counted separately.
+- Aligned the Project settings menu icon with the settings icon.
+- Instance administrators can announce to connected sessions ready to receive. Sender name broker-admin is reserved; duplicate acceptance of the same request is prevented. Acceptance does not confirm actual model receipt.
+- Interrupt-handling failures during delivery are reported through the affected session's connection.
+- Existing data/accounts remain. Back up the data directory before server replacement.
 
 ## 0.10.0 (2026-10-08)
 
-- 관리 화면의 글꼴을 Pretendard로 바꾸고 청록색 테마를 적용했습니다. 라이트 모드와 다크 모드를 지원합니다.
-- 로그인 화면의 모바일 배치와 연결 도식을 개선했습니다. Claude와 Codex가 Broker를 통해 Project에 연결되는 구조를 표시합니다.
-- 페이지를 스크롤해도 사이드 메뉴가 유지됩니다. 헤더 구분선, 세션 카드, 버튼과 스크롤바의 표시를 맞췄습니다.
-- 사용자 목록에서 행을 선택하면 상세 화면이 열립니다. 상세 화면에서 권한, 활성 상태와 비밀번호를 변경할 수 있습니다. 비밀번호 변경에는 확인 입력이 필요합니다.
-- 공통 선택 목록과 활성 스위치를 적용했습니다. 검색형 선택 목록은 검색을 켠 항목에서 사용할 수 있습니다.
-- 이전 CSS 캐시 때문에 로그인 입력창과 버튼 높이가 달라지는 문제를 수정했습니다.
-- MCP 설정 안내를 npm 실행 방식으로 통일했습니다. Windows를 포함한 모든 지원 환경에서 `command = "npx"`를 사용합니다.
-- 기존 데이터와 계정은 유지됩니다. 서버를 교체하기 전에 데이터 폴더를 백업하세요.
+- Changed the panel font to Pretendard and applied a teal theme with light/dark support.
+- Improved mobile sign-in layout and connection diagram, showing Claude/Codex connected to a Project through the Broker.
+- Sidebar stays visible while scrolling. Aligned header dividers, session cards, buttons and scrollbars.
+- Selecting a user row opens details to change permissions, enabled state and password. Password changes require confirmation input.
+- Applied shared selects and enabled switches. Searchable selects work where search is enabled.
+- Fixed stale CSS cache causing mismatched sign-in input/button heights.
+- Unified MCP configuration guidance on npm, using `command = "npx"` on every supported platform, including Windows.
+- Existing data/accounts remain. Back up the data directory before server replacement.
 
 ## 0.9.2 (2026-10-04)
 
-### 단일 npm 패키지와 자동 게시
+### Single npm package and automatic publication
 
-- `@xelexis/x-broker` 하나에 Windows x64, Linux x64, macOS Intel·Apple Silicon용 클라이언트를 포함합니다. `npx -y @xelexis/x-broker@0.9.2 --version`으로 실행할 수 있습니다.
-- 정식 릴리스의 실행파일 검증이 끝나면 마지막 npm 게시본과 클라이언트 입력을 비교합니다. 클라이언트 코드·공통 의존성·패키징·빌드 도구가 달라졌을 때만 npm에 자동 게시하고, 서버와 Web 화면만 바뀌면 기존 npm 버전을 유지합니다. 공개 릴리스에는 클라이언트·서버 실행파일 8개와 npm 번들 1개를 제공합니다.
-- npm 패키지의 저장소·홈페이지·문의 링크와 실행파일의 모듈 경로를 공개 배포 저장소 기준으로 통일했습니다. 게시 전에 파일 내용과 무결성을 검사합니다.
-- 제한적인 파일 권한 설정에서도 npm 패키지의 실행파일 권한을 정확하게 검증하도록 배포 검사를 보완했습니다.
+- One `@xelexis/x-broker` package contains Windows x64, Linux x64 and macOS Intel/Apple Silicon clients. Run with `npx -y @xelexis/x-broker@0.9.2 --version`.
+- After stable-release executable verification, compares client inputs with the last npm publication. Publishes automatically only if client code, shared dependencies, packaging or build tools changed; server/web-only changes retain the npm version. Public Releases provide 8 client/server executables and 1 npm bundle.
+- Aligned npm repository/homepage/support links and executable module paths with the public distribution repository. File content and integrity are checked before publication.
+- Improved distribution checks to verify npm executable permissions accurately under restrictive file-permission settings.
 
-### 업데이트 안내
+### Update guidance
 
-- 기존 데이터 형식과 자격증명은 유지됩니다. 서버와 클라이언트를 교체하기 전 데이터 디렉터리를 백업하세요.
-- 이번 버전은 배포 방식 개선이며 Web 화면 개편을 포함하지 않습니다.
-- 0.9.1은 배포 준비 단계에서 중단되어 공개 패키지로 제공되지 않습니다. 기존 0.9.0 배포와 이력은 유지합니다.
+- Existing data formats and credentials remain. Back up the data directory before replacing server/client.
+- This release improves distribution; it does not include the web redesign.
+- 0.9.1 stopped during release preparation and is not publicly packaged. Existing 0.9.0 distribution/history remain.
 
 ## 0.9.0 (2026-09-24)
 
-### 연결된 세션의 닉네임 변경
+### Renaming connected sessions
 
-- Claude와 Codex 대화에서 `내 x-broker 닉네임을 home-worker-3으로 바꿔줘`라고 요청하면 자기 세션의 닉네임을 즉시 변경할 수 있습니다. 관리자 재승인은 필요하지 않습니다.
-- 같은 프로젝트에서 이미 사용하거나 예약한 이름과 잘못된 이름은 거부합니다. 이전 이름은 별칭으로 남지 않으므로 변경 후에는 새 이름으로 메시지를 보내세요.
-- 등록 ID, 대화, 수신 연결과 대기 메시지는 유지합니다. 재접속이나 서버 재시작 후에도 새 이름을 사용하며, 변경 전에 접수한 메시지의 이름은 당시 값으로 유지합니다.
-- 저장 또는 연결 오류로 결과가 불확실하면 세션 목록에서 현재 이름을 확인하고 같은 새 이름으로 다시 요청할 수 있습니다.
-- 서버와 각 PC의 클라이언트를 모두 0.9.0으로 업데이트하고 MCP를 재연결해야 새 도구를 사용할 수 있습니다. 기존 데이터와 자격증명을 유지하며, 업데이트 순서와 백업은 업그레이드 안내를 따르세요.
+- Ask Claude or Codex `Change my x-broker nickname to home-worker-3` to rename your session immediately, without administrator reapproval.
+- Invalid names and names already used/reserved in the same project are rejected. The old name is not retained as an alias; send to the new name afterward.
+- Registration ID, conversation, receiver and pending messages remain. Reconnection/server restart keeps the new name; messages accepted before rename retain their original names.
+- If storage/connection errors leave the outcome uncertain, inspect the current name in the session list and request the same new name again.
+- Update both server and every PC's client to 0.9.0 and reconnect MCP to use the new tool. Existing data/credentials remain; follow upgrade guidance for order and backup.
 
-### 재접속과 메시지 전달 보완
+### Reconnection and delivery improvements
 
-- 서버에서 제거된 등록으로 재접속할 때 클라이언트가 재시도를 계속하며 멈추는 문제를 방지합니다.
-- 닉네임을 여러 번 변경하거나 클라이언트를 재시작해도 변경 전에 접수된 메시지를 원래 이름 정보와 순서로 전달합니다. 이름 변경만으로 수신 lease가 교체되지 않습니다.
+- Prevents clients getting stuck retrying reconnection with registrations removed from the server.
+- Repeated renames/client restarts preserve original name information and order for messages accepted before rename. Renaming alone does not replace the receiving lease.
 
 ## 0.8.3 (2026-09-16)
 
-### 프로젝트 토큰 발급 후 새로고침 중복 방지
+### Preventing duplicate issuance on project-token refresh
 
-- 프로젝트 토큰 발급 완료 화면을 새로고침했을 때 같은 발급 요청이 다시 실행되던 오류를 수정했습니다. 발급 후 설정 화면으로 이동하며, 이후 새로고침은 토큰을 추가로 만들지 않습니다.
-- 토큰 원문은 발급한 로그인 세션과 프로젝트에서 한 번만 표시됩니다. 다른 탭의 발급 결과와 섞이지 않으며, URL이나 쿠키에 토큰 원문을 넣지 않습니다.
-- 이 수정은 서버 실행파일 또는 컨테이너를 업데이트하면 적용됩니다. 기존 토큰·등록·데이터 형식과 연결 프로토콜은 유지됩니다. 업데이트 전에 열린 발급 완료 화면은 닫고 프로젝트 설정을 다시 여세요.
-- 이미 중복 발급된 토큰은 자동으로 취소하지 않습니다. 사용하지 않는 토큰은 프로젝트 설정에서 확인하고 취소할 수 있습니다.
+- Fixed refreshing the token-issued page repeating issuance. Issuance now redirects to settings; subsequent refresh creates no extra token.
+- Raw tokens appear once only in the issuing sign-in session/project, without mixing other tabs' results or placing raw tokens in URLs/cookies.
+- Applies by updating the server executable/container. Existing tokens, registrations, data formats and protocol remain. Close issuance-complete pages opened before updating and reopen Project settings.
+- Already duplicated tokens are not automatically revoked. Inspect/revoke unused ones in Project settings.
 
 ## 0.8.2 (2026-09-16)
 
-### 승인 자격증명 저장과 연결 순서 수정
+### Credential persistence and connection ordering
 
-- 프로젝트 토큰으로 받은 세션 자격증명을 로컬 디스크에 저장한 뒤에만 연결에 사용하도록 수정했습니다. 저장 중 다른 도구 요청이 들어와도 아직 저장되지 않은 자격증명으로 연결을 시작하지 않습니다.
-- 저장이 진행되는 동안 승인 상태 조회는 대기 상태로 응답합니다. 저장에 실패하면 실패 상태를 알리고 연결하지 않으며, 성공하면 자동 등록을 이어갑니다.
-- 기존 프로젝트 토큰·등록·클라이언트 상태는 유지합니다. 클라이언트 실행파일을 교체하고 MCP를 재연결하면 적용됩니다. 서버의 저장 형식과 연결 프로토콜은 바뀌지 않습니다.
-- 관리 패널 개편과 인스턴스 HTTP 정책 안내는 [0.8.1 변경 사항](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/tag/0.8.1)을 참고하세요.
+- Session credentials obtained with project tokens are used only after local persistence. Concurrent tool requests cannot start a connection with credentials still being saved.
+- Approval status remains pending during persistence. Failed storage reports failure without connecting; successful storage continues automatic registration.
+- Existing project tokens, registrations and client state remain. Replace the client executable and reconnect MCP to apply; server storage/protocol are unchanged.
+- For the panel redesign and instance HTTP policy, see [0.8.1 changes](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/tag/0.8.1).
 
 ## 0.8.1 (2026-09-16)
 
-### 관리 패널 개편
+### Control panel redesign
 
-- 검색 가능한 프로젝트 목록에서 현재 세션 상세로 이동하고, 상단 톱니바퀴에서 프로젝트 설정을 엽니다. 하단 사용자 메뉴는 내 프로필·로그아웃과 관리자 전용 패널을 제공합니다.
-- 프로젝트 설정에는 프로젝트 토큰만 표시하며 마지막 사용일, 승인 건수·최근 등록과 사용 중·등록 완료·대기 상태를 구분합니다. 기존 닉네임 지정 세션 토큰은 새로 발급하지 않지만 인증은 유지됩니다. 세션 승인 페이지는 `/auth/code` 주소로 직접 엽니다.
-- HTTP 연결 허용은 **관리자 패널 → 인스턴스 설정**에서 공통 관리합니다. 변경하면 모든 프로젝트 연결이 정책을 다시 확인합니다.
+- Searchable project lists open current session details; the top gear opens Project settings. The bottom user menu provides My profile, sign-out and administrator-only panels.
+- Project settings shows only project tokens, distinguishing last use, approval count/latest registration and In use/Registered/Waiting states. Nickname-bound legacy session tokens are no longer issued, but authentication remains. Open session approval directly at `/auth/code`.
+- **Administrator panel → Instance settings** centrally manages HTTP allowance. Changing it makes all project connections recheck policy.
 
-### 업데이트 안내
+### Update guidance
 
-- 공개 배포 기준 0.7.0에서 바로 업데이트합니다. 0.8.0은 공개 배포되지 않았습니다. 0.8.1은 관리 패널 개편과 릴리스 검증용 재승인 테스트의 모의 서버 수정 사항을 포함합니다.
-- 서버를 중지하고 데이터 디렉터리 전체(DB와 존재하는 journal 포함)를 백업합니다. 다운그레이드는 이전 실행파일과 업데이트 전 전체 백업을 함께 복원해야 합니다.
-- 삭제 중이 아닌 프로젝트가 하나 이상이고 모두 기존 HTTP 허용 상태였다면 인스턴스에서도 허용합니다. 허용·불허가 섞였거나 대상 프로젝트가 없으면 불허이므로 관리자가 업데이트 후 정책을 확인하세요.
-- 기존 프로젝트 토큰 이력은 남아 있는 세션 자격증명에서 보완합니다. 이미 삭제된 자격증명의 과거 이력은 복구할 수 없습니다. 이후 사용·등록 이력은 세션 자격증명 만료 후에도 보존됩니다.
-- 0.7.0 클라이언트의 연결 프로토콜을 유지합니다. 새 화면과 인스턴스 정책은 서버 업데이트 후 적용됩니다.
+- Updates directly from publicly distributed 0.7.0. Version 0.8.0 was not publicly distributed. 0.8.1 includes the panel redesign and a mock-server fix for release reapproval tests.
+- Stop the server and back up the entire data directory, including DB and any journals. Downgrade requires restoring the previous executable and complete pre-update backup together.
+- If at least one non-deleting project exists and all previously allowed HTTP, the instance allows it too. Mixed policies or no eligible projects default to denied; administrators must check after updating.
+- Existing project-token history is supplemented from remaining session credentials. History of already deleted credentials cannot be recovered. Subsequent usage/registration history survives session-credential expiry.
+- Retains the 0.7.0 client protocol. New screens/instance policy apply after updating the server.
 
 ## 0.8.0 (2026-09-16)
 
-### 프로젝트 중심 관리 패널
+### Project-centered control panel
 
-- 워크스페이스 사이드메뉴를 프로젝트 목록으로 정리했습니다. 검색 가능한 목록에서 행을 누르면 현재 연결된 세션을 확인하고, 상단 톱니바퀴로 프로젝트 설정을 엽니다.
-- 하단 사용자 메뉴에서 내 프로필과 로그아웃을 이용합니다. 시스템 관리자는 관리자 패널로 이동해 사용자와 인스턴스 설정을 관리합니다.
-- 프로젝트 설정에서 프로젝트 토큰만 발급·관리합니다. 마지막 사용일, 등록 이력, 사용 중·등록 완료·대기 상태를 구분해 표시합니다. 기존 닉네임 지정 세션 토큰의 발급 화면은 제거했으며 이미 발급한 자격증명의 인증은 유지합니다.
-- 세션 승인 페이지는 사이드메뉴 대신 클라이언트가 안내하는 `/auth/code` 주소로 접근합니다. 승인할 때 세션 닉네임을 지정하는 절차는 유지합니다.
+- Reorganized the workspace sidebar as a searchable project list. Selecting a row shows connected sessions; the top gear opens Project settings.
+- The bottom user menu provides My profile/sign-out. System administrators use the administrator panel for users and instance settings.
+- Project settings issues/manages only project tokens, showing last use, registration history and In use/Registered/Waiting states. Removed nickname-bound session-token issuance screens; previously issued credentials still authenticate.
+- Session approval uses the client-provided `/auth/code` URL instead of the sidebar. Choosing a nickname during approval remains.
 
-### 인스턴스 HTTP 연결 정책
+### Instance HTTP connection policy
 
-- HTTP 연결 허용을 프로젝트별 설정에서 **관리자 패널 → 인스턴스 설정**으로 옮겼습니다. 저장하면 모든 프로젝트의 진행 중 연결이 정책을 다시 확인합니다. HTTPS는 다시 연결할 수 있고 HTTP는 허용 상태에서만 다시 연결됩니다.
-- 업데이트 시 삭제 중이 아닌 프로젝트가 하나 이상 있고 모두 HTTP를 허용했다면 인스턴스에서도 허용합니다. 허용·불허가 섞였거나 대상 프로젝트가 없으면 불허로 시작합니다. HTTP를 사용한다면 업데이트 후 관리자가 인스턴스 정책을 확인하세요.
+- Moved HTTP allowance from project settings to **Administrator panel → Instance settings**. Saving makes all active project connections recheck policy. HTTPS can reconnect; HTTP reconnects only when allowed.
+- During upgrade, the instance allows HTTP if at least one non-deleting project exists and all allowed it. Mixed policies/no eligible projects start denied. Administrators using HTTP must check instance policy after updating.
 
-### 데이터 이전과 적용
+### Data migration and application
 
-- 서버를 중지하고 데이터 디렉터리 전체를 백업한 뒤 업데이트하세요. 새 저장 필드가 있으므로 다운그레이드는 이전 실행파일과 업데이트 전 전체 백업을 함께 복원해야 합니다.
-- 기존 프로젝트 토큰의 등록 이력은 남아 있는 세션 자격증명에서 보완합니다. 이미 삭제된 자격증명의 과거 이력은 복구하지 못합니다. 이후 사용·등록 이력은 자격증명 만료 후에도 프로젝트 토큰에 보존합니다.
-- 0.7.0 클라이언트의 연결 프로토콜은 유지됩니다. 새 관리 화면과 인스턴스 정책은 서버 0.8.0에서 제공됩니다.
+- Stop the server and back up the entire data directory before updating. New storage fields mean downgrade requires restoring the previous executable and complete pre-update backup together.
+- Existing project-token registration history is supplemented from remaining session credentials; history of deleted credentials cannot be recovered. Future usage/registration history stays on project tokens after credential expiry.
+- The 0.7.0 client protocol remains. New panel/instance policy are provided by server 0.8.0.
 
 ## 0.7.0 (2026-09-16)
 
-### 프로젝트 토큰 HTTP 허용 정책
+### Project-token HTTP allowance policy
 
-- 시스템 관리자가 프로젝트 설정에서 **HTTP 연결 허용**을 선택할 수 있습니다. 기본값은 불허이며 프로젝트마다 독립적으로 저장됩니다. 일반 프로젝트 Owner·Developer·Viewer는 변경할 수 없습니다.
-- 허용된 프로젝트는 `http://` 서버 주소와 프로젝트 토큰으로 승인 코드를 발급받고, 승인 후 세션 자격증명으로 연결할 수 있습니다. 별도 클라이언트 HTTP 허용 옵션은 필요하지 않습니다.
-- 클라이언트가 인증 정보를 보내기 전에 토큰 없이 서버 정책을 조회합니다. 불허·조회 오류·지원하지 않는 서버·리다이렉트에서는 자격증명을 보내지 않습니다. 저장된 세션 자격증명으로 재연결할 때도 같은 정책을 확인합니다.
-- HTTP 허용을 끄면 해당 프로젝트의 진행 중 연결이 재연결되고 HTTP 연결이 차단됩니다. 프로젝트 토큰과 세션 자격증명 자체는 취소하지 않습니다. 기존 HTTPS 프록시와 닉네임 지정 세션 토큰 연결은 유지됩니다.
+- System administrators can enable **Allow HTTP connections** in Project settings. Default denied, stored independently per project. Ordinary project Owners/Developers/Viewers cannot change it.
+- Allowed projects can request approval codes using an `http://` server address/project token, then connect with session credentials. No separate client HTTP option is needed.
+- Clients query server policy without a token before sending credentials. Denial, lookup errors, unsupported servers or redirects prevent credential transmission. Reconnection with stored credentials checks the same policy.
+- Turning HTTP allowance off reconnects active project connections and blocks HTTP without revoking project tokens/session credentials themselves. Existing HTTPS proxies and nickname-bound session-token connections remain.
 
-### 적용 및 제한
+### Application and limits
 
-- HTTP 프로젝트 토큰 연결에는 서버와 클라이언트 모두 0.7.0 이상이 필요합니다. 서버를 먼저 업데이트하고 클라이언트를 교체한 뒤 MCP를 다시 연결하세요.
-- HTTP는 토큰을 암호화하지 않으므로 별도로 보호된 신뢰망에서만 허용하세요. 이 설정은 ASB 클라이언트의 HTTP 접속 정책이며 서버 진위 검증이나 TLS·방화벽의 대체 수단이 아닙니다. HTTP 지원은 RFC 8628의 TLS 요구에 대한 ASB 예외입니다.
-- Codex CLI 0.154.0 `exec`의 메시지 수신은 다음 턴 시작 시 반영됩니다. 대화형 화면의 소비 시점은 확인하지 않았습니다.
+- HTTP project-token connections require both server/client 0.7.0 or later. Update server first, replace clients and reconnect MCP.
+- HTTP does not encrypt tokens; allow it only on a separately protected trusted network. This is ASB client HTTP policy, not server-authenticity verification or a substitute for TLS/firewalls. HTTP support is an ASB exception to RFC 8628's TLS requirement.
+- Codex CLI 0.154.0 `exec` consumes received messages at the next turn's start. Interactive TUI consumption timing was not verified.
 
 ## 0.6.0 (2026-09-15)
 
-### 프로젝트 토큰과 세션 승인
+### Project tokens and session approval
 
-- 닉네임 없는 **프로젝트 토큰**(`asb_p_`로 시작)을 **프로젝트 세션 관리 → 프로젝트 토큰 발급**에서 만들 수 있습니다. 하나의 프로젝트 토큰을 여러 하네스·대화의 MCP 설정에 공유합니다.
-- 프로젝트 토큰으로 연결한 클라이언트는 대화마다 승인 코드를 요청하고, 사용자는 관리 패널의 **세션 승인**(`/auth/code`)에서 코드를 입력해 요청한 하네스·PC·대화를 확인한 뒤 닉네임을 정해 승인하거나 거절합니다. 토큰 발급자·프로젝트 Owner·시스템 관리자만 승인할 수 있고, 이미 사용 중인 닉네임은 경고와 함께 거부됩니다. 코드는 10분 동안 유효하며 사용자별 입력 시도는 분당 10회로 제한됩니다.
-- 승인된 세션은 `asb_s_`로 시작하는 **세션 자격증명**으로만 MCP에 연결합니다. 세션 자격증명은 발급 후 30일 또는 7일 미사용 시 만료되고, 취소·만료되면 열려 있던 MCP 연결도 끊깁니다. 승인된 세션을 취소하거나 연결을 해제하면 그 세션만 끊기고, 프로젝트 토큰을 취소하면 그 토큰으로 승인된 모든 세션이 함께 취소됩니다.
-- 기존 닉네임 지정 세션 토큰 발급과 연결 방식은 그대로 유지됩니다.
+- Create nickname-free **project tokens** (prefix `asb_p_`) under **Project session management → Issue project token**. One token can be shared in multiple harness/conversation MCP configurations.
+- Project-token clients request an approval code per conversation. At **Session approval** (`/auth/code`), users enter it, verify harness/PC/conversation, choose a nickname and approve/reject. Only the issuer, project Owner or system administrator can approve. Used nicknames are rejected with a warning. Codes last 10 minutes; input attempts are limited to 10 per user/minute.
+- Approved sessions connect to MCP only with **session credentials** prefixed `asb_s_`, expiring 30 days after issuance or after 7 days unused. Revocation/expiry closes open MCP connections. Revoking/disconnecting an approved session affects only that session; revoking its project token revokes every session approved with it.
+- Existing nickname-bound session-token issuance/connections remain.
 
-### 클라이언트
+### Client
 
-- `--token`에 프로젝트 토큰을 넣으면 클라이언트가 승인 방식으로 동작합니다. 이때 `--broker-url`은 HTTPS 주소여야 하며 프로젝트 토큰은 승인 코드 요청·교환에만 전송됩니다.
-- 로컬 MCP는 승인 전에도 즉시 시작하여 도구 목록을 제공하고, 새 `auth_status` 도구와 브로커 도구 응답으로 승인 주소·코드를 안내합니다. 승인 여부는 도구 호출과 분리된 작업이 표준 간격으로 확인하고, 받은 자격증명을 디스크에 저장한 뒤에만 사용합니다.
-- 한 클라이언트 프로세스가 여러 대화를 각각의 자격증명과 연결로 처리합니다. 대화별 상태는 `--auth-dir`(별칭 `--state-dir`) 아래 `sessions/<키>/conn.json`에 저장되어 재시작 시 승인 대기나 저장된 자격증명으로 복구하며, 같은 서버 주소·프로젝트의 기존 세션 토큰 등록은 소유 증명을 넘겨받아 이어 씁니다.
-- 거절·만료되었거나 관리 패널에서 해제·취소되어 자격증명이 거부되면 자동으로 새 코드를 요청하지 않고 멈춥니다. 다시 연결하려면 `x-broker에 현재 세션을 등록해줘`라고 요청해 `attach_session`으로 새 코드를 받습니다. 승인 기능이 없는 이전 서버에 프로젝트 토큰으로 연결하면 서버 업그레이드가 필요하다고 알리고 멈춥니다.
-- 실제 하네스 확인 범위: Claude Code 2.1.270(`-p`/`--resume`)과 Codex CLI 0.154.0(`exec`/`exec resume`)으로 승인 전 안내, 승인 후 등록·도구·양방향 송수신, 재시작 복구, 해제 후 정지를 확인했습니다. Codex CLI 0.154.0의 `exec`에서는 보낸 메시지가 진행 중인 턴에 주입되지 않고 그 대화의 다음 턴이 시작될 때 소비되며, 대화형 화면(TUI)에서의 소비 시점은 확인하지 않았습니다.
-- 인증 요청과 MCP 연결에서 HTTP 리다이렉트를 따르지 않아 토큰과 자격증명이 다른 주소로 전달되지 않습니다. 코드 요청 식별자를 요청 전에 저장해 응답 유실 후 재시도해도 서버에 승인 대기가 중복 생성되지 않습니다. 다른 Claude 세션이 연 터미널이나 도구에서 실행한 클라이언트가 바깥 세션에 잘못 결속되던 문제를 수정했습니다.
+- A project token in `--token` enables approval mode. `--broker-url` must be HTTPS; project tokens are sent only for approval-code requests/exchanges.
+- Local MCP starts immediately before approval and lists tools. New `auth_status` and broker tool responses show approval URL/code. Approval polling runs separately at standard intervals; received credentials are used only after disk persistence.
+- One client process handles multiple conversations with separate credentials/connections. State under `--auth-dir` (alias `--state-dir`) at `sessions/<key>/conn.json` restores pending approval or saved credentials on restart. Existing session-token registrations for the same server/project continue through ownership-proof handover.
+- Denied, expired or panel-detached/revoked credentials stop without automatically requesting new codes. Ask `Register this session with x-broker` to obtain a new code through `attach_session`. Project tokens against older servers without approval support stop with server-upgrade guidance.
+- Actual harness verification: Claude Code 2.1.270 (`-p`/`--resume`) and Codex CLI 0.154.0 (`exec`/`exec resume`) covered pre-approval guidance, approved registration/tools/bidirectional messaging, restart recovery and stopping after detach. Codex `exec` consumes messages at the next turn, without injection into active turns. TUI consumption timing was not checked.
+- Authentication/MCP requests do not follow HTTP redirects, preventing credentials from reaching other addresses. Code-request IDs are persisted before requests, avoiding duplicate pending approvals after response loss/retry. Fixed clients launched in another Claude session's terminal/tools incorrectly binding to the outer session.
 
-### 세션 해제와 토큰 목록
+### Session disconnection and token lists
 
-- 관리 패널의 **연결 해제**가 연결에 사용한 토큰을 취소하고 세션 등록을 제거하여 닉네임을 바로 다시 사용할 수 있게 합니다. 이전 버전에서 남은 해제 등록은 세션 관리 화면을 열 때 등록만 정리하고 토큰은 유지합니다.
-- 취소된 토큰은 목록에 표시하지 않으며 인증 거부는 계속 유지됩니다.
+- Panel **Disconnect** revokes the connection token and removes registration, immediately releasing the nickname. Opening session management cleans only registrations left detached by older versions, retaining their tokens.
+- Revoked tokens are hidden from lists but remain rejected for authentication.
 
-### 호환성
+### Compatibility
 
-- 0.5.1에서 필수 중간 버전 없이 업데이트할 수 있습니다. 기존 세션 토큰, MCP 설정, 서버 데이터와 클라이언트 상태를 유지합니다. **서버를 먼저 업데이트한 뒤** 클라이언트를 교체하고 MCP 연결을 다시 시작하세요.
-- 관리 상태 저장 형식이 Version 3으로 바뀌므로 0.5.x 이하로 되돌릴 때는 업데이트 전 전체 백업과 해당 버전 실행파일을 함께 복구해야 합니다.
-- 프로젝트 토큰 승인 방식은 HTTPS 브로커 주소가 필요합니다. 서버는 기존처럼 HTTP로 수신하므로 TLS를 종단하는 리버스 프록시를 앞에 두세요. 기존 HTTP 주소와 세션 토큰 연결은 그대로 동작합니다.
+- Upgrade directly from 0.5.1 without mandatory intermediate versions. Existing session tokens, MCP configuration, server data and client state remain. **Update server first**, then replace clients and restart MCP connections.
+- Management storage changes to Version 3; downgrade to 0.5.x or earlier requires the complete pre-update backup and matching executable together.
+- Project-token approval requires an HTTPS broker address. The server still listens on HTTP, so place a TLS-terminating reverse proxy in front. Existing HTTP/session-token connections continue working.
 
 ## 0.5.1 (2026-09-14)
 
-### 자동 등록 안내 정리
+### Automatic-registration guidance cleanup
 
-- 자동 등록 방식과 혼동을 주던 구형 `register` MCP 프롬프트와 내장 스킬·리소스를 클라이언트와 서버에서 제거했습니다.
-- 해당 스킬을 조회하던 `skills/list`·`skills/get`과 스킬 확장 선언도 제거했습니다.
-- 초기 연결 안내를 토큰 인증을 통한 자동 등록 기준으로 정리했습니다. 자동 등록·재연결·메시지 수신은 유지되며, 사용자 요청에 따른 복구용 `attach_session`도 계속 사용할 수 있습니다.
+- Removed legacy `register` MCP prompts and embedded skills/resources from client/server because they confused automatic-registration guidance.
+- Removed related `skills/list`, `skills/get` and skill-extension declarations.
+- Initial guidance now describes automatic registration through token authentication. Automatic registration, reconnection and receiving remain, as does user-requested recovery with `attach_session`.
 
-### 호환성
+### Compatibility
 
-- 0.5.0에서 필수 중간 버전이나 DB 이전 없이 업데이트할 수 있습니다. 기존 토큰, MCP 설정과 서버·클라이언트 상태를 유지합니다.
-- 구형 등록 안내가 사라지도록 서버와 클라이언트를 업데이트한 뒤 MCP 연결을 다시 시작하세요. 명시적인 복구가 필요하면 `x-broker에 현재 세션을 등록해줘`라고 요청할 수 있습니다.
+- Upgrade from 0.5.0 without mandatory intermediate versions or DB migration. Existing tokens, MCP configuration and server/client state remain.
+- Update server/client and restart MCP to remove legacy registration guidance. For explicit recovery, ask `Register this session with x-broker`.
 
 ## 0.5.0 (2026-09-13)
 
-### 세션 일시 중지
+### Session suspension
 
-- 프로젝트 세션 관리에 **Suspend(일시 중지)**와 **일시 중지 해제**를 추가했습니다. 등록·닉네임·토큰 연결은 보존하면서 해당 세션의 MCP 통신을 차단합니다.
-- 일시 중지는 서버 재시작 후에도 유지되며 오프라인 세션 정리 대상에서 제외됩니다. 중지할 때 서버에 대기 중인 메시지는 폐기합니다.
-- 해제 후 새 클라이언트가 자동으로 다시 연결합니다. 수신 준비가 끝나면 새로운 메시지만 받을 수 있습니다.
+- Added **Suspend** and **Resume** to project session management. Blocks a session's MCP communication while preserving registration, nickname and token association.
+- Suspension survives server restart and excludes the registration from offline cleanup. Suspending discards messages pending on the server.
+- New clients reconnect automatically after resume; once ready, they receive only new messages.
 
-### 관리 화면 개선
+### Control panel improvements
 
-- 표 안의 관리 버튼을 작고 일관된 크기로 정리하고, 긴 닉네임과 좁은 화면에서 관리 동작을 사용할 수 있도록 배치를 개선했습니다.
-- 사용자 관리 입력 열과 프로젝트 멤버 동작을 정렬하고 프로필 프로젝트 역할 목록의 클릭 범위를 통일했습니다.
-- 토큰의 최초 등록 이력과 현재 세션 상태를 구분하고, 이미 연결 해제된 세션에 불필요한 해제 버튼이 표시되지 않도록 수정했습니다.
-- 토큰 취소·멤버 제외·역할 강등 시 대상과 영향을 확인하도록 했습니다.
-- 확인창을 키보드로 빠르게 닫고 다시 열 때 입력이 무시되는 문제를 수정했습니다.
-- 토큰 발급과 프로젝트 생성 등에서 빠른 중복 제출로 성공 응답이 오류 화면에 가려지는 문제를 수정했습니다.
+- Made table action buttons compact/consistent and improved layouts for long nicknames/narrow screens.
+- Aligned user-management input columns and project-member actions; unified clickable areas in profile project-role lists.
+- Distinguished first-registration token history from current session state and removed unnecessary disconnect buttons on already detached sessions.
+- Confirmation now shows targets and effects for token revocation, member removal and role demotion.
+- Fixed ignored input when rapidly closing/reopening confirmation dialogs with the keyboard.
+- Fixed rapid duplicate submissions hiding successful token issuance/project creation behind an error screen.
 
-### 호환성
+### Compatibility
 
-- 0.4.0에서 필수 중간 버전 없이 업데이트할 수 있습니다. 일시 중지 해제 후 자동 복귀를 위해 서버와 클라이언트를 함께 업데이트하세요.
-- 데이터 디렉터리와 토큰 설정은 유지합니다. 이전 버전으로 되돌릴 때는 업데이트 전 전체 백업을 함께 복구해야 합니다.
+- Upgrade from 0.4.0 without mandatory intermediate versions. Update both server/client for automatic reconnection after resume.
+- Data directory and token configuration remain. Rollback requires restoring the complete pre-update backup too.
 
 ## 0.4.0 (2026-09-13)
 
-### 토큰 인증 전용
+### Token authentication only
 
-- 서버의 모든 프로젝트 접속을 토큰 인증으로 통일했습니다. 프로젝트의 무인증 선택과 관리자 무인증 허용 설정을 제거했습니다.
-- 기존 무인증 프로젝트는 토큰 인증으로 전환하며 계정·멤버·토큰·세션 등록·공유 메모리를 보존합니다. 클라이언트의 `--token` 값은 필수입니다.
+- Unified all server project access on token authentication. Removed project unauthenticated mode and the administrator's unauthenticated-access switch.
+- Existing unauthenticated projects migrate to token authentication, preserving accounts, members, tokens, registrations and shared memory. Client `--token` is required.
 
-### MCP 연결 후 자동 등록
+### Automatic registration after MCP connection
 
-- 현재 대화를 확인하면 MCP 연결 후 토큰에 지정된 닉네임으로 자동 등록합니다. 최초 등록을 위해 별도로 등록 도구를 호출할 필요가 없습니다.
-- Codex가 MCP 시작 시 대화 ID를 제공하지 않는 환경은 첫 일반 도구 호출에서 자동 등록한 뒤 요청을 처리합니다. 대화 ID를 추측해서 토큰을 다른 세션에 연결하지 않습니다.
-- 기존 등록은 소유 증명으로 복구하며 명시 해제·삭제된 등록을 자동으로 되살리지 않습니다. 등록 응답 유실과 중복 초기화·종료 경합을 처리합니다.
-- Claude의 구형 채널 방식에서도 등록과 수신 준비 상태를 구분합니다. 채널 활성화 전에는 연결된 등록을 유지하지만 메시지를 받지 않으며, 활성화 후 수신을 시작합니다.
+- Once the current conversation is verified, MCP automatically registers it with the token's nickname. No separate tool call is needed for initial registration.
+- Where Codex lacks conversation ID at MCP startup, the first ordinary tool call registers automatically before processing. IDs are never guessed to bind tokens to another session.
+- Existing registrations recover through ownership proof; explicitly detached/deleted registrations are not automatically revived. Handles lost registration responses and duplicate initialization/shutdown races.
+- Legacy Claude channels distinguish registration from readiness. Before channel activation, registration stays connected but receives no messages; reception starts after activation.
 
-### 호환성과 업그레이드
+### Compatibility and upgrade
 
-- 기존 무인증 사용자는 토큰 발급과 MCP 설정 변경이 필요합니다. 저장된 무인증 등록을 새 토큰에 연결할 때는 같은 대화에서 한 번 명시적으로 등록합니다.
-- 정상 지원 데이터는 필수 중간 버전 없이 직접 이전할 수 있습니다. 기존 서버 데이터와 클라이언트 상태 디렉터리를 유지하세요.
-- 설치·인증 설정은 README, 버전별 전환 순서와 확인 절차는 UPGRADE_PATH에 정리했습니다.
+- Existing unauthenticated users need token issuance/MCP changes. Explicitly register once in the same conversation to bind a saved unauthenticated registration to a new token.
+- Valid supported data migrates directly without mandatory intermediate versions. Keep existing server-data/client-state directories.
+- README covers installation/authentication; UPGRADE_PATH covers version transitions and verification.
 
 ## 0.3.3 (2026-09-13)
 
-### 관리 패널 사용성 개선
+### Control panel usability
 
-- 저장·생성·변경이 완료되면 화면에 성공 알림을 표시합니다. 알림은 자동으로 사라지거나 닫기 버튼으로 닫을 수 있습니다.
-- 사용자 관리의 **사용자 추가** 버튼에서 생성 모달을 열도록 변경했습니다. 오류가 나면 모달을 다시 열고 아이디와 역할을 유지하며, 비밀번호는 재출력하지 않습니다.
-- 내 프로필의 프로젝트 역할을 프로젝트 목록과 같은 형태로 정리하고 프로젝트 설정으로 이동하는 링크를 추가했습니다.
-- 프로젝트 멤버 추가를 모달로 옮기고, 아이디를 입력하면 유사한 활성 등록 사용자 후보를 최대 10개까지 표시합니다. 현재 멤버는 제외하며 키보드와 마우스로 선택할 수 있습니다.
-- 멤버 역할 변경과 삭제를 별도 버튼으로 분리했습니다. 추가 요청이 기존 멤버의 역할을 덮어쓰지 않도록 하고 마지막 활성 Owner 보호를 유지했습니다.
-- 버튼·입력 폼·목록·대화상자의 간격과 표현을 통일하고 작은 화면에서도 사용할 수 있도록 배치를 정리했습니다.
+- Successful saves/creation/changes display notifications that dismiss automatically or through a close button.
+- **Add user** opens a creation modal. Errors reopen it preserving username/role without redisplaying passwords.
+- My profile's project roles now match the project-list layout with links to Project settings.
+- Member addition moved into a modal with up to 10 similar enabled-user suggestions as a username is typed. Existing members are excluded; keyboard/mouse selection is supported.
+- Separated member-role change/removal buttons. Add requests cannot overwrite existing roles; last-enabled-Owner protection remains.
+- Unified spacing/presentation of buttons, forms, lists and dialogs, with layouts usable on small screens.
 
-### 호환성과 업그레이드
+### Compatibility and upgrade
 
-- 0.3.2의 `--token "토큰 값"` 직접 입력 방식을 유지합니다. 기존 토큰과 클라이언트 설정을 그대로 사용합니다.
-- DB 형식 변경이나 새 데이터 이전, 필수 중간 버전은 없습니다. 기존 계정·프로젝트·멤버 권한과 등록 상태를 유지합니다.
-- README의 관리 패널 사용법과 UPGRADE_PATH의 0.3.3 경로를 갱신했습니다.
+- Retains 0.3.2's direct `--token "token value"` input. Existing tokens/client configuration continue unchanged.
+- No DB-format change, new migration or mandatory intermediate version. Existing accounts, projects, member permissions and registrations remain.
+- Updated README panel instructions and UPGRADE_PATH's 0.3.3 route.
 
 ## 0.3.2 (2026-09-13)
 
-### 클라이언트 토큰 직접 입력
+### Direct client token input
 
-- 토큰 인증 연결을 `--token "토큰 값"` 형식으로 변경했습니다. Claude·Codex의 MCP 설정에 발급받은 토큰 값을 직접 입력하며 별도 토큰 파일은 필요하지 않습니다.
-- 기존 `--token-file` 옵션은 제거했습니다. 이전 설정을 사용하는 경우 새 입력 방식으로 바꾸도록 안내하며, 기존 파일을 자동으로 읽거나 삭제하지 않습니다.
-- 빈 토큰, 공백·제어문자 또는 길이 제한을 넘는 값을 연결 전에 거부합니다. 잘못된 명령행 옵션의 오류에 입력 값이 노출되지 않도록 했습니다.
-- 토큰을 생략하는 무인증 연결과 서버의 Authorization 헤더 인증 방식은 유지됩니다. 토큰의 소유자·닉네임·기존 등록 상태도 변경하지 않습니다.
+- Token-authenticated connections now use `--token "token value"`. Enter issued tokens directly in Claude/Codex MCP configuration; no separate token file is needed.
+- Removed `--token-file`. Old configurations receive guidance to switch; existing files are neither automatically read nor deleted.
+- Empty tokens, whitespace/control characters and overlong values are rejected before connecting. Invalid CLI-option errors do not expose input values.
+- Token-free unauthenticated connections and server Authorization-header authentication remain. Token ownership, nicknames and existing registration state are unchanged.
 
-### 문서와 업그레이드
+### Documentation and upgrade
 
-- README의 인증 연결 예제를 직접 토큰 입력 방식으로 갱신했습니다.
-- UPGRADE_PATH에 0.3.2 경로와 기존 인증 클라이언트의 필수 설정 변경을 추가했습니다. DB 이전이나 필수 중간 버전은 없습니다.
+- Updated README authentication examples for direct token input.
+- Added the 0.3.2 path and required configuration changes for existing authenticated clients to UPGRADE_PATH. No DB migration or mandatory intermediate version.
 
 ## 0.3.1 (2026-09-13)
 
-### 프로젝트 삭제와 접근 정책
+### Project deletion and access policy
 
-- 프로젝트 Owner와 시스템 관리자가 프로젝트 이름을 입력해 확인한 뒤 프로젝트를 삭제할 수 있게 했습니다. 세션 등록, 토큰, 공유 메모리 등 관련 데이터도 함께 영구 삭제합니다.
-- 삭제 중인 프로젝트의 새 요청을 차단하고 진행 중인 데이터 작업을 정리한 뒤 저장소를 제거합니다. 삭제가 중단되면 관리 화면에서 다시 시도할 수 있습니다.
-- 관리자 메뉴에 인스턴스 전체의 무인증 허용 설정을 추가했습니다. 무인증을 끄면 기존 무인증 프로젝트의 연결을 차단하고 새 프로젝트는 토큰 인증을 사용합니다. 기존 설치는 기본적으로 무인증 허용 설정을 유지합니다.
+- Project Owners/system administrators can delete a project after confirming its exact name. Related registrations, tokens, shared memory and other data are permanently deleted too.
+- Blocks new requests during deletion and settles active data operations before removing storage. Interrupted deletion can be retried in the panel.
+- Added an instance-wide unauthenticated-access switch in the administrator menu. Disabling it blocks existing unauthenticated projects and makes new projects use tokens. Existing installations retain unauthenticated allowance by default.
 
-### 세션 토큰 권한
+### Session token permissions
 
-- 새 세션 토큰의 소유자를 발급자로 고정하고 소유자 선택 항목을 제거했습니다. 닉네임은 토큰 발급 시 지정합니다.
-- 프로젝트 Owner와 시스템 관리자는 프로젝트의 모든 사용자 토큰을 볼 수 있습니다. 그 외 사용자는 본인이 발급한 토큰만 볼 수 있으며, Viewer의 읽기 전용 권한은 유지됩니다.
-- 기존에 발급한 토큰의 소유자 정보는 변경하지 않습니다.
+- New session tokens are owned by their issuer; removed owner selection. Nicknames are set at issuance.
+- Project Owners/system administrators can view every user's project tokens. Other users see only tokens they issued; Viewers remain read-only.
+- Ownership of already issued tokens is unchanged.
 
-### 설치 및 업그레이드 안내
+### Installation and upgrade guidance
 
-- README에 무인증 방식과 토큰 인증 방식의 클라이언트 설정을 나누어 설명했습니다. Claude·Codex 설정 예제, 토큰 파일 생성·보관 방법과 토큰 변경 후 재연결 절차를 추가했습니다.
-- 공개 저장소에 UPGRADE_PATH.md를 추가했습니다. 현재 버전별 업그레이드 경로, 필수 중간 버전 여부, 데이터 백업과 복구 방법을 안내합니다.
+- README separately explains unauthenticated/token-authenticated client configuration, including Claude/Codex examples, token-file creation/storage and reconnection after token changes.
+- Added public UPGRADE_PATH.md covering version routes, mandatory intermediate versions, backup and recovery.
 
 ## 0.3.0 (2026-09-13)
 
-### 프로젝트와 사용자 관리
+### Project and user management
 
-- 프로젝트 목록·상세 화면과 사이드 메뉴를 구성하고, 프로젝트 추가 창을 제공하도록 개선했습니다.
-- 시스템 관리자가 사용자 계정의 생성, 활성 상태, 시스템 역할 및 비밀번호를 관리할 수 있게 했습니다.
-- 프로젝트 생성자에게 Owner 권한을 부여하고, 여러 Owner와 Developer·Viewer를 지정할 수 있게 했습니다. Viewer는 조회만 가능하며 프로젝트에 배정되지 않은 사용자의 접근을 차단합니다.
-- 토큰 발급 시 소유자와 닉네임을 지정하고 이름을 예약합니다. 발급 후 30분 동안 첫 세션 등록이 성공하지 않으면 토큰과 이름 예약이 만료됩니다.
+- Added project list/details/sidebar and improved project creation through a dialog.
+- System administrators can create accounts and manage enabled state, system role and passwords.
+- Project creators become Owners; projects can have multiple Owners, Developers and Viewers. Viewers are read-only; users without membership are denied access.
+- Token issuance specifies owner/nickname and reserves the name. Tokens/reservations expire if initial registration does not succeed within 30 minutes.
 
-### 계정과 초기 설정
+### Accounts and initial setup
 
-- 내 프로필에서 표시 이름·이메일을 수정하고 비밀번호를 변경할 수 있게 했습니다. 비밀번호 변경에는 현재 비밀번호와 새 비밀번호 확인이 필요하며, 변경 후 기존 로그인이 모두 해제됩니다.
-- 초기 관리자 비밀번호 확인 입력을 추가했습니다. 최초 비밀번호는 설정 페이지에서만 지정하며 평문 초기 비밀번호 파일을 생성하지 않습니다.
+- My profile allows display-name/email edits and password changes. Password changes require the current password and new-password confirmation, then end all existing sign-ins.
+- Added initial administrator password confirmation. The initial password is set only on the setup page; no plaintext initial-password file is created.
 
-### 데이터 저장과 배포 빌드
+### Data storage and distribution builds
 
-- 서버의 사용자·프로젝트·토큰 및 세션 등록 저장을 내장 SQLite로 변경했습니다. 별도 DB 서비스 없이 서버 실행파일과 Docker 이미지 안에서 동작하며, 기존 JSON 상태는 처음 한 번 이전합니다.
-- Docker 데이터 경로를 명시적 bind mount로 관리하도록 정리하고, 컨테이너 교체 후에도 DB와 공유 메모리를 유지하도록 했습니다.
-- 클라이언트·서버 배포 빌드에서 디버깅 정보, 로컬 빌드 경로 및 VCS 메타데이터를 줄이도록 옵션을 통일했습니다. 실행 버전 표시는 유지되며, Go 런타임의 함수명·타입·문자열 정보까지 모두 제거하는 기능은 아닙니다.
+- Moved server user/project/token/registration storage to embedded SQLite, running inside server executables/Docker without a separate DB service. Existing JSON state migrates once.
+- Uses explicit bind mounts for Docker data, preserving DB/shared memory after container replacement.
+- Unified client/server build options to reduce debugging information, local build paths and VCS metadata. Runtime version display remains; this does not remove all Go function names, types or strings.
 
 ## 0.2.1 (2026-09-13)
 
-### 공개 배포 시작
+### Public distribution begins
 
-- 별도 공개 배포 저장소를 통해 GitHub 로그인 없이 클라이언트·서버 실행파일을 내려받을 수 있게 했습니다.
-- 공개 Docker 이미지 배포를 추가했습니다. Linux AMD64·ARM64 버전 이미지를 검증한 뒤 Release를 공개하고, 공개 완료 후 `latest`를 갱신하도록 게시 순서를 구성했습니다.
-- 배포 저장소에 독립적으로 읽을 수 있는 README를 제공하고, 실행파일 선택·초기 설정·MCP 연결·업그레이드 안내를 정리했습니다.
-- macOS·Windows에서 내려받은 실행파일의 실행 허용 안내와 구형 설치 프로그램에서 분리 실행파일로 전환하는 설명을 보강했습니다.
+- Client/server executables are downloadable without GitHub login through a separate public distribution repository.
+- Added public Docker images. Publication verifies Linux AMD64/ARM64 images before making the Release public, then updates `latest` after publication completes.
+- Added a standalone README to the distribution repository covering executable selection, initial setup, MCP connection and upgrades.
+- Expanded macOS/Windows executable permission guidance and migration from old installers to separate executables.
 
-0.2.0에서 도입한 클라이언트·서버 분리 실행파일 8개 제공 방식과 파일별 SHA-256 검증은 유지됩니다.
+Retains the eight separate client/server executables and per-file SHA-256 verification introduced in 0.2.0.

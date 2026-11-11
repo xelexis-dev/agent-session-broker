@@ -20,6 +20,7 @@ func TestAdminAPIUIFullChrome(t *testing.T) {
 		t.Skip("opt-in selected management API design comparison")
 	}
 	s := userStore(t)
+	useKorean(t, s)
 	assetsHandler := New(s, &panelBackend{}, http.NotFoundHandler())
 	parse := func(raw string) time.Time {
 		at, err := time.Parse(time.RFC3339, raw)
@@ -67,7 +68,7 @@ func TestAdminAPIUIFullChrome(t *testing.T) {
 				{ID: "token_demo_3", Label: "로컬 점검", Scopes: []string{"read"}, Source: "panel", CreatedAt: parse("2026-11-04T11:30:00+09:00"), ExpiresAt: parse("2026-11-11T11:30:00+09:00"), LastUsedAt: parse("2026-11-05T08:17:00+09:00")},
 			}
 		}
-		if err := pages.ExecuteTemplate(w, "page", v); err != nil {
+		if err := koPages.ExecuteTemplate(w, "page", v); err != nil {
 			t.Error("visual fixture render")
 		}
 	}))

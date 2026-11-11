@@ -59,5 +59,5 @@ func (s *Store) RecordSessionManagement(project, actor string, event protocol.Ma
 	if err != nil {
 		return err
 	}
-	return s.writeAuditBatch(data, []AuditEvent{{Version: 1, Project: project, OwnerID: actor, Kind: event.Kind, At: event.At, Management: &event}}, s.data.Projects)
+	return s.writeAuditBatch(map[string][]byte{"state": data}, []AuditEvent{{Version: 1, Project: project, OwnerID: actor, Kind: event.Kind, At: event.At, Management: &event}}, s.data.Projects)
 }

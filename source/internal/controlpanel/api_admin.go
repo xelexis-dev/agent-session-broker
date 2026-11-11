@@ -25,8 +25,8 @@ type apiUserList struct {
 	Items []apiMeView `json:"items"`
 }
 
-func apiAdminUserView(u User) apiMeView {
-	v := apiUserView(u)
+func (s *Store) apiAdminUserView(u User) apiMeView {
+	v := s.apiUserView(u)
 	v.Version = userSettingsVersion(u)
 	return v
 }
@@ -91,7 +91,7 @@ func (p *panel) apiAdminUsers(w http.ResponseWriter, r *http.Request, a apiPrinc
 	}
 	out := make([]apiMeView, 0, len(s.data.Users))
 	for _, u := range s.data.Users {
-		out = append(out, apiAdminUserView(u.User))
+		out = append(out, s.apiAdminUserView(u.User))
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	apiJSON(w, 200, apiUserList{out})
@@ -109,7 +109,7 @@ func (p *panel) apiAdminUser(w http.ResponseWriter, r *http.Request, a apiPrinci
 		apiError(w, errAPINotFound)
 		return
 	}
-	apiJSON(w, 200, apiAdminUserView(u.User))
+	apiJSON(w, 200, s.apiAdminUserView(u.User))
 }
 func (p *panel) apiAdminUserCreate(w http.ResponseWriter, r *http.Request, a apiPrincipal) {
 	var req apiUserCreateRequest
@@ -139,7 +139,7 @@ func (p *panel) apiAdminUserCreate(w http.ResponseWriter, r *http.Request, a api
 	err = s.createUserLocked(a.userID, req.Username, req.Password, req.Role, a.guardLocked(s, "admin"))
 	var view apiMeView
 	if err == nil {
-		view = apiAdminUserView(s.data.Users[req.Username].User)
+		view = s.apiAdminUserView(s.data.Users[req.Username].User)
 	}
 	s.mu.Unlock()
 	if err != nil {
@@ -202,7 +202,7 @@ func (p *panel) apiAdminUserUpdate(w http.ResponseWriter, r *http.Request, a api
 	}
 	var view apiMeView
 	if err == nil {
-		view = apiAdminUserView(s.data.Users[id].User)
+		view = s.apiAdminUserView(s.data.Users[id].User)
 	}
 	s.mu.Unlock()
 	if err != nil {

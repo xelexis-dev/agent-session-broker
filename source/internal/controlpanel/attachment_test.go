@@ -165,7 +165,7 @@ func TestAttachmentCardFailureFirst(t *testing.T) {
 	h := New(userStore(t), &ownedPanelBackend{}, http.NotFoundHandler())
 	admin := loginPanelUser(t, h, "admin")
 	w := admin.call("GET", "/admin/settings", nil)
-	for _, want := range []string{`class="card attachment-card"`, `data-confirm-action="attachments"`, `id="attachment-free"`, `서버 디스크`, `100 MiB`, `업로드 후 30분`} {
+	for _, want := range []string{`class="card attachment-card"`, `data-confirm-action="attachments"`, `id="attachment-free"`, en("admin.attach.disk"), `100 MiB`, en("admin.attach.rule_expiry_4", "n", 30)} {
 		if !strings.Contains(w.Body.String(), want) {
 			t.Errorf("attachment card contract absent: %s", want)
 		}

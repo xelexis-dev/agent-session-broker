@@ -477,7 +477,7 @@ main.content { margin: 0; max-width: none; padding: 24px; min-width: 0; }
 }
 @media(forced-colors:active){:where(.api-admin-view) .admin-api__status,:where(.api-admin-view) .api-scope--approve{border:1px solid CanvasText;border-left-width:3px}}
 
-/* Profile aside: avatar + sub menu only (the project list moved to 프로필). */
+/* Profile aside: avatar + sub menu only (the project list moved to the profile card). */
 :where(.api-profile-view) .profile-subnav { display: grid; gap: 6px; margin: 20px -4px 0; padding-top: 16px; border-top: 1px solid var(--color-border); margin-top: 18px; }
 @media (max-width: 1080px) {
   :where(.api-profile-view) .profile-account { position: static; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 16px 14px 20px; }
@@ -497,7 +497,7 @@ main.content { margin: 0; max-width: none; padding: 24px; min-width: 0; }
   :where(.api-profile-view) .page-heading .heading-actions .button:not(.primary) { width: auto; }
 }
 @media (max-width: 430px) { :where(.api-profile-view) .page-heading .heading-actions:not(:has(.primary)) { margin-left: 0; } }
-/* 소속 프로젝트: its own section of the 내 프로필 card, between 프로필 and 비밀번호. */
+/* Joined projects: its own section of the profile card, between profile details and password. */
 .profile-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; margin-left: 2px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--color-raised); color: var(--color-text-secondary); font-size: 12px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; vertical-align: 2px; }
 .profile-project-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
 .profile-project { display: flex; align-items: center; gap: 10px; min-height: 52px; height: 100%; padding: 10px 12px 10px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-subtle); color: var(--color-text); }

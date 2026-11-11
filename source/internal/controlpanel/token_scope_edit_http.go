@@ -54,7 +54,7 @@ func (p *panel) tokenScopesMutate(w http.ResponseWriter, r *http.Request, sessio
 	editor := newScopeEditor(current, r.PostForm["scope"], step, "", false, false)
 	if editor.Noop {
 		editor.Step = "select"
-		editor.Notice = "변경한 권한이 없습니다."
+		editor.Notice = "tokens.scope_noop"
 		editor.Proposed = access.DelegatedScopes(current.Scopes)
 	}
 	p.renderScopeEditor(w, r, session, 200, editor)

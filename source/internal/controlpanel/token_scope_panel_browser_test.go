@@ -21,6 +21,7 @@ func TestTokenScopeEditorFullChrome(t *testing.T) {
 		t.Skip("opt-in full Chrome")
 	}
 	s := userStore(t)
+	useKorean(t, s)
 	if err := s.SetScopeIssuanceReady("admin", true); err != nil {
 		t.Fatal(err)
 	}

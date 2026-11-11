@@ -56,7 +56,7 @@ func TestBugReportPanelPostPreservesResolutionAndCAS(t *testing.T) {
 		t.Fatal(err)
 	}
 	body = c.call("GET", "/admin/bug-reports?status=ignored", nil).Body.String()
-	if !strings.Contains(body, got.ID) || reportRow(got).StatusLabel != "무시" {
+	if !strings.Contains(body, got.ID) || reportRow("en", got).StatusLabel != en("bug.state.ignored") {
 		t.Fatal("legacy list/filter/label")
 	}
 }

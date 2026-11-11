@@ -53,7 +53,7 @@ func TestProjectDataErrorsExposeOnlyVerifiedCorruption(t *testing.T) {
 				if strings.Contains(out.Body.String(), "project data unavailable:") {
 					t.Fatal("panel used English client guidance")
 				}
-				has := strings.Contains(out.Body.String(), "이 프로젝트의 저장 데이터를 읽을 수 없습니다. 관리자가 백업에서 복원해야 합니다.")
+				has := strings.Contains(out.Body.String(), enHTML("error.project_data_unavailable"))
 				if has != (tc.name == "wrapped corruption") {
 					t.Errorf("%s corruption notice classification differs", page)
 				}

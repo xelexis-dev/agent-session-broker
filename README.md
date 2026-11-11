@@ -10,7 +10,7 @@ English | [한국어](README.ko.md)
 
 Agent Session Broker (ASB) relays messages between AI coding conversations. A self-hosted server keeps projects, access and registrations. A small MCP client on each machine connects the conversations you open, so agents can hand each other tasks and results with ordinary tool calls.
 
-**Agents: read [README_AGENT.md](README_AGENT.md)** (Korean). It covers MCP setup for each harness, Codex resume and hooks, multiple projects, the management API spec, errors, bug reports and reconnection.
+**Agents: read [README_AGENT.md](README_AGENT.md)**. It covers MCP setup for each harness, Codex resume and hooks, multiple projects, the management API spec, errors, bug reports and reconnection.
 
 ## Highlights
 
@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.0.4
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.1.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -54,13 +54,13 @@ docker compose up -d
 
 **2. Create the administrator.** Read the one-time setup code with `docker compose exec broker cat /data/control/setup-code`, and do not open the port to other machines before setup is done. Open `http://127.0.0.1:8787/setup` on the server (for a remote server, run `ssh -L 8787:127.0.0.1:8787 <server>` first), enter the code and a new administrator password, then sign in. There is no way to skip the code: it changes on every restart, is deleted after a successful setup, and the log shows only its file location. If the file is missing or unreadable, check that the server started and the data path. Keep the code and any backup taken before setup secret.
 
-**3. Connect other machines.** Use HTTPS. Behind a TLS proxy, start the server with `--trusted-proxy` and forward the original scheme. While **인스턴스 설정 → HTTP 연결 허용** (Instance settings → Allow HTTP connections) is off, plain-HTTP MCP and management API connections are refused, even from localhost. Only on a protected internal network, change the port to `"8787:8787"` and turn that switch on: plain HTTP can expose passwords and tokens.
+**3. Connect other machines.** Use HTTPS. Behind a TLS proxy, start the server with `--trusted-proxy` and forward the original scheme. While **Instance settings → Allow HTTP connections** is off, plain-HTTP MCP and management API connections are refused, even from localhost. Only on a protected internal network, change the port to `"8787:8787"` and turn that switch on: plain HTTP can expose passwords and tokens.
 
 **4. Install the client.** Each machine needs Node.js 22 or later and npm. The [npm package](https://www.npmjs.com/package/@xelexis/x-broker) supports Windows x64, macOS arm64 and x64, and Linux x64.
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.4
+npm install -g @xelexis/x-broker@1.1.0
 x-broker --version
 ```
 
@@ -68,8 +68,8 @@ A server-only release may skip npm, so compare the published version with the re
 
 **5. Connect a conversation.**
 
-1. In the control panel, create a project, grant access, and issue a token for each machine under **프로젝트 설정 → 프로젝트 토큰** (Project settings → Project tokens).
-2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](README_AGENT.md#3-mcp-설정). Never put a config that holds credentials in Git or a shared folder.
+1. In the control panel, create a project, grant access, and issue a token for each machine under **Project settings → Project tokens**.
+2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](README_AGENT.md#3-mcp-configuration). Never put a config that holds credentials in Git or a shared folder.
 3. Reconnect MCP and ask the conversation: **"Connect this conversation to x-broker."** If an approval code appears, confirm the conversation on the control panel's approval page. Opening a new conversation does not register it on its own.
 
 The control panel is in Korean. The server binaries for macOS, Linux and Windows are on the [latest release](https://github.com/xelexis-dev/agent-session-broker/releases/latest).
@@ -77,16 +77,16 @@ The control panel is in Korean. The server binaries for macOS, Linux and Windows
 ## Operations and upgrades
 
 - Manage projects, members, tokens and connected sessions in the control panel. Give a token only the scopes and lifetime it needs, and revoke it when it leaks or is no longer needed.
-- The **management API** (관리 API) is separate from MCP and off by default; an administrator turns it on in instance settings. Users register, view and revoke their own API tokens on their profile, and administrators do the same from the user detail page. See the [management API guide](README_AGENT.md#관리-api) for scopes, re-authentication and safe call examples.
+- The **management API** is separate from MCP and off by default; an administrator turns it on in instance settings. Users register, view and revoke their own API tokens on their profile, and administrators do the same from the user detail page. See the [management API guide](README_AGENT.md#management-api) for scopes, re-authentication and safe call examples.
 - Upgrade in this order: **update the client on every machine → stop the server and back up all data → replace the server → reconnect MCP and check a real connection.** Clients older than 0.17.3 and legacy connections are refused. With Compose, change the image version, then run `docker compose pull` and `docker compose up -d`. From 1.0.4 the image is `ghcr.io/xelexis-dev/agent-session-broker`, which also has 1.0.3; the old `-deploy` image name is retired and removed, so change the name as well. Keep the data path, and to roll back, restore the full backup together with the previous version.
 - Before downgrading in response to a leaked management API token, revoke the token first.
 
 ## Documentation
 
-- [README_AGENT.md](README_AGENT.md): full setup and operations guide for agents (Korean)
-- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.md): changes and cautions by version (Korean)
-- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md): supported upgrade paths and data migration (Korean)
-- [Upgrading while connected](README_AGENT.md#연결된-채-업그레이드) (Korean)
+- [README_AGENT.md](README_AGENT.md): full setup and operations guide for agents
+- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.md): changes and cautions by version
+- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md): supported upgrade paths and data migration
+- [Upgrading while connected](README_AGENT.md#upgrading-while-connected)
 
 ## License
 

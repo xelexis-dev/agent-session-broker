@@ -89,7 +89,7 @@ func mustJSON(t *testing.T, v any) []byte {
 func TestAuditDTOUsesExistingFilteredPanelRows(t *testing.T) {
 	s, _ := newDirectAuditPanelFixture(t)
 	for _, actor := range []string{"owner", "developer", "viewer"} {
-		view, viewErr := s.directAuditViewBucketFor(actor, "demo", "current")
+		view, viewErr := s.directAuditViewBucketFor(actor, "demo", "current", "en")
 		out, err := s.projectAuditProjectionsFor(actor, "demo", "current")
 		if (err == nil) != (viewErr == nil) {
 			t.Fatal("audit permission changed")
@@ -104,7 +104,7 @@ func TestAuditDTOUsesExistingFilteredPanelRows(t *testing.T) {
 			for _, value := range []any{out[i], registrationAuditProjection(row)} {
 				raw := string(mustJSON(t, value))
 				for _, forbidden := range []string{"binding", "Identity", "Hash", "Request", "handover", "management", "tokenScopes"} {
-					if strings.Contains(raw, `"`+forbidden+`"`) {
+					if strings.Contains(raw, `"`+forbidden+`":`) { // field names; labels such as "Request" are values
 						t.Fatal("audit nested internal field exposed")
 					}
 				}

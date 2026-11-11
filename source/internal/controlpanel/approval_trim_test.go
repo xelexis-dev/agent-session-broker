@@ -65,7 +65,7 @@ func TestApprovalHTTPTrimsNicknameAndRedisplaysTrimmedErrors(t *testing.T) {
 		}
 		if want == 409 {
 			body := w.Body.String()
-			if !strings.Contains(body, `name="nickname" value="agent-one"`) || !strings.Contains(body, "닉네임 agent-one은(는)") || strings.Contains(body, "  agent-one  ") {
+			if !strings.Contains(body, `name="nickname" value="agent-one"`) || !strings.Contains(body, enHTML("device.error_nickname_taken", "nickname", "agent-one")) || strings.Contains(body, "  agent-one  ") {
 				t.Fatal("duplicate error redisplayed untrimmed nickname")
 			}
 		} else {

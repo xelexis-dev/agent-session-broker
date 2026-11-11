@@ -4,6 +4,8 @@ import (
 	"slices"
 	"sort"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 // These DTOs contain only panel-visible values, never stored identity records.
@@ -115,7 +117,7 @@ func (s *Store) sessionProjectionsFor(actor, project string, sessions []Session)
 			owner = item.GrantOwner
 			manage = s.canReleaseReservedGrantLocked(actor, project, item.GrantID)
 		}
-		out = append(out, sessionRowDTO{ID: item.ID, RegistrationID: item.RegistrationID, GrantID: item.GrantID, Name: item.Name, OwnerID: owner, Harness: item.Harness, PID: item.PID, ClientID: item.ClientID, Status: item.Status, Ready: item.Ready, Suspended: item.Suspended, CanManage: manage, LastSeen: item.LastSeen, Reason: item.StateReason(), RuntimeInfo: item.RuntimeInfoView(), Activity: item.ActivityView()})
+		out = append(out, sessionRowDTO{ID: item.ID, RegistrationID: item.RegistrationID, GrantID: item.GrantID, Name: item.Name, OwnerID: owner, Harness: item.Harness, PID: item.PID, ClientID: item.ClientID, Status: item.Status, Ready: item.Ready, Suspended: item.Suspended, CanManage: manage, LastSeen: item.LastSeen, Reason: item.StateReason().In(i18n.English), RuntimeInfo: item.RuntimeInfoView(i18n.English), Activity: item.ActivityView(i18n.English)})
 	}
 	return out, nil
 }
@@ -146,7 +148,7 @@ func registrationAuditProjection(r directAuditRow) registrationAuditDTO {
 }
 
 func (s *Store) projectAuditProjectionsFor(actor, project, bucket string) ([]projectAuditDTO, error) {
-	view, err := s.directAuditViewBucketFor(actor, project, bucket)
+	view, err := s.directAuditViewBucketFor(actor, project, bucket, i18n.English)
 	if err != nil {
 		return nil, err
 	}

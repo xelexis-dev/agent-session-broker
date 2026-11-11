@@ -35,10 +35,10 @@ func TestRound3J3MixedHistoryAcrossDeleteRecreateAndPageBoundary(t *testing.T) {
 		for _, tc := range []struct {
 			page, notice string
 			rows         int
-		}{{"1", historyMixedNotice, 50}, {"2", historyUnknownNotice, 1}, {"99", historyUnknownNotice, 1}} {
+		}{{"1", enHTML("history.notice_mixed"), 50}, {"2", enHTML("history.notice_unknown"), 1}, {"99", enHTML("history.notice_unknown"), 1}} {
 			w := reader.call("GET", "/admin/bug-reports?bucket=history&page="+tc.page, nil)
 			body := w.Body.String()
-			if w.Code != 200 || !strings.Contains(body, "총 51건") || !strings.Contains(body, tc.notice) {
+			if w.Code != 200 || !strings.Contains(body, en("bug.total", "n", 51)) || !strings.Contains(body, tc.notice) {
 				t.Fatalf("history page %s: count/notice status=%d", tc.page, w.Code)
 			}
 			if got := strings.Count(body, `href="/admin/bug-reports/detail?`); got != tc.rows {

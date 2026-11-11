@@ -30,8 +30,8 @@ func TestAccessPagesMatchTheRevisedLoginDesign(t *testing.T) {
 			t.Errorf("%s: %d password inputs, %d with the dotted placeholder", path, passwords, strings.Count(body, dots))
 		}
 		for _, want := range []string{
-			`<span class="login__lead-long">Claude와 Codex 세션을 프로젝트별로 연결합니다.</span>`,
-			`<span class="login__lead-short">Claude와 Codex 세션을 프로젝트별로 연결합니다.</span>`,
+			`<span class="login__lead-long">` + en("access.lead") + `</span>`,
+			`<span class="login__lead-short">` + en("access.lead") + `</span>`,
 			`<span class="mono-label login__panel-label">ASB Control Panel</span>`,
 			`name="csrf"`,
 		} {

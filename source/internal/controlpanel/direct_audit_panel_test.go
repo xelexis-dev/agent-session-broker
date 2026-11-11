@@ -132,7 +132,7 @@ func TestDirectAuditRolesGateAndReadOnly(t *testing.T) {
 	s.data.ScopeIssuanceReady = false
 	s.mu.Unlock()
 	disabled := owner.call("GET", "/projects/audit?project=demo", nil)
-	if disabled.Code != 200 || !strings.Contains(disabled.Body.String(), "자동 등록이 활성화되지 않았습니다.") || strings.Contains(disabled.Body.String(), `data-audit-kind=`) || strings.Contains(disabled.Body.String(), "worker-parent") {
+	if disabled.Code != 200 || !strings.Contains(disabled.Body.String(), enHTML("audit.auto_off")) || strings.Contains(disabled.Body.String(), `data-audit-kind=`) || strings.Contains(disabled.Body.String(), "worker-parent") {
 		t.Fatal("gate off rendered audit data")
 	}
 	if writes != 0 {
@@ -174,7 +174,7 @@ func TestDirectAuditCapProjectionAndCapture(t *testing.T) {
 	s.mu.Unlock()
 	page := owner.call("GET", "/projects/audit?project=demo", nil)
 	body := page.Body.String()
-	if page.Code != 200 || strings.Count(body, `data-audit-kind=`) != 100 || !strings.Contains(body, "최근 100건만 표시") {
+	if page.Code != 200 || strings.Count(body, `data-audit-kind=`) != 100 || !strings.Contains(body, enHTML("audit.recent_only")) {
 		t.Fatal("audit cap failed")
 	}
 	for _, kind := range kinds {
@@ -182,7 +182,7 @@ func TestDirectAuditCapProjectionAndCapture(t *testing.T) {
 			t.Fatal("event kind missing")
 		}
 	}
-	for _, value := range []string{"worker-parent", "worker", "fixture-registration", "#session-registration:fixture-registration", "datetime=", "data-local-time", "저장 안 됨"} {
+	for _, value := range []string{"worker-parent", "worker", "fixture-registration", "#session-registration:fixture-registration", "datetime=", "data-local-time", enHTML("audit.not_recorded")} {
 		if !strings.Contains(body, value) {
 			t.Fatalf("projection missing %s", value)
 		}

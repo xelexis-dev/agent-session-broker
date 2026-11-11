@@ -91,7 +91,7 @@ func TestEmptyTableStateSpansRenderedColumns(t *testing.T) {
 	} {
 		t.Run(tc.user, func(t *testing.T) {
 			page := loginPanelUser(t, h, tc.user).call("GET", "/projects/settings?project=demo", nil)
-			tokens, ok := layoutTables(t, page.Body.String())["프로젝트 토큰 목록"]
+			tokens, ok := layoutTables(t, page.Body.String())[en("tokens.project_tokens")]
 			if page.Code != 200 || !ok {
 				t.Fatalf("token table missing: %d", page.Code)
 			}
@@ -115,11 +115,11 @@ func TestTableCellsCarryTheirColumnLabel(t *testing.T) {
 		user, path, caption string
 		wantRows            int
 	}{
-		{user: "owner", path: "/projects/settings?project=demo", caption: "프로젝트 토큰 목록", wantRows: 1},
-		{user: "owner", path: "/projects/sessions?project=demo", caption: "프로젝트 연결 세션", wantRows: 2},
-		{user: "viewer", path: "/projects/sessions?project=demo", caption: "프로젝트 연결 세션", wantRows: 2},
-		{user: "owner", path: "/projects/settings?project=demo", caption: "프로젝트 사용자와 역할", wantRows: 3},
-		{user: "viewer", path: "/projects/settings?project=demo", caption: "프로젝트 사용자와 역할", wantRows: 3},
+		{user: "owner", path: "/projects/settings?project=demo", caption: en("tokens.project_tokens"), wantRows: 1},
+		{user: "owner", path: "/projects/sessions?project=demo", caption: en("sessions.caption"), wantRows: 2},
+		{user: "viewer", path: "/projects/sessions?project=demo", caption: en("sessions.caption"), wantRows: 2},
+		{user: "owner", path: "/projects/settings?project=demo", caption: en("tokens.project_users_and_roles"), wantRows: 3},
+		{user: "viewer", path: "/projects/settings?project=demo", caption: en("tokens.project_users_and_roles"), wantRows: 3},
 	} {
 		t.Run(tc.user+" "+tc.caption, func(t *testing.T) {
 			page := loginPanelUser(t, h, tc.user).call("GET", tc.path, nil)
@@ -196,10 +196,10 @@ func TestUserDetailControlsNameTheirUser(t *testing.T) {
 		t.Fatal("developer edit form missing")
 	}
 	for _, tc := range []struct{ control, visible string }{
-		{control: `<select name="role"`, visible: "시스템 역할"},
-		{control: `<input type="password" name="password"`, visible: "새 비밀번호"},
-		{control: `<input type="checkbox" name="enabled"`, visible: "활성"},
-		{control: `<button`, visible: "변경 저장"},
+		{control: `<select name="role"`, visible: en("admin.users.system_role")},
+		{control: `<input type="password" name="password"`, visible: en("profile.new_password")},
+		{control: `<input type="checkbox" name="enabled"`, visible: en("admin.users.account_enabled")},
+		{control: `<button`, visible: en("admin.users.save")},
 	} {
 		start := strings.Index(form[1], tc.control)
 		if start < 0 {

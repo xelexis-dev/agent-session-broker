@@ -66,7 +66,7 @@ func TestTokenScopeEditorHTTPFlowAndConflict(t *testing.T) {
 	before, _ := json.Marshal(s.data)
 	audits := len(s.audits)
 	review := owner.call("POST", "/tokens/scopes", form)
-	if review.Code != 200 || !strings.Contains(review.Body.String(), `data-step="review"`) || !strings.Contains(review.Body.String(), tokenScopeReceiveAddedHelp) {
+	if review.Code != 200 || !strings.Contains(review.Body.String(), `data-step="review"`) || !strings.Contains(review.Body.String(), en(tokenScopeReceiveAddedHelp)) {
 		t.Fatal("review did not show validated changes")
 	}
 	after, _ := json.Marshal(s.data)
@@ -101,7 +101,7 @@ func TestTokenScopeEditorHTTPFlowAndConflict(t *testing.T) {
 	form.Set("settings_version", current.Version)
 	form.Set("intent", "review")
 	noop := owner.call("POST", "/tokens/scopes", form)
-	if noop.Code != 200 || !strings.Contains(noop.Body.String(), "변경한 권한이 없습니다.") || len(s.audits) != audits+1 {
+	if noop.Code != 200 || !strings.Contains(noop.Body.String(), en("tokens.scope_noop")) || len(s.audits) != audits+1 {
 		t.Fatal("no-op review")
 	}
 	form.Set("intent", "apply")
@@ -196,12 +196,12 @@ func TestTokenScopeEditorInvalidAndHistoryReset(t *testing.T) {
 	browser := loginPanelUser(t, New(s, tokenViewBackend{}, http.NotFoundHandler()), "admin")
 	for _, intent := range []string{"review", "back", "apply"} {
 		response := browser.call("POST", "/tokens/scopes", url.Values{"project": {"demo"}, "id": {parent.ID}, "scope": {access.SessionRegister}, "settings_version": {scopeEditVersion(s, parent)}, "intent": {intent}})
-		if response.Code != 400 || !strings.Contains(response.Body.String(), tokenScopeHistoryMessage) || !strings.Contains(response.Body.String(), "토큰을 취소하면 기존 세션 자격도 취소됩니다.") || !strings.Contains(response.Body.String(), `data-step="select"`) {
+		if response.Code != 400 || !strings.Contains(response.Body.String(), en(tokenScopeHistoryMessage)) || !strings.Contains(response.Body.String(), en("tokens.revoking_the_token_also_revokes_its_existing")) || !strings.Contains(response.Body.String(), `data-step="select"`) {
 			t.Fatal("history error did not reset editor")
 		}
 	}
 	response := browser.call("POST", "/tokens/scopes", url.Values{"project": {"demo"}, "id": {parent.ID}, "scope": {"unknown"}, "settings_version": {scopeEditVersion(s, parent)}, "intent": {"review"}})
-	if response.Code != 400 || !strings.Contains(response.Body.String(), tokenScopeEditorInvalidMessage) {
+	if response.Code != 400 || !strings.Contains(response.Body.String(), en(tokenScopeEditorInvalidMessage)) {
 		t.Fatal("invalid editor request uses wrong notice")
 	}
 }
@@ -224,7 +224,7 @@ func TestTokenScopeEditorAuditProjectionEscapesCommittedSnapshot(t *testing.T) {
 	if _, err := s.EditTokenScopesFor("admin", "demo", parent.ID, []string{access.MessageSend, access.SessionRegister}, []string{scopeEditVersion(s, parent)}); err != nil {
 		t.Fatal(err)
 	}
-	view, err := s.directAuditViewFor("admin", "demo")
+	view, err := s.directAuditViewFor("admin", "demo", "en")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +232,7 @@ func TestTokenScopeEditorAuditProjectionEscapesCommittedSnapshot(t *testing.T) {
 	for _, row := range view.Rows {
 		if row.Kind == tokenScopesAuditKind {
 			found = true
-			if row.Event != "권한 변경" || row.Name != `<script>snapshot</script>` || row.Parent != row.Name || row.Registration != "해당 없음" || row.SessionURL != "" || !strings.Contains(row.Reason, "변경 자격 1개") {
+			if row.Event != en("audit.event.scopes") || row.Name != `<script>snapshot</script>` || row.Parent != row.Name || row.Registration != en("audit.not_applicable") || row.SessionURL != "" || !strings.HasSuffix(row.Reason, "Credentials changed: 1") {
 				t.Fatal("scope audit projection lost committed fields")
 			}
 		}
@@ -246,7 +246,7 @@ func TestTokenScopeEditorAuditProjectionEscapesCommittedSnapshot(t *testing.T) {
 		t.Fatal("audit snapshot not escaped")
 	}
 	s.data.ScopeIssuanceReady = false
-	off, err := s.directAuditViewFor("admin", "demo")
+	off, err := s.directAuditViewFor("admin", "demo", "en")
 	if err != nil || off.Enabled {
 		t.Fatal("existing audit readiness gate changed")
 	}
@@ -266,15 +266,23 @@ func TestTokenScopeEditorNarrowingOffAndImmutableMetadata(t *testing.T) {
 	h := New(s, tokenViewBackend{}, http.NotFoundHandler())
 	owner := loginPanelUser(t, h, "owner")
 	page := owner.call("GET", "/projects/settings?project=demo&edit="+parent.ID, nil)
-	if page.Code != 200 || !strings.Contains(page.Body.String(), "자동 등록 한도 10개 · 수명 7일") {
+	if page.Code != 200 || !strings.Contains(page.Body.String(), en("tokens.automatic_registration_limit")+" "+en("tokens.identities", "n", 10)+" "+en("tokens.lifetime")+" "+en("tokens.days", "n", 7)) {
 		t.Fatal("immutable metadata not rendered")
 	}
 	if err := s.SetScopeIssuanceReady("admin", false); err != nil {
 		t.Fatal(err)
 	}
-	page = owner.call("GET", "/projects/settings?project=demo&edit="+parent.ID, nil)
-	if page.Code != 200 || !strings.Contains(page.Body.String(), "현재 권한을 줄이는 것만") {
-		t.Fatal("off-state narrow editor unavailable")
+	for _, language := range []string{"en", "ko"} {
+		if err := s.UpdateLanguage("owner", language); err != nil {
+			t.Fatal(err)
+		}
+		page = owner.call("GET", "/projects/settings?project=demo&edit="+parent.ID, nil)
+		if page.Code != 200 || !strings.Contains(page.Body.String(), localText(language, "tokens.restricted_token_issuance_is_off_you_can")) {
+			t.Fatalf("%s: off-state narrow editor unavailable", language)
+		}
+	}
+	if err := s.UpdateLanguage("owner", "en"); err != nil {
+		t.Fatal(err)
 	}
 	current, err := s.TokenScopeEditFor("owner", "demo", parent.ID)
 	if err != nil || current.CanWiden {
@@ -283,7 +291,7 @@ func TestTokenScopeEditorNarrowingOffAndImmutableMetadata(t *testing.T) {
 	proposal := []string{access.SessionRegister}
 	form := url.Values{"project": {"demo"}, "id": {parent.ID}, "scope": proposal, "settings_version": {current.Version}, "intent": {"review"}}
 	preview := owner.call("POST", "/tokens/scopes", form)
-	if preview.Code != 200 || !strings.Contains(preview.Body.String(), tokenScopeReceiveRemovedHelp) {
+	if preview.Code != 200 || !strings.Contains(preview.Body.String(), enHTML(tokenScopeReceiveRemovedHelp)) {
 		t.Fatal("off-state narrowing review")
 	}
 	for _, bad := range []string{"auto_cap", "auto_days", "owner", "admission_mode"} {
@@ -293,7 +301,7 @@ func TestTokenScopeEditorNarrowingOffAndImmutableMetadata(t *testing.T) {
 		}
 		forged.Set(bad, "1")
 		response := owner.call("POST", "/tokens/scopes", forged)
-		if response.Code != 400 || !strings.Contains(response.Body.String(), tokenScopeEditorInvalidMessage) {
+		if response.Code != 400 || !strings.Contains(response.Body.String(), en(tokenScopeEditorInvalidMessage)) {
 			t.Fatal("immutable field injection accepted")
 		}
 	}

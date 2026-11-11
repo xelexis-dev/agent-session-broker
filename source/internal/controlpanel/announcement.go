@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 	"log"
 	"net/http"
@@ -11,10 +12,20 @@ import (
 	"time"
 )
 
-// AnnouncementResult reports queue acceptance, never model receipt.
+// AnnouncementResult reports queue acceptance, never model receipt. Error is a machine code; the panel translates it.
 type AnnouncementResult struct {
 	Project, SessionID, Name, Error string
 	Accepted                        bool
+}
+
+var announcementErrors = map[string]string{"project-deleting": "admin.announce.error_project_deleting", "sessions-unavailable": "admin.announce.error_sessions_unavailable", "announcement-unavailable": "admin.announce.error_unavailable", "not-ready": "admin.announce.error_not_ready", "queue-full": "admin.announce.error_queue_full", "suspended": "admin.announce.error_suspended", "not-accepted": "admin.announce.error_not_accepted"}
+
+// ErrorMessage is the failure in the page's language; an unknown code reads as not accepted.
+func (r AnnouncementResult) ErrorMessage() i18n.Message {
+	if key, ok := announcementErrors[r.Error]; ok {
+		return i18n.M(key)
+	}
+	return i18n.M("admin.announce.error_not_accepted")
 }
 
 type announcementSubmission struct {
@@ -39,7 +50,7 @@ func (p *panel) announcementMutate(w http.ResponseWriter, r *http.Request, sessi
 	}
 	body, project := r.PostForm.Get("body"), r.PostForm.Get("project")
 	if err := protocol.ValidateAnnouncement(body, "", ""); err != nil {
-		p.show(w, r, session, "admin-settings", "", 400, "공지 내용을 입력하고 12000바이트 envelope 한도를 확인하세요.", "")
+		p.show(w, r, session, "admin-settings", "", 400, "admin.announce.error_body", "")
 		return
 	}
 	if project != "" {
@@ -80,9 +91,9 @@ func (p *panel) announcementMutate(w http.ResponseWriter, r *http.Request, sessi
 	p.mu.Unlock()
 	results, err := backend.Announce(r.Context(), user.ID, project, body)
 	if err != nil {
-		message := "공지를 접수하지 못했습니다. 내용 크기와 대상 프로젝트를 확인하세요."
+		message := "admin.announce.error_failed"
 		if errors.Is(err, ErrForbidden) {
-			message = "공지 권한을 다시 확인하세요."
+			message = "admin.announce.error_forbidden"
 		}
 		p.mu.Lock()
 		submission.complete = true
@@ -168,10 +179,7 @@ func (p *panel) announcementResult(w http.ResponseWriter, r *http.Request, sessi
 	result := *entry
 	p.mu.Unlock()
 	if r.URL.Query().Get("duplicate") == "true" {
-		result.message = "이미 접수됨. 같은 공지를 다시 접수하지 않았습니다."
-	}
-	if !result.complete {
-		result.message += " 공지 접수 처리 중입니다."
+		result.message = "admin.announce.duplicate"
 	}
 	w.Header().Set("Referrer-Policy", "same-origin")
 	p.show(w, r, session, "admin-settings", "", 200, "", "", &result)

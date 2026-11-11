@@ -1,11 +1,9 @@
 package controlpanel
 
-import "net/url"
+import (
+	"net/url"
 
-const (
-	historyUnknownNotice  = "프로젝트 세대를 확인할 수 없는 기록입니다. 현재 프로젝트의 기록과 구분해 표시합니다."
-	historyPreviousNotice = "현재 프로젝트와 다른 세대의 기록입니다."
-	historyMixedNotice    = "현재 세대에 속하지 않거나 세대를 확인할 수 없는 기록입니다."
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 // Missing means the current view. An explicitly empty/duplicate value is invalid.
@@ -19,21 +17,21 @@ func historyBucket(q url.Values) (string, bool) {
 	}
 	return values[0], true
 }
-func historyLabel(generation string) string {
+func historyLabel(language, generation string) string {
 	if generation == "" {
-		return "이전 기록(세대 불명)"
+		return i18n.T(language, "history.label_unknown")
 	}
-	return "이전 세대"
+	return i18n.T(language, "history.label_previous")
 }
-func historyNotice(unknown, previous bool) string {
+func historyNotice(language string, unknown, previous bool) string {
 	if unknown && previous {
-		return historyMixedNotice
+		return i18n.T(language, "history.notice_mixed")
 	}
 	if unknown {
-		return historyUnknownNotice
+		return i18n.T(language, "history.notice_unknown")
 	}
 	if previous {
-		return historyPreviousNotice
+		return i18n.T(language, "history.notice_previous")
 	}
 	return ""
 }

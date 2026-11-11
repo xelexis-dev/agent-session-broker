@@ -39,7 +39,7 @@ func (s *Store) UpdateProfile(actor, displayName, email string, version ...strin
 	if !ok {
 		return ErrForbidden
 	}
-	if err := checkSettingsVersion(version, profileSettingsVersion(u.User)); err != nil {
+	if err := checkSettingsVersion(version, profileSettingsVersion(u.User, s.languageLocked(actor))); err != nil {
 		return err
 	}
 	if !validProfile(displayName, email) {

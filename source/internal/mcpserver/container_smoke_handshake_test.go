@@ -105,6 +105,13 @@ func TestContainerSmokeHandshakeProtocol(t *testing.T) {
 }
 
 func TestContainerSmokeRequestHelpers(t *testing.T) {
+	python, err := exec.LookPath("python3")
+	if containerSmokePythonMissing(err) {
+		t.Skip("python3 is not available on PATH; Python smoke helpers require it")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
 	b := broker.NewRemoteService()
 	defer b.Close()
 	server := httptest.NewServer(Handler(newWithCompatibility(b, &stubMemory{}, &serverCompatibility{MinClient: "0.17.3"}, "0.20.0")))
@@ -131,7 +138,7 @@ except urllib.error.HTTPError as e:
 		t.Fatal("smoke source path")
 	}
 	requirePrivateScript(t, input)
-	output, err := exec.CommandContext(t.Context(), "python3", "-I", "-c", script, server.URL+"/mcp", input).CombinedOutput()
+	output, err := exec.CommandContext(t.Context(), python, "-I", "-c", script, server.URL+"/mcp", input).CombinedOutput()
 	if err != nil {
 		t.Fatalf("actual Python smoke helpers failed: %s", output)
 	}
@@ -150,5 +157,20 @@ func requirePrivateScript(t *testing.T, path string) {
 	}
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func containerSmokePythonMissing(err error) bool { return errors.Is(err, exec.ErrNotFound) }
+
+func TestContainerSmokePythonMissing(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	_, err := exec.LookPath("python3")
+	if !containerSmokePythonMissing(err) {
+		t.Fatal("missing python3 must be classified as unavailable")
+	}
+	for _, err := range []error{nil, os.ErrPermission, exec.ErrDot, errors.New("Python exited unsuccessfully")} {
+		if containerSmokePythonMissing(err) {
+			t.Fatal("real lookup/execution failure must not be skipped")
+		}
 	}
 }

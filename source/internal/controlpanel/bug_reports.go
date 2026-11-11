@@ -2,6 +2,7 @@ package controlpanel
 
 import (
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -36,7 +37,9 @@ type bugReportChange struct {
 	At, AtLabel, From, To, Actor, Session, Note string
 	Agent                                       bool
 }
-type bugReportField struct{ Label, Value string }
+
+// Kind marks the fields the template lays out differently; it never depends on the label text.
+type bugReportField struct{ Label, Value, Kind string }
 type bugReportEvent struct{ At, AtLabel, Event, Reason string }
 type bugReportView struct {
 	Rows                                              []bugReportRow
@@ -80,12 +83,16 @@ func reportTimeLabel(t time.Time) string {
 	}
 	return t.UTC().Format("2006-01-02 15:04:05 UTC")
 }
-func reportRow(r bugreport.Report) bugReportRow {
-	row := bugReportRow{Report: r, SeverityLabel: map[string]string{"critical": "치명적", "high": "높음", "medium": "보통", "low": "낮음"}[r.Severity], SeverityClass: map[string]string{"critical": "bug-severity-critical", "high": "bug-severity-high"}[r.Severity], StatusLabel: "열림", ClientVersion: "—", Received: reportTime(r.ReceivedAt)}
-	if row.SeverityLabel == "" {
-		row.SeverityLabel = "—"
+
+var reportSeverities = map[string]string{"critical": "bug.severity.critical", "high": "bug.severity.high", "medium": "bug.severity.medium", "low": "bug.severity.low"}
+
+func reportRow(language string, r bugreport.Report) bugReportRow {
+	row := bugReportRow{Report: r, SeverityClass: map[string]string{"critical": "bug-severity-critical", "high": "bug-severity-high"}[r.Severity], ClientVersion: "—", Received: reportTime(r.ReceivedAt)}
+	row.SeverityLabel = "—"
+	if key, ok := reportSeverities[r.Severity]; ok {
+		row.SeverityLabel = i18n.T(language, key)
 	}
-	row.StatusLabel, row.StatusClass = reportStateLabel(r.State()), reportStateClass(r.State())
+	row.StatusLabel, row.StatusClass = reportStateLabel(language, r.State()), reportStateClass(r.State())
 	if r.Client != nil {
 		row.ClientVersion = reportValue(r.Client.ClientVersion)
 	}
@@ -181,7 +188,7 @@ func (p *panel) bugReportsHTTP(w http.ResponseWriter, r *http.Request, session l
 		http.Error(w, bugreport.ErrUnavailable.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	pageData := page{View: "bug-reports", User: user, CSRF: session.csrf, AdminView: true, Projects: p.store.ProjectsFor(user.ID)}
+	pageData := page{Lang: p.store.UserLanguage(user.ID), View: "bug-reports", User: user, CSRF: session.csrf, AdminView: true, Projects: p.store.ProjectsFor(user.ID)}
 	renderStatus := http.StatusOK
 	if r.URL.Path == "/admin/bug-reports/delete" {
 		for key, values := range r.PostForm {
@@ -320,9 +327,9 @@ func (p *panel) bugReportsHTTP(w http.ResponseWriter, r *http.Request, session l
 			}
 		}
 		for _, r := range rows {
-			row := reportRow(r)
+			row := reportRow(pageData.Lang, r)
 			if v.History {
-				row.GenerationLabel = historyLabel(r.Reporter.ProjectGenerationID)
+				row.GenerationLabel = historyLabel(pageData.Lang, r.Reporter.ProjectGenerationID)
 				unknown = unknown || r.Reporter.ProjectGenerationID == ""
 				previous = previous || r.Reporter.ProjectGenerationID != ""
 			}
@@ -345,9 +352,9 @@ func (p *panel) bugReportsHTTP(w http.ResponseWriter, r *http.Request, session l
 			return
 		}
 		pageData.View = "bug-report-detail"
-		v.Report = reportRow(report)
+		v.Report = reportRow(pageData.Lang, report)
 		if v.History {
-			v.Report.GenerationLabel = historyLabel(report.Reporter.ProjectGenerationID)
+			v.Report.GenerationLabel = historyLabel(pageData.Lang, report.Reporter.ProjectGenerationID)
 			unknown = report.Reporter.ProjectGenerationID == ""
 			previous = !unknown
 		}
@@ -356,53 +363,54 @@ func (p *panel) bugReportsHTTP(w http.ResponseWriter, r *http.Request, session l
 		_, v.CanDelete = store.(deletingBugReportStore)
 		v.DeleteURL = reportURL("/admin/bug-reports/delete", v, v.Page, "")
 		if !v.Conflict {
-			v.SuccessNotice = p.takeNotice(w, r)
+			v.SuccessNotice = localText(pageData.Lang, p.takeNotice(w, r))
 			if v.SuccessNotice != "" && ((v.Status != "all" && v.Status != report.State()) || (v.Severity != "" && v.Severity != report.Severity)) {
-				v.SuccessNotice += " 목록의 현재 필터에는 표시되지 않습니다."
+				v.SuccessNotice += " " + i18n.T(pageData.Lang, "notice.not_in_current_filter")
 			}
 		}
-		v.Actions = reportActions(report.State())
+		language := pageData.Lang
+		v.Actions = reportActions(language, report.State())
 		for i := len(report.StatusChanges) - 1; i >= max(0, len(report.StatusChanges)-20); i-- {
 			change := report.StatusChanges[i]
-			actorName := "알 수 없는 사용자"
+			actorName := i18n.T(language, "bug.unknown_user")
 			if actor, ok := p.store.User(change.Actor); ok {
 				actorName = actor.Username
 			}
-			item := bugReportChange{At: reportTime(change.At), AtLabel: reportTimeLabel(change.At), From: reportStateLabel(change.From), To: reportStateLabel(change.To), Actor: actorName, Note: change.Note, Agent: change.Source == "mcp"}
+			item := bugReportChange{At: reportTime(change.At), AtLabel: reportTimeLabel(change.At), From: reportStateLabel(language, change.From), To: reportStateLabel(language, change.To), Actor: actorName, Note: change.Note, Agent: change.Source == "mcp"}
 			if change.Session != nil {
 				item.Session = change.Session.Name
 			}
 			v.Changes = append(v.Changes, item)
 		}
-		for _, field := range []bugReportField{{"증상", report.Summary}, {"재현 단계", report.Steps}, {"기대 결과", report.Expected}, {"실제 결과", report.Actual}, {"관련 도구", report.Tool}} {
+		for _, field := range []bugReportField{{Label: i18n.T(language, "bug.field.summary"), Value: report.Summary}, {Label: i18n.T(language, "bug.field.steps"), Value: report.Steps}, {Label: i18n.T(language, "bug.field.expected"), Value: report.Expected}, {Label: i18n.T(language, "bug.field.actual"), Value: report.Actual}, {Label: i18n.T(language, "bug.field.tool"), Value: report.Tool}} {
 			if strings.TrimSpace(field.Value) != "" {
 				v.Fields = append(v.Fields, field)
 			}
 		}
-		v.Reporter = []bugReportField{{"프로젝트", reportValue(report.Reporter.Project)}, {"세션 이름", reportValue(report.Reporter.SessionName)}, {"등록 ID", reportValue(report.Reporter.RegistrationID)}, {"하네스", reportValue(report.Reporter.Harness)}, {"접수 서버 버전", reportValue(report.ServerVersion)}}
+		v.Reporter = []bugReportField{{Label: i18n.T(language, "bug.project"), Value: reportValue(report.Reporter.Project)}, {Label: i18n.T(language, "bug.field.session_name"), Value: reportValue(report.Reporter.SessionName)}, {Label: i18n.T(language, "bug.field.registration"), Value: reportValue(report.Reporter.RegistrationID), Kind: "registration"}, {Label: i18n.T(language, "bug.field.harness"), Value: reportValue(report.Reporter.Harness)}, {Label: i18n.T(language, "bug.field.server_version"), Value: reportValue(report.ServerVersion), Kind: "server-version"}}
 		if client := report.Client; client != nil {
 			v.HasDiagnostics = true
-			ready := "준비 안 됨"
+			ready := i18n.T(language, "bug.diag.not_ready")
 			if client.ReceiveReady {
-				ready = "준비됨"
+				ready = i18n.T(language, "bug.diag.ready")
 			}
 			auth := reportValue(client.AuthState)
 			if auth == "authorized" {
-				auth = "승인됨"
+				auth = i18n.T(language, "bug.diag.authorized")
 			}
 			follow := reportValue(client.LastFollow)
 			if strings.EqualFold(report.Reporter.Harness, "codex") {
 				follow = "—"
 			}
-			v.Diagnostics = []bugReportField{{"client 버전", reportValue(client.ClientVersion)}, {"client가 확인한 서버 버전", reportValue(client.ServerVersion)}, {"OS · 아키텍처", reportValue(client.OS) + " · " + reportValue(client.Arch)}, {"인증 상태", auth}, {"수신 준비", ready}, {"마지막 따라가기 결과", follow}}
+			v.Diagnostics = []bugReportField{{Label: i18n.T(language, "bug.diag.client_version"), Value: reportValue(client.ClientVersion)}, {Label: i18n.T(language, "bug.diag.server_version"), Value: reportValue(client.ServerVersion)}, {Label: i18n.T(language, "bug.diag.os"), Value: reportValue(client.OS) + " · " + reportValue(client.Arch)}, {Label: i18n.T(language, "bug.diag.auth"), Value: auth}, {Label: i18n.T(language, "bug.diag.receive"), Value: ready}, {Label: i18n.T(language, "bug.diag.follow"), Value: follow}}
 			for _, event := range client.Events[:min(20, len(client.Events))] {
 				v.Events = append(v.Events, bugReportEvent{At: reportTime(event.At), AtLabel: reportTimeLabel(event.At), Event: reportValue(event.Event), Reason: reportValue(event.ReasonClass)})
 			}
 		}
 		if !report.StatusChangedAt.IsZero() {
-			v.ChangeLabel = reportStateLabel(report.State())
+			v.ChangeLabel = reportStateLabel(language, report.State())
 			if report.Status == "open" {
-				v.ChangeLabel = "다시 열림"
+				v.ChangeLabel = i18n.T(language, "bug.reopened")
 			}
 			v.ChangeActor = reportValue(report.StatusChangedBy)
 			if actor, ok := p.store.User(report.StatusChangedBy); ok {
@@ -417,9 +425,9 @@ func (p *panel) bugReportsHTTP(w http.ResponseWriter, r *http.Request, session l
 			v.ChangeActor = latest.Actor
 		}
 	}
-	v.Notice = historyNotice(unknown, previous)
+	v.Notice = historyNotice(pageData.Lang, unknown, previous)
 	pageData.BugReports = v
-	p.render(w, renderStatus, pageData)
+	p.render(w, r, renderStatus, pageData)
 }
 func reportHTTPError(w http.ResponseWriter, err error) {
 	if errors.Is(err, bugreport.ErrForbidden) {
@@ -442,19 +450,19 @@ func reportHTTPError(w http.ResponseWriter, err error) {
 		http.Error(w, "invalid report", 400)
 		return
 	}
-	http.Error(w, "버그 리포트를 처리하지 못했습니다. 다시 시도하세요.", 500)
+	http.Error(w, "Could not process the bug report. Try again.", 500)
 }
 
-func reportStateLabel(state string) string {
+func reportStateLabel(language, state string) string {
 	switch state {
 	case "resolved":
-		return "해결"
+		return i18n.T(language, "bug.state.resolved")
 	case "ignored":
-		return "무시"
+		return i18n.T(language, "bug.state.ignored")
 	case "closed":
-		return "기존 닫힘"
+		return i18n.T(language, "bug.state.closed")
 	default:
-		return "열림"
+		return i18n.T(language, "bug.state.open")
 	}
 }
 func reportStateClass(state string) string {
@@ -469,15 +477,15 @@ func reportStateClass(state string) string {
 		return ""
 	}
 }
-func reportActions(state string) []bugReportAction {
+func reportActions(language, state string) []bugReportAction {
 	switch state {
 	case "resolved":
-		return []bugReportAction{{"open", "다시 열기", false}, {"ignored", "무시로 변경", false}}
+		return []bugReportAction{{"open", i18n.T(language, "bug.action.reopen"), false}, {"ignored", i18n.T(language, "bug.action.ignore_change"), false}}
 	case "ignored":
-		return []bugReportAction{{"open", "다시 열기", false}, {"resolved", "해결로 변경", false}}
+		return []bugReportAction{{"open", i18n.T(language, "bug.action.reopen"), false}, {"resolved", i18n.T(language, "bug.action.resolve_change"), false}}
 	case "closed":
-		return []bugReportAction{{"resolved", "해결", true}, {"ignored", "무시", false}, {"open", "다시 열기", false}}
+		return []bugReportAction{{"resolved", i18n.T(language, "bug.action.resolve"), true}, {"ignored", i18n.T(language, "bug.action.ignore"), false}, {"open", i18n.T(language, "bug.action.reopen"), false}}
 	default:
-		return []bugReportAction{{"resolved", "해결", true}, {"ignored", "무시", false}}
+		return []bugReportAction{{"resolved", i18n.T(language, "bug.action.resolve"), true}, {"ignored", i18n.T(language, "bug.action.ignore"), false}}
 	}
 }

@@ -60,13 +60,13 @@ func TestDeviceGETInvalidExpiredAndNickname(t *testing.T) {
 	code := issued["user_code"].(string)
 	for _, bad := range []string{"BROKER-ADMIN", "name:worker", "has space"} {
 		w := owner.call("GET", "/auth/code?"+url.Values{"code": {code}, "name": {bad}}.Encode(), nil)
-		if strings.Contains(w.Body.String(), `name="nickname" value="`+bad+`"`) || !strings.Contains(w.Body.String(), "닉네임") {
+		if strings.Contains(w.Body.String(), `name="nickname" value="`+bad+`"`) || !strings.Contains(w.Body.String(), enHTML("device.error_link_nickname")) {
 			t.Error("invalid nickname prefilled")
 		}
 	}
 	for _, invalid := range []string{"ZZZZ-ZZZZ", "<invalid>"} {
 		w := owner.call("GET", "/auth/code?code="+url.QueryEscape(invalid), nil)
-		if w.Code != 404 || !strings.Contains(w.Body.String(), "만료") {
+		if w.Code != 404 || !strings.Contains(w.Body.String(), enHTML("device.error_not_found")) {
 			t.Error("invalid code not clearly marked")
 		}
 	}

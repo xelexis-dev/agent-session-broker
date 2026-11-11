@@ -53,7 +53,7 @@ func TestScopedTokenIssuanceGateAndPanelRoles(t *testing.T) {
 	h := New(s, tokenViewBackend{}, http.NotFoundHandler())
 	owner := loginPanelUser(t, h, "owner")
 	form := url.Values{"project": {"demo"}, "label": {"blocked"}, "scope_selection": {"custom"}, "scope": {access.SessionRegister}}
-	if w := owner.call("POST", "/tokens/project", form); w.Code != 400 || !strings.Contains(w.Body.String(), tokenScopeUpgradeMessage) {
+	if w := owner.call("POST", "/tokens/project", form); w.Code != 400 || !strings.Contains(w.Body.String(), en("error.token_scope_upgrade")) {
 		t.Fatal("gate-off subset not rejected with upgrade guidance")
 	}
 	if len(s.ProjectsFor("owner")[0].Tokens) != 0 {
@@ -152,7 +152,7 @@ func TestScopedTokenAutoBoundsAndPersistence(t *testing.T) {
 		}
 	}
 	body := owner.call("GET", "/projects/settings?project=demo", nil).Body.String()
-	for _, want := range []string{`data-token-scope="session:register:auto"`, "자동 등록", "identity 한도 8개", "만료"} {
+	for _, want := range []string{`data-token-scope="session:register:auto"`, en("tokens.scope_session_register_auto"), en("tokens.identity_limit") + " " + en("tokens.identities", "n", 8), en("tokens.expires_at")} {
 		if !strings.Contains(body, want) {
 			t.Error("auto list metadata missing")
 		}

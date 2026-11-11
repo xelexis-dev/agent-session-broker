@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/mcpconfig"
@@ -62,11 +63,19 @@ func TestModelCatalogTransportTools(t *testing.T) {
 				server, shutdown := newIngressServerWithOptions(ctx, &ingressUpstream{}, tools, identify, nil, durableOptions{harness: harness})
 				defer func() { cancel(); shutdown() }()
 				cs := catalogClient(t, server)
+				if strings.ContainsFunc(cs.InitializeResult().Instructions, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+					t.Error("client instructions must be English")
+				}
 				listed, err := cs.ListTools(t.Context(), nil)
 				if err != nil {
 					t.Fatal(err)
 				}
 				data, _ := json.Marshal(listed)
+				for _, tool := range listed.Tools {
+					if strings.ContainsFunc(tool.Description, func(r rune) bool { return unicode.Is(unicode.Hangul, r) }) {
+						t.Errorf("%s description must be English", tool.Name)
+					}
+				}
 				t.Logf("tools/list %s %s bytes=%d", path, harness, len(data))
 				if hasTool(listed.Tools, "wait_for_message") {
 					t.Error("model catalog exposes internal wait_for_message")

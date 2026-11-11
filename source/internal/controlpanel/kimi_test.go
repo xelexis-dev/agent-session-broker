@@ -124,7 +124,7 @@ func (kimiPanelBackend) Sessions(context.Context, string) ([]Session, error) {
 func TestKimiPanelRendersHarnessName(t *testing.T) {
 	h := New(userStore(t), kimiPanelBackend{}, http.NotFoundHandler())
 	page := loginPanelUser(t, h, "owner").call("GET", "/projects/sessions?project=demo", nil)
-	if page.Code != 200 || !strings.Contains(page.Body.String(), `data-label="하네스">kimi</td>`) {
+	if page.Code != 200 || !strings.Contains(page.Body.String(), `data-label="`+en("sessions.col_harness")+`">kimi</td>`) {
 		t.Fatal("Kimi harness name missing from panel")
 	}
 }

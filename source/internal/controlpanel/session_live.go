@@ -3,6 +3,7 @@ package controlpanel
 import (
 	"context"
 	"encoding/json"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"net/http"
 	"time"
 )
@@ -86,7 +87,8 @@ func (p *panel) liveSessions(w http.ResponseWriter, r *http.Request) {
 		liveJSON(w, r, 403, map[string]string{"error": "forbidden"})
 		return
 	}
-	rows, summary, err := p.store.liveSessionRows(current.userID, project, sessions)
+	language := liveLanguage(r)
+	rows, summary, err := p.store.liveSessionRows(current.userID, project, language, sessions)
 	if err != nil {
 		liveJSON(w, r, 403, map[string]string{"error": "forbidden"})
 		return
@@ -94,10 +96,20 @@ func (p *panel) liveSessions(w http.ResponseWriter, r *http.Request) {
 
 	liveJSON(w, r, 200, struct {
 		Project    string           `json:"project"`
+		Language   string           `json:"language"`
 		ServerTime string           `json:"serverTime"`
 		Rows       []liveSessionRow `json:"rows"`
 		Summary    sessionSummary   `json:"summary"`
-	}{project, activityTime(time.Now()), rows, summary})
+	}{project, language, activityTime(time.Now()), rows, summary})
+}
+
+// liveLanguage is the language of the page that polls: exactly one lang=en|ko. Anything else means a tab opened
+// before 1.1, which is Korean. It only selects display text; access was decided above.
+func liveLanguage(r *http.Request) string {
+	if values := r.URL.Query()["lang"]; len(values) == 1 && i18n.Normalize(values[0]) != "" {
+		return values[0]
+	}
+	return i18n.Korean
 }
 
 // Polling must not run the ordinary page's persistent expiration housekeeping.
@@ -107,7 +119,7 @@ func (s *Store) liveProjectAccess(actor, project string) (bool, string) {
 	p, ok := s.data.Projects[project]
 	return ok && !s.closed && !p.Deleting, s.projectRoleLocked(actor, project)
 }
-func (s *Store) liveSessionRows(actor, project string, sessions []Session) ([]liveSessionRow, sessionSummary, error) {
+func (s *Store) liveSessionRows(actor, project, language string, sessions []Session) ([]liveSessionRow, sessionSummary, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	p, ok := s.data.Projects[project]
@@ -146,7 +158,7 @@ func (s *Store) liveSessionRows(actor, project string, sessions []Session) ([]li
 			manage = snapshot.canReleaseReservedGrantLocked(actor, project, item.GrantID)
 			owner = item.GrantOwner
 		}
-		rows = append(rows, liveSessionRow{Key: item.RowKey(), Shape: item.RowShape(manage, owner), DisplayState: item.DisplayState(), ConnectionLabel: item.ConnectionLabel(), Status: item.Status, Reason: item.StateReason(), ProbePending: item.ProbePending && item.ErrorCode != "probe-unanswered", CanManage: manage, Activity: item.ActivityView(), RuntimeInfo: item.RuntimeInfoView()})
+		rows = append(rows, liveSessionRow{Key: item.RowKey(), Shape: item.RowShape(manage, owner), DisplayState: item.DisplayState(), ConnectionLabel: item.ConnectionLabel().In(language), Status: item.Status, Reason: item.StateReason().In(language), ProbePending: item.ProbePending && item.ErrorCode != "probe-unanswered", CanManage: manage, Activity: item.ActivityView(language), RuntimeInfo: item.RuntimeInfoView(language)})
 	}
 	return rows, summarizeSessions(all), nil
 }

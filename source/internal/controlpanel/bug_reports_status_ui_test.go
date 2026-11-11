@@ -22,7 +22,7 @@ func TestBugReportResolvedDetailShowsActionsAndHistory(t *testing.T) {
 		t.Fatal(w.Code)
 	}
 	body := w.Body.String()
-	for _, want := range []string{"다시 열기", "무시로 변경", "처리 상태", "상태 기록", "에이전트", "열림 → 해결", "MR fixed"} {
+	for _, want := range []string{`value="open">` + en("bug.action.reopen") + `</button>`, `value="ignored">` + en("bug.action.ignore_change") + `</button>`, en("bug.handling"), en("bug.history"), en("bug.agent"), en("bug.state.open") + " → " + en("bug.state.resolved"), "MR fixed"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("resolved detail missing %q", want)
 		}
@@ -80,7 +80,7 @@ func TestBugReportStatusConflictRendersLatestAndKeepsNote(t *testing.T) {
 	note := "typed <script> note\nkept"
 	w := c.call("POST", "/admin/bug-reports/status?status=open&severity=critical&page=2", url.Values{"id": {saved.ID}, "status": {"ignored"}, "expectedVersion": {stale}, "note": {note}})
 	body := w.Body.String()
-	for _, want := range []string{"다른 곳에서 상태가 바뀌었습니다. 최신 내용을 확인하세요.", "다시 불러오기", "aria-live=\"assertive\"", "typed &lt;script&gt; note", saved.ExpectedVersion, "page=2", "처리 상태", "상태 기록"} {
+	for _, want := range []string{enHTML("bug.status_conflict"), en("bug.reload"), "aria-live=\"assertive\"", "typed &lt;script&gt; note", saved.ExpectedVersion, "page=2", en("bug.handling"), en("bug.history")} {
 		if !strings.Contains(body, want) {
 			t.Errorf("conflict missing %q", want)
 		}
@@ -100,7 +100,7 @@ func TestBugReportStatusConflictRendersLatestAndKeepsNote(t *testing.T) {
 		t.Fatal("classification", w.Code)
 	}
 	body = c.call("GET", w.Header().Get("Location"), nil).Body.String()
-	if strings.Contains(body, "notice-info") || !strings.Contains(body, "해결로 변경") {
+	if strings.Contains(body, "notice-info") || !strings.Contains(body, `value="resolved">`+en("bug.action.resolve_change")+`</button>`) {
 		t.Fatal("success out-of-filter state")
 	}
 }
@@ -116,7 +116,7 @@ func TestBugReportLegacyReclassifyAndHistoryReadonly(t *testing.T) {
 	r, _ = reports.Get(r.ID)
 	c := loginPanelUser(t, h, "admin")
 	body := c.call("GET", "/admin/bug-reports/detail?id="+r.ID, nil).Body.String()
-	for _, want := range []string{"기존 닫힘", "value=\"resolved\"", "value=\"ignored\"", "value=\"open\""} {
+	for _, want := range []string{enHTML("bug.state.closed"), "value=\"resolved\"", "value=\"ignored\"", "value=\"open\""} {
 		if !strings.Contains(body, want) {
 			t.Fatal("legacy action", want)
 		}
@@ -130,7 +130,7 @@ func TestBugReportLegacyReclassifyAndHistoryReadonly(t *testing.T) {
 		t.Fatal("reclassify")
 	}
 	body = c.call("GET", "/admin/bug-reports/detail?id=bug-previous-001&bucket=history", nil).Body.String()
-	if strings.Contains(body, "bug-status-form") || !strings.Contains(body, "읽기 전용") || !strings.Contains(body, "상태 기록") {
+	if strings.Contains(body, "bug-status-form") || !strings.Contains(body, en("bug.read_only")) || !strings.Contains(body, en("bug.history")) {
 		t.Fatal("history mutable")
 	}
 }
@@ -160,7 +160,7 @@ func TestBugReportNormalDetailStartsWithEmptyNote(t *testing.T) {
 func TestBugReportChangeNoticeIsSingleUseAndFilterAware(t *testing.T) {
 	h := bugReportTestHandler(t, &fakeBugReports{reports: []bugreport.Report{bugReportFixture()}})
 	c := loginPanelUser(t, h, "admin")
-	for _, tc := range []struct{ state, message string }{{"resolved", "상태를 해결로 바꿨습니다."}, {"ignored", "상태를 무시로 바꿨습니다."}, {"open", "상태를 열림으로 바꿨습니다."}} {
+	for _, tc := range []struct{ state, message string }{{"resolved", enHTML("notice.bug-report-resolved")}, {"ignored", enHTML("notice.bug-report-ignored")}, {"open", enHTML("notice.bug-report-open")}} {
 		post := c.call("POST", "/admin/bug-reports/status?status=open&page=2", url.Values{"id": {"bug-demo-004"}, "status": {tc.state}, "note": {"new note"}, "expectedVersion": {"fixture-version"}})
 		if post.Code != 303 {
 			t.Fatal(post.Code)
@@ -175,7 +175,7 @@ func TestBugReportChangeNoticeIsSingleUseAndFilterAware(t *testing.T) {
 		body := response.Body.String()
 		want := tc.message
 		if tc.state != "open" {
-			want += " 목록의 현재 필터에는 표시되지 않습니다."
+			want += " " + enHTML("notice.not_in_current_filter")
 		}
 		if !strings.Contains(body, want) || !strings.Contains(body, `class="notice notice-info"`) {
 			t.Errorf("success notice missing %q", want)

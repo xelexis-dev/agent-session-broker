@@ -28,16 +28,16 @@ func TestScopeAvailabilityHintByRoleAndReadiness(t *testing.T) {
 			if !strings.Contains(fieldset, `aria-describedby="scope-availability"`) {
 				t.Error("scope fieldset lacks availability description")
 			}
-			if strings.Contains(body, "LEGACY_V1") || strings.Contains(body, "인스턴스 설정에서 제한 권한·자동 등록 토큰 발급이 꺼져 있습니다") {
+			if strings.Contains(body, "LEGACY_V1") || strings.Contains(body, en("error.token_scope_upgrade")) {
 				t.Error("old long notice exposed")
 			}
 			hint := regexp.MustCompile(`<p id="scope-availability" class="form-hint">(.*?)</p>`).FindStringSubmatch(fieldset)
 			if len(hint) != 2 {
 				t.Fatal("scope availability hint missing")
 			}
-			ready := "발급 후 일반 권한은 토큰 목록의 '권한 변경'에서 바꿀 수 있습니다. 승인 방식·자동 등록 한도·수명은 바꿀 수 없습니다."
-			admin := `제한 권한 발급이 꺼져 있습니다. <a href="/admin/settings">인스턴스 설정</a>에서 켤 수 있습니다.`
-			owner := "제한 권한 발급이 꺼져 있습니다. 인스턴스 관리자에게 요청하세요."
+			ready := en("tokens.after_issuance_change_ordinary_scopes_with_edit")
+			admin := en("tokens.restricted_off_admin_before") + `<a href="/admin/settings">` + en("tokens.instance_settings") + `</a>` + en("tokens.restricted_off_admin_after")
+			owner := en("tokens.restricted_off_user")
 			want := owner
 			if tc.ready {
 				want = ready
@@ -47,7 +47,7 @@ func TestScopeAvailabilityHintByRoleAndReadiness(t *testing.T) {
 			if hint[1] != want {
 				t.Errorf("hint=%q, want %q", hint[1], want)
 			}
-			if tc.ready && strings.Contains(fieldset, "제한 권한 발급이 꺼져 있습니다.") {
+			if tc.ready && (strings.Contains(fieldset, en("tokens.restricted_off_user")) || strings.Contains(fieldset, strings.TrimSpace(en("tokens.restricted_off_admin_before")))) {
 				t.Error("off hint shown while ready")
 			}
 			header, _, _ := strings.Cut(fieldset, ">")

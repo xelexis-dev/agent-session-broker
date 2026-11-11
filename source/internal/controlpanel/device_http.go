@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 // Device authorization REST for local clients (RFC 8628 profile). These paths
@@ -174,7 +176,7 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	v := page{View: "authcode", CSRF: session.csrf, User: user, Form: r.PostForm, CanManage: map[string]bool{}}
+	v := page{Lang: p.requestLanguage(r, user.ID), View: "authcode", CSRF: session.csrf, User: user, Form: r.PostForm, CanManage: map[string]bool{}}
 	if v.Form == nil {
 		v.Form = url.Values{}
 	}
@@ -182,12 +184,12 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 		v.Success = p.takeNotice(w, r)
 		query, err := url.ParseQuery(r.URL.RawQuery)
 		if err != nil || len(query["code"]) > 1 || len(query["name"]) > 1 {
-			v.Error = "승인 링크 형식이 올바르지 않습니다."
-			p.render(w, 400, v)
+			v.Error = "device.error_link"
+			p.render(w, r, 400, v)
 			return
 		}
 		if _, present := query["code"]; !present {
-			p.render(w, 200, v)
+			p.render(w, r, 200, v)
 			return
 		}
 		code := normalizeUserCode(query.Get("code"))
@@ -196,24 +198,24 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 		}
 		v.Code = code
 		if !p.allowCodeAttempt(user.ID) {
-			v.Error = "코드 확인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."
-			p.render(w, 429, v)
+			v.Error = "device.error_attempts"
+			p.render(w, r, 429, v)
 			return
 		}
 		if code == "" || len(code) > 32 {
-			v.Error = "코드를 찾을 수 없거나 만료되었습니다. 승인 권한도 확인해 주세요."
-			p.render(w, 404, v)
+			v.Error = "device.error_not_found"
+			p.render(w, r, 404, v)
 			return
 		}
 		view, lookupErr := p.store.DeviceAuthorizationFor(user.ID, code)
 		if lookupErr != nil {
-			v.Error = "코드를 찾을 수 없거나 만료되었습니다. 승인 권한도 확인해 주세요."
-			p.render(w, 404, v)
+			v.Error = "device.error_not_found"
+			p.render(w, r, 404, v)
 			return
 		}
 		if view.Status != "pending" {
-			v.Error = "이미 처리된 코드입니다. 클라이언트에서 새 코드를 요청해 주세요."
-			p.render(w, 409, v)
+			v.Error = "device.error_used"
+			p.render(w, r, 409, v)
 			return
 		}
 		v.Device = &view
@@ -221,34 +223,34 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 			if validNickname(name) {
 				v.Form.Set("nickname", name)
 			} else {
-				v.Error = "닉네임 형식을 확인해 주세요. 승인 전에 올바른 닉네임을 입력합니다."
+				v.Error = "device.error_link_nickname"
 			}
 		}
-		p.render(w, 200, v)
+		p.render(w, r, 200, v)
 		return
 	}
 	code := strings.TrimSpace(r.PostForm.Get("code"))
 	action := r.PostForm.Get("action")
 	v.Code = code
 	if code == "" || len(code) > 32 {
-		v.Error = "승인 코드를 입력해 주세요."
-		p.render(w, 400, v)
+		v.Error = "device.error_code_required"
+		p.render(w, r, 400, v)
 		return
 	}
 	view, decisionErr := p.decideDeviceCode(user.ID, code, action, r.PostForm.Get("nickname"), nil)
 	if errors.Is(decisionErr, errDeviceCodeAttempts) {
-		v.Error = "코드 확인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."
-		p.render(w, 429, v)
+		v.Error = "device.error_attempts"
+		p.render(w, r, 429, v)
 		return
 	}
 	fail := func(err error, status int, message string) {
 		if errors.Is(err, ErrForbidden) {
-			v.Error = "코드를 찾을 수 없거나 승인 권한이 없습니다. 코드와 만료 시간을 확인해 주세요."
-			p.render(w, 404, v)
+			v.Error = "device.error_forbidden"
+			p.render(w, r, 404, v)
 			return
 		}
 		v.Error = message
-		p.render(w, status, v)
+		p.render(w, r, status, v)
 	}
 	switch action {
 	case "approve":
@@ -263,13 +265,13 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 			case errors.Is(err, ErrTokenCap):
 				fail(err, 409, tokenCapMessage)
 			case errors.Is(err, ErrNicknameTaken):
-				fail(err, 409, "닉네임 "+nickname+"은(는) 이미 이 프로젝트에서 사용 중입니다. 다른 닉네임을 입력해 주세요.")
+				fail(err, 409, i18n.T(v.Lang, "device.error_nickname_taken", "nickname", nickname))
 			case errors.Is(err, ErrInvalid):
-				fail(err, 400, "닉네임 형식을 확인해 주세요. 공백 없이 128바이트 이하로 입력합니다.")
+				fail(err, 400, "device.error_nickname")
 			case errors.Is(err, errDeviceGrant):
-				fail(err, 409, "이미 처리된 코드입니다. 클라이언트에서 새 코드를 요청해 주세요.")
+				fail(err, 409, "device.error_used")
 			default:
-				fail(err, 503, "승인을 저장하지 못했습니다.")
+				fail(err, 503, "device.error_approve_storage")
 			}
 			return
 		}
@@ -277,20 +279,20 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 	case "deny":
 		if err := decisionErr; err != nil {
 			if errors.Is(err, errDeviceGrant) {
-				fail(err, 409, "이미 처리된 코드입니다.")
+				fail(err, 409, "device.error_already_handled")
 				return
 			}
-			fail(err, 503, "거절을 저장하지 못했습니다.")
+			fail(err, 503, "device.error_reject_storage")
 			return
 		}
 		p.redirectNotice(w, r, deviceVerificationPath, "device-denied")
 	default:
 		view, err := view, decisionErr
 		if err != nil {
-			fail(err, 503, "코드를 확인하지 못했습니다.")
+			fail(err, 503, "device.error_lookup")
 			return
 		}
 		v.Device = &view
-		p.render(w, 200, v)
+		p.render(w, r, 200, v)
 	}
 }

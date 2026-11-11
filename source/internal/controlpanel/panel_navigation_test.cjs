@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 const fs = require("node:fs");
 const path = require("node:path");
+const { useCatalog } = require("./i18n_fixture.cjs");
 let browser;
 before(async () => { browser = await chromium.launch({ headless: true }); });
 after(async () => { await browser?.close(); });
@@ -12,6 +13,7 @@ async function fixture(t, html) {
   const page = await browser.newPage();
   t.after(() => page.close());
   await page.setContent(html);
+  await useCatalog(page, "ko");
   await page.addScriptTag({ content: fs.readFileSync(path.join(__dirname, "panel.js"), "utf8") });
   return page;
 }

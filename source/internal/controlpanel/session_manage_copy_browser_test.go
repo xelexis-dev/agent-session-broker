@@ -24,6 +24,7 @@ func TestSessionManageCopyFullChrome(t *testing.T) {
 	config := map[string]auth{}
 	for _, mode := range []string{"on", "off"} {
 		s := userStore(t)
+		useKorean(t, s)
 		s.data.ScopeIssuanceReady = policyBool(mode == "on")
 		h := New(s, tokenViewBackend{}, http.NotFoundHandler())
 		server := httptest.NewServer(h)
@@ -33,7 +34,8 @@ func TestSessionManageCopyFullChrome(t *testing.T) {
 			config[mode+"-"+user] = auth{server.URL, client.cookie.Value}
 		}
 	}
-	_, audit := newDirectAuditPanelFixture(t)
+	auditStore, audit := newDirectAuditPanelFixture(t)
+	useKorean(t, auditStore)
 	server := httptest.NewServer(audit)
 	defer server.Close()
 	client := loginPanelUser(t, audit, "owner")

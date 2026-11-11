@@ -4,11 +4,12 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
+const { useCatalog, msg } = require('./i18n_fixture.cjs');
 let browser;
 before(async () => { browser = await chromium.launch({ headless: true }); });
 after(async () => { await browser?.close(); });
 
-async function fixture(t, kind = 'token-revoke') {
+async function fixture(t, kind = 'token-revoke', lang = 'ko') {
   const page = await browser.newPage();
   t.after(() => page.close());
   await page.setContent(`<form method="post" data-confirm-action="${kind}" data-confirm-target="example" data-current-role="developer">
@@ -19,6 +20,7 @@ async function fixture(t, kind = 'token-revoke') {
       <h2 id="confirm-action-title"></h2><p id="confirm-action-description"></p>
       <button type="button" data-dialog-close autofocus>취소</button><button type="button" data-confirm-submit>확인</button>
     </dialog>`);
+  await useCatalog(page, lang);
   await page.addScriptTag({ content: fs.readFileSync(path.join(__dirname, 'panel.js'), 'utf8') });
   // Emulate a global submission guard: canceled confirmation must never lock it.
   await page.evaluate(() => {
@@ -163,4 +165,14 @@ test('scope issuance enable explains approval-free registration before confirmat
   await page.evaluate(()=>{document.querySelector('[name=enabled]').value='false';window.submitted=[];});
   await page.locator('form button').click();
   assert.deepEqual(await page.evaluate(()=>window.submitted),['original']);
+});
+
+test('English pages show English confirmations with the target copied verbatim', async t => {
+  const page = await fixture(t, 'token-revoke', 'en');
+  await page.evaluate(() => { document.querySelector('form').dataset.confirmTarget = '{target} <b>x</b>'; });
+  await page.getByRole('button', { name: 'Apply' }).click();
+  assert.equal(await page.locator('#confirm-action-title').textContent(), msg('en', 'js.confirm.token_revoke_title'));
+  assert.equal(await page.locator('#confirm-action-description').textContent(), msg('en', 'js.confirm.token_revoke_body', { target: '{target} <b>x</b>' }));
+  assert.equal(await page.locator('#confirm-action-description b').count(), 0);
+  assert.equal(await page.locator('[data-confirm-submit]').textContent(), 'Revoke token');
 });

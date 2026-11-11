@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/bugreport"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 )
 
 type deletingBugReportStore interface {
@@ -26,14 +27,14 @@ func (p *panel) reportDeletionHTTP(w http.ResponseWriter, store bugReportStore, 
 		reportHTTPError(w, err)
 		return true
 	}
-	admin := "알 수 없는 관리자"
+	admin := i18n.T(pageData.Lang, "bug.unknown_admin")
 	if u, ok := p.store.User(d.Actor); ok {
 		admin = u.Username
 	}
 	v.Absent = true
 	v.DeletionRequested = d.Phase != "deleted"
 	v.DeletionAt, v.DeletionAtLabel, v.DeletionActor = reportTime(d.DeletedAt), reportTimeLabel(d.DeletedAt), admin
-	v.Report = bugReportRow{Report: bugreport.Report{ID: id, Input: bugreport.Input{Title: "버그 리포트"}}}
+	v.Report = bugReportRow{Report: bugreport.Report{ID: id, Input: bugreport.Input{Title: i18n.T(pageData.Lang, "bug.title_fallback")}}}
 	v.ListURL = reportURL("/admin/bug-reports", v, v.Page, "")
 	pageData.View = "bug-report-detail"
 	pageData.BugReports = v
@@ -41,6 +42,6 @@ func (p *panel) reportDeletionHTTP(w http.ResponseWriter, store bugReportStore, 
 	if v.DeletionRequested {
 		status = http.StatusNotFound
 	}
-	p.render(w, status, pageData)
+	p.render(w, nil, status, pageData) // pageData.Lang is set by the caller
 	return true
 }

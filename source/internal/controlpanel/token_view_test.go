@@ -103,7 +103,7 @@ func TestProjectSettingsListsProjectTokensOnly(t *testing.T) {
 	owner := loginPanelUser(t, h, "owner")
 	settings := owner.call("GET", "/projects/settings?project=demo", nil)
 	body := settings.Body.String()
-	for _, want := range []string{"프로젝트 토큰 목록", ">home<", ">dev-token<", "승인 1건", "최근 등록", `action="/tokens/project"`, `data-confirm-action="project-token-revoke"`, `data-confirm-target="home"`} {
+	for _, want := range []string{en("tokens.project_tokens"), ">home<", ">dev-token<", en("tokens.approval_count", "n", 1), en("tokens.last_registered"), `action="/tokens/project"`, `data-confirm-action="project-token-revoke"`, `data-confirm-target="home"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("settings missing %s", want)
 		}
@@ -113,18 +113,18 @@ func TestProjectSettingsListsProjectTokensOnly(t *testing.T) {
 			t.Errorf("settings still shows %s", absent)
 		}
 	}
-	table := layoutTables(t, body)["프로젝트 토큰 목록"]
+	table := layoutTables(t, body)[en("tokens.project_tokens")]
 	if len(table.headers) != 7 || len(table.rows) != 2 {
 		t.Fatalf("token table = %+v", table)
 	}
-	if state := table.rows[0][5].text; !strings.Contains(state, "사용 중") || !strings.Contains(state, "연결된 세션 1개") {
+	if state := table.rows[0][5].text; !strings.Contains(state, en("tokens.active")) || !strings.Contains(state, en("tokens.connected_count", "n", 1)) {
 		t.Fatalf("connected token state = %q", state)
 	}
-	if !strings.Contains(table.rows[1][5].text, "대기") {
+	if !strings.Contains(table.rows[1][5].text, en("tokens.waiting")) {
 		t.Fatalf("unused token state = %q", table.rows[1][5].text)
 	}
 	detail := owner.call("GET", "/projects/sessions?project=demo", nil).Body.String()
-	if strings.Contains(detail, "프로젝트 토큰 목록") || strings.Contains(detail, `action="/tokens/project"`) || !strings.Contains(detail, "프로젝트 연결 세션") {
+	if strings.Contains(detail, en("tokens.project_tokens")) || strings.Contains(detail, `action="/tokens/project"`) || !strings.Contains(detail, en("sessions.caption")) {
 		t.Error("detail page still carries token management")
 	}
 	if w := owner.call("POST", "/tokens/issue", url.Values{"project": {"demo"}, "nickname": {"again"}}); w.Code != http.StatusNotFound {
@@ -137,12 +137,12 @@ func TestProjectSettingsListsProjectTokensOnly(t *testing.T) {
 	}
 	viewer := loginPanelUser(t, h, "viewer")
 	body = viewer.call("GET", "/projects/settings?project=demo", nil).Body.String()
-	if strings.Contains(body, `action="/tokens/project"`) || len(layoutTables(t, body)["프로젝트 토큰 목록"].headers) != 6 {
+	if strings.Contains(body, `action="/tokens/project"`) || len(layoutTables(t, body)[en("tokens.project_tokens")].headers) != 6 {
 		t.Error("viewer has issuance controls")
 	}
 	offline := New(s, tokenViewBackend{}, http.NotFoundHandler())
 	body = loginPanelUser(t, offline, "owner").call("GET", "/projects/settings?project=demo", nil).Body.String()
-	if state := layoutTables(t, body)["프로젝트 토큰 목록"].rows[0][5].text; strings.Contains(state, "사용 중") || !strings.Contains(state, "등록 완료") {
+	if state := layoutTables(t, body)[en("tokens.project_tokens")].rows[0][5].text; strings.Contains(state, en("tokens.active")) || !strings.Contains(state, en("tokens.registered")) {
 		t.Errorf("state without a live session = %q", state)
 	}
 }

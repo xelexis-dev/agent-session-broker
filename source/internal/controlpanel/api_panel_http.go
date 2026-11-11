@@ -41,7 +41,7 @@ func (p *panel) adminAPIPolicyMutate(w http.ResponseWriter, r *http.Request, ses
 			return
 		}
 		status := 400
-		message := "관리 API 설정을 저장하지 못했습니다."
+		message := "admin.api.error_save"
 		if errors.Is(err, errSettingsConflict) {
 			status = 409
 			message = settingsConflictMessage
@@ -108,20 +108,20 @@ func (p *panel) profileAPITokensMutate(w http.ResponseWriter, r *http.Request, s
 	p.redirectNotice(w, r, "/profile/api-tokens", "api-token-revoked")
 }
 func (p *panel) profileAPITokenError(w http.ResponseWriter, r *http.Request, session loginSession, err error) {
-	status, code, message := 400, "invalid", "발급 요청을 확인해 주세요."
+	status, code, message := 400, "invalid", "tokens.error_issue_request"
 	switch {
 	case errors.Is(err, errAPITokenCap):
-		status, code, message = 409, "cap", "발급 한도에 도달했습니다. 사용하지 않는 토큰을 취소해 주세요."
+		status, code, message = 409, "cap", "tokens.error_cap"
 	case errors.Is(err, errAPIRate):
-		status, code, message = 429, "rate", "시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."
+		status, code, message = 429, "rate", "tokens.error_rate"
 	case errors.Is(err, errHTTPNotAllowed):
-		status, code, message = 403, "http", "HTTP에서는 API 토큰을 발급하거나 표시할 수 없습니다."
+		status, code, message = 403, "http", "tokens.api_tokens_cannot_be_issued_or_displayed"
 	case errors.Is(err, errAPIBusy):
-		status, code, message = 503, "busy", "처리 중입니다. 잠시 후 다시 시도해 주세요."
+		status, code, message = 503, "busy", "tokens.error_busy"
 	case errors.Is(err, ErrForbidden):
-		status, code, message = 403, "forbidden", "권한이 없습니다."
+		status, code, message = 403, "forbidden", "tokens.error_forbidden"
 	case errors.Is(err, ErrStorage):
-		status, code, message = 503, "storage", "저장하지 못했습니다. 취소 요청은 현재 서버에서 차단되며 다시 저장합니다."
+		status, code, message = 503, "storage", "tokens.error_revoke_storage"
 	}
 	// Never retain a password (or the form body) in the rendered page state.
 	p.showAPITokenError(w, r, session, status, message, code)

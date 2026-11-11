@@ -62,6 +62,10 @@ func TestDeviceAuthStatusGetsServerScopesWithoutStoredScopes(t *testing.T) {
 		if m["label"] == "" || m["description"] == "" {
 			t.Fatal("scope explanation missing")
 		}
+		want := map[string]string{access.MessageSend: "Send messages", access.SessionRegister: "Register and stay connected (required)"}
+		if m["label"] != want[m["scope"].(string)] {
+			t.Fatal("auth_status scope label must be English")
+		}
 	}
 }
 

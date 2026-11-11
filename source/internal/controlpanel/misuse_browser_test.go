@@ -14,7 +14,8 @@ func TestMisuseFullChrome(t *testing.T) {
 	if os.Getenv("ASB_MISUSE_BROWSER") == "" {
 		t.Skip("opt-in full Chrome")
 	}
-	_, _, h := misuseFixture(t)
+	s, _, h := misuseFixture(t)
+	useKorean(t, s)
 	server := httptest.NewServer(h)
 	defer server.Close()
 	c := loginPanelUser(t, h, "owner")

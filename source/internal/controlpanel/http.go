@@ -9,8 +9,8 @@ import (
 	"errors"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/attachments"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
-	"html/template"
 	"net/http"
 	"net/netip"
 	"net/url"
@@ -43,32 +43,21 @@ type Session struct {
 	ErrorCode       string
 }
 
+var stateReasons = map[string]string{"suspended": "session.reason.suspended", "detached": "session.reason.detached", "server-restarted": "session.reason.server-restarted", "ingress-failed": "session.reason.ingress-failed", "ingress-expired": "session.reason.ingress-expired", "probe-unanswered": "session.reason.probe-unanswered", "identity-mismatch": "session.reason.identity-mismatch"}
+
 // StateReason explains the runtime observation without changing its protocol status.
-func (s Session) StateReason() string {
+func (s Session) StateReason() i18n.Message {
 	if s.GrantID != "" {
 		if s.PendingNickname != "" {
-			return "닉네임 예약 · 변경 중인 닉네임: " + s.PendingNickname
+			return i18n.M("session.reason.reservation_pending", "nickname", s.PendingNickname)
 		}
-		return "승인된 닉네임을 예약하고 있습니다. 등록 기록이 없습니다."
+		return i18n.M("session.reason.reservation")
 	}
-	switch s.ErrorCode {
-	case "suspended":
-		return "관리자가 일시 중지했습니다. 해제 후 다시 연결할 수 있습니다."
-	case "detached":
-		return "연결 해제됨 · 다시 사용하려면 세션에서 재등록하세요."
-	case "server-restarted":
-		return "서버 재시작 · 세션의 재연결을 기다립니다."
-	case "ingress-failed":
-		return "수신 연결 실패 · 세션 연결을 확인하고 재연결하세요."
-	case "ingress-expired":
-		return "수신 연결 만료 · 등록은 유지됩니다. 세션 연결을 확인하고 재연결하세요."
-	case "probe-unanswered":
-		return "응답 없음 · 등록은 유지됩니다. 같은 세션이 재연결하면 기존 이름으로 이어집니다."
-	case "identity-mismatch":
-		return "세션 식별 확인 실패 · 등록은 유지됩니다. 세션 연결을 확인하고 재연결하세요."
-	default:
-		return s.ErrorCode
+	if key, ok := stateReasons[s.ErrorCode]; ok {
+		return i18n.M(key)
 	}
+	// An unknown code is shown as itself: a key missing from the catalog translates to the key.
+	return i18n.M(s.ErrorCode)
 }
 
 type Backend interface {
@@ -78,8 +67,6 @@ type Backend interface {
 
 //go:embed admin-api-panel.html token-scope-editor.html bug-reports.html direct-audit.html session-live.js templates.html login-return.js focus.css panel.css panel.js design.css theme.js shell.js select.css select.js tooltip.css tooltip.js switch.css tokens.css asset-manifest.json fonts/pretendard icons
 var assets embed.FS
-
-var pages = template.Must(template.New("templates.html").Funcs(template.FuncMap{"asset": assetURL, "scopeCodes": codesText}).ParseFS(assets, "admin-api-panel.html", "templates.html", "direct-audit.html", "bug-reports.html", "token-scope-editor.html"))
 
 type loginSession struct {
 	csrf     string
@@ -136,6 +123,8 @@ func profileProjects(projects []Project, userID string) []profileProject {
 }
 
 type page struct {
+	Lang                                          string // en or ko; resolved by render when empty
+	ProfileLanguage                               string
 	AdminAPIEnabled                               bool
 	AdminAPILastChange                            *ScopeIssuanceChange
 	APIHTTPRefused                                bool
@@ -403,7 +392,7 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p.adminUserAPITokensMutate(w, r, session)
-	case "/profile/save", "/profile/password":
+	case "/profile/save", "/profile/password", "/profile/language":
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -470,7 +459,8 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	v := page{ServerTime: activityTime(time.Now()), View: view, CSRF: session.csrf, User: user, Projects: nil, Error: message, IssuedToken: raw, Form: r.PostForm, CanManage: map[string]bool{}}
+	language := p.store.UserLanguage(session.userID)
+	v := page{Lang: language, ProfileLanguage: language, ServerTime: activityTime(time.Now()), View: view, CSRF: session.csrf, User: user, Projects: nil, Error: message, IssuedToken: raw, Form: r.PostForm, CanManage: map[string]bool{}}
 	if _, editing := r.Context().Value(scopeEditorKey{}).(*scopeEditorView); view == "settings" && (editing || r.URL.Query().Has("edit")) {
 		v.Projects = p.store.projectSnapshotsFor(user.ID)
 	} else {
@@ -479,7 +469,10 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 	if len(announcements) > 0 {
 		v.AnnouncementResults = announcements[0].results
 		v.AnnouncementComplete = announcements[0].complete
-		v.AnnouncementMessage = announcements[0].message
+		v.AnnouncementMessage = localText(language, announcements[0].message)
+		if !announcements[0].complete {
+			v.AnnouncementMessage = strings.TrimSpace(v.AnnouncementMessage + " " + i18n.T(language, "admin.announce.pending"))
+		}
 		for _, result := range v.AnnouncementResults {
 			if result.Accepted {
 				v.AnnouncementAccepted++
@@ -515,7 +508,7 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 	}
 
 	conflict := status == http.StatusConflict && message == settingsConflictMessage
-	if view == "profile" && (r.Method == http.MethodGet || r.URL.Path == "/profile/password" || strings.HasPrefix(r.URL.Path, "/profile/api-tokens") || conflict) {
+	if view == "profile" && (r.Method == http.MethodGet || r.URL.Path == "/profile/password" || r.URL.Path == "/profile/language" || strings.HasPrefix(r.URL.Path, "/profile/api-tokens") || conflict) {
 		v.Form = url.Values{"displayName": {user.DisplayName}, "email": {user.Email}}
 	}
 	if view == "admin-settings" {
@@ -606,7 +599,7 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 		if view == "settings" {
 			sessions, err := p.projectSessions(r, project)
 			if err != nil && v.Error == "" {
-				v.Error = projectDataNoticeMessage(err, "세션 정보를 불러오지 못했습니다. 토큰 상태는 등록 이력으로만 표시합니다.")
+				v.Error = projectDataNoticeMessage(err, "error.sessions_unavailable_tokens")
 			}
 			v.ProjectTokens = projectTokenViews(v.Selected.Tokens, sessions, func(token SessionToken) bool { return v.CanEdit || token.OwnerID == user.ID })
 			editor, editorStatus, editorErr := p.scopeEditorForRequest(r, session, project)
@@ -639,13 +632,13 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 			var err error
 			v.Sessions, err = p.projectSessions(r, project)
 			if err != nil {
-				v.Error = projectDataNoticeMessage(err, "세션 정보를 불러오지 못했습니다.")
+				v.Error = projectDataNoticeMessage(err, "error.sessions_unavailable")
 			}
 			// Do not infer absence from a failed backend listing.
 			if err == nil {
 				reserved, reserveErr := p.store.reservedSessionGrants(project, v.Sessions)
 				if reserveErr != nil {
-					v.Error = "닉네임 예약 정보를 불러오지 못했습니다."
+					v.Error = "error.reservations_unavailable"
 				} else {
 					v.Sessions = append(v.Sessions, reserved...)
 				}
@@ -677,7 +670,7 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 		v.IssuedToken = p.takeIssuedToken(r, session, project)
 	}
 	if v.IssuedToken != "" {
-		v.Success = "토큰을 발급했습니다. 아래 값을 복사해 보관해 주세요."
+		v.Success = "notice.token_issued"
 	}
 	var attachmentVersion string
 	var attachmentLast *attachmentSetting
@@ -698,7 +691,7 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 		"admin-api":   adminAPIVersion,
 		"project":     projectSettingsVersion(v.Selected),
 		"user":        userSettingsVersion(v.SelectedUser),
-		"profile":     profileSettingsVersion(v.User),
+		"profile":     profileSettingsVersion(v.User, v.ProfileLanguage),
 		"http":        policySettingsVersion("http-policy", v.AllowHTTP),
 		"scope":       policySettingsVersion("scope-issuance", v.ScopeIssuanceReady),
 		"attachments": attachmentVersion,
@@ -713,7 +706,7 @@ func (p *panel) show(w http.ResponseWriter, r *http.Request, session loginSessio
 	}
 	v.CreateOpen = view == "projects" && status >= 400
 	v.MemberAddOpen = view == "settings" && status >= 400 && r.URL.Path == "/projects/members" && r.PostForm.Get("action") == "add"
-	p.render(w, status, v)
+	p.render(w, r, status, v)
 }
 
 // projectSessions reads the backend under the project operation lease so a
@@ -779,7 +772,7 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 	case "/projects/create":
 		name := r.PostForm.Get("name")
 		if err := p.store.CreateProjectFor(actor, name); err != nil {
-			fail(err, "프로젝트를 추가하지 못했습니다. 이름 형식이나 중복을 확인해 주세요.")
+			fail(err, "error.project_create")
 			return
 		}
 		p.redirectNotice(w, r, projectURL("settings", name), "project-created")
@@ -789,7 +782,7 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 			mode = "token"
 		}
 		if err := p.store.SaveProjectFor(actor, project, mode, r.PostForm.Get("enabled") == "true", r.PostForm["settings_version"]...); err != nil {
-			fail(err, "프로젝트 설정을 저장하지 못했습니다.")
+			fail(err, "error.project_save")
 			return
 		}
 		p.redirectNotice(w, r, projectURL("settings", project), "project-saved")
@@ -801,7 +794,7 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 		}
 		changed, err := p.store.changeProjectMember(actor, project, r.PostForm.Get("username"), role, action)
 		if err != nil {
-			fail(err, "멤버 권한을 저장하지 못했습니다. 사용자 이름을 확인하고 마지막 활성 Owner를 유지해 주세요.")
+			fail(err, "error.members_save")
 			return
 		}
 		target := projectURL("settings", project)
@@ -822,18 +815,18 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 		// Older forms and scripted clients omit the optional submission token.
 		// A present field, including an empty one, must still be single-use.
 		if values, present := r.PostForm["issuance_token"]; present && (len(values) != 1 || !p.takeTokenSubmission(session, project, values[0])) {
-			p.show(w, r, session, "settings", project, http.StatusConflict, "발급 양식이 만료되었거나 이미 사용되었습니다. 내용을 확인한 뒤 다시 발급해 주세요.", "")
+			p.show(w, r, session, "settings", project, http.StatusConflict, "error.token_form_expired", "")
 			return
 		}
 		raw, err := p.store.IssueProjectTokenWithOptionsFor(actor, project, r.PostForm.Get("label"), options)
 		if err != nil {
-			fail(err, "프로젝트 토큰을 발급하지 못했습니다. 토큰 인증 설정과 발급 권한, 표시 이름 형식을 확인해 주세요.")
+			fail(err, "error.token_issue")
 			return
 		}
 		p.redirectIssuedToken(w, r, session, project, raw)
 	case "/tokens/revoke":
 		if err := p.store.RevokeTokenFor(actor, project, r.PostForm.Get("id")); err != nil {
-			fail(err, "토큰을 취소하지 못했습니다.")
+			fail(err, "error.token_revoke")
 			return
 		}
 		p.redirectNotice(w, r, projectURL("settings", project), "token-revoked")
@@ -846,14 +839,14 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 			} else if errors.As(err, &failure) {
 				fail(failure.cause, failure.message)
 			} else {
-				fail(err, "올바른 세션을 선택해 주세요.")
+				fail(err, "error.session_select")
 			}
 			return
 		}
 		p.redirectNotice(w, r, projectURL("sessions", project), notice)
 	case "/admin/users/create":
 		if err := p.store.CreateUser(actor, r.PostForm.Get("username"), r.PostForm.Get("password"), r.PostForm.Get("role")); err != nil {
-			fail(err, "사용자를 추가하지 못했습니다. 아이디 중복·형식과 비밀번호 길이를 확인해 주세요.")
+			fail(err, "error.user_create")
 			return
 		}
 		p.redirectNotice(w, r, "/admin/users", "user-created")
@@ -871,11 +864,11 @@ func (p *panel) mutate(w http.ResponseWriter, r *http.Request, session loginSess
 		// Both empty keeps the password; anything else must match before
 		// anything is saved. equal treats an empty first value as unequal.
 		if password, confirm := r.PostForm.Get("password"), r.PostForm.Get("password_confirm"); (password != "" || confirm != "") && !equal(password, confirm) {
-			fail(ErrInvalid, "새 비밀번호와 확인이 일치하지 않습니다.")
+			fail(ErrInvalid, "error.new_password_mismatch")
 			return
 		}
 		if err := p.store.UpdateUser(actor, r.PostForm.Get("id"), r.PostForm.Get("role"), r.PostForm.Get("enabled") == "true", r.PostForm.Get("password"), r.PostForm["settings_version"]...); err != nil {
-			fail(err, "사용자를 변경하지 못했습니다. 고정 admin과 마지막 활성 Owner는 유지해야 합니다.")
+			fail(err, "error.user_save")
 			return
 		}
 		if updated, ok := p.store.User(actor); !ok || !updated.Enabled || updated.Revision != session.revision {
@@ -1080,7 +1073,7 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 		v.Success = p.takeNotice(w, r)
 		v.CSRF = rand.Text()
 		http.SetCookie(w, &http.Cookie{Name: "asb_form", Value: v.CSRF, Path: "/", MaxAge: 600, HttpOnly: true, Secure: p.secure(r), SameSite: http.SameSiteStrictMode})
-		p.render(w, 200, v)
+		p.render(w, r, 200, v)
 		return
 	}
 	cookie, err := r.Cookie("asb_form")
@@ -1090,7 +1083,7 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 	}
 	v.CSRF = cookie.Value
 	if !p.allowAttempt() {
-		http.Error(w, "잠시 후 다시 시도해 주세요.", http.StatusTooManyRequests)
+		http.Error(w, i18n.T(p.requestLanguage(r, ""), "error.rate_limited"), http.StatusTooManyRequests)
 		return
 	}
 	password := r.PostForm.Get("password")
@@ -1103,11 +1096,11 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 			case errors.Is(err, ErrAlreadySetup):
 				http.Error(w, "administrator already configured", http.StatusConflict)
 			case errors.Is(err, ErrSetupCode):
-				v.Error = "설정 코드가 맞지 않습니다. 서버 데이터 폴더의 control/setup-code 파일을 확인해 주세요."
-				p.render(w, http.StatusForbidden, v)
+				v.Error = "error.setup_code"
+				p.render(w, r, http.StatusForbidden, v)
 			default:
-				v.Error = "비밀번호는 12~1024바이트여야 하며 설정을 저장할 수 있어야 합니다."
-				p.render(w, http.StatusBadRequest, v)
+				v.Error = "error.setup_password"
+				p.render(w, r, http.StatusBadRequest, v)
 			}
 		}
 		if err := p.store.checkSetupCode(setupCode); err != nil {
@@ -1115,8 +1108,8 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !equal(password, r.PostForm.Get("confirmPassword")) {
-			v.Error = "비밀번호와 비밀번호 확인을 동일하게 입력해 주세요."
-			p.render(w, http.StatusBadRequest, v)
+			v.Error = "error.password_mismatch"
+			p.render(w, r, http.StatusBadRequest, v)
 			return
 		}
 		if err := p.store.SetupWithCode(setupCode, password); err != nil {
@@ -1128,8 +1121,8 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 	}
 	user, authenticated := p.store.AuthenticateUser(r.PostForm.Get("username"), password)
 	if !authenticated {
-		v.Error = "아이디 또는 비밀번호를 확인해 주세요."
-		p.render(w, 401, v)
+		v.Error = "error.sign_in"
+		p.render(w, r, 401, v)
 		return
 	}
 	token := rand.Text() + rand.Text()
@@ -1147,6 +1140,7 @@ func (p *panel) access(w http.ResponseWriter, r *http.Request) {
 	p.sessions[digest(token)] = loginSession{csrf: rand.Text(), expires: time.Now().Add(8 * time.Hour), userID: user.ID, revision: user.Revision}
 	p.mu.Unlock()
 	http.SetCookie(w, &http.Cookie{Name: "asb_admin", Value: token, Path: "/", MaxAge: 8 * 3600, HttpOnly: true, Secure: p.secure(r), SameSite: http.SameSiteStrictMode})
+	p.setLanguageCookie(w, r, p.store.UserLanguage(user.ID))
 	next := v.LoginNext
 	if next == "" {
 		next = "/"
@@ -1168,15 +1162,23 @@ func (p *panel) allowAttempt() bool {
 	return true
 }
 
-func (p *panel) render(w http.ResponseWriter, status int, v page) {
+func (p *panel) render(w http.ResponseWriter, r *http.Request, status int, v page) {
 	v.Version = p.version
+	if i18n.Normalize(v.Lang) == "" {
+		v.Lang = p.requestLanguage(r, v.User.ID)
+	}
 	render(w, status, v)
 }
 
 func render(w http.ResponseWriter, status int, v page) {
+	set := pageSets[v.Lang]
+	if set == nil {
+		v.Lang, set = i18n.English, pages
+	}
+	v.Error, v.Success = localText(v.Lang, v.Error), localText(v.Lang, v.Success)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	_ = pages.ExecuteTemplate(w, "page", v)
+	_ = set.ExecuteTemplate(w, "page", v)
 }
 
 func (p *panel) writeChangedAuthorizationForRequest(w http.ResponseWriter, r *http.Request, project, token string) {

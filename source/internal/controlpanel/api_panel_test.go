@@ -275,7 +275,7 @@ func TestPanelAPITokenSeparatePages(t *testing.T) {
 		t.Fatal("registration form missing")
 	}
 	for _, page := range []*httptest.ResponseRecorder{profile, list, registration} {
-		if !strings.Contains(page.Body.String(), `aria-label="내 프로필 메뉴"`) {
+		if !strings.Contains(page.Body.String(), `aria-label="`+en("profile.my_profile_menu")+`"`) {
 			t.Fatal("profile submenu missing")
 		}
 	}

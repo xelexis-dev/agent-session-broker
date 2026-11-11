@@ -130,7 +130,7 @@ func TestUserDetailSaveRedirectAndSessionInvalidation(t *testing.T) {
 	// Render the PRG destination with the actual one-time notice cookie.
 	response := httptest.NewRecorder()
 	h.ServeHTTP(response, req)
-	if !strings.Contains(response.Body.String(), "사용자 정보를 저장했습니다.") {
+	if !strings.Contains(response.Body.String(), en("notice.user-saved")) {
 		t.Error("detail success feedback missing")
 	}
 	alice = loginPanelUser(t, h, "alice")
@@ -216,9 +216,9 @@ func TestUserDetailConfirmFieldAndActiveSwitch(t *testing.T) {
 	_, _, admin := userDetailFixture(t)
 	body := admin.call("GET", "/admin/users/detail?id=alice", nil).Body.String()
 	for _, want := range []string{
-		`<input type="password" name="password_confirm" aria-label="alice 새 비밀번호 확인" minlength="12" maxlength="1024" autocomplete="new-password"`,
-		`<input type="checkbox" name="enabled" value="true" class="switch__input" role="switch" aria-label="alice 계정 활성" checked`,
-		`<span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span><span class="switch__label">계정 활성</span><span class="switch__state" aria-hidden="true"><span class="switch__on">켜짐</span><span class="switch__off">꺼짐</span></span>`,
+		`<input type="password" name="password_confirm" aria-label="` + en("admin.users.confirm_password_for", "name", "alice") + `" minlength="12" maxlength="1024" autocomplete="new-password"`,
+		`<input type="checkbox" name="enabled" value="true" class="switch__input" role="switch" aria-label="` + en("admin.users.account_enabled_for", "name", "alice") + `" checked`,
+		`<span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span><span class="switch__label">` + en("admin.users.account_enabled") + `</span><span class="switch__state" aria-hidden="true"><span class="switch__on">` + en("admin.switch_on") + `</span><span class="switch__off">` + en("admin.switch_off") + `</span></span>`,
 		`<link rel="stylesheet" href="/assets/switch.css?v=`,
 	} {
 		if !strings.Contains(body, want) {

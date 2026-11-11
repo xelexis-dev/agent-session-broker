@@ -26,7 +26,7 @@ func TestProfileHTTPReadAndSelfUpdate(t *testing.T) {
 	if profile.Code != 200 || !strings.Contains(profile.Body.String(), `action="/profile/save"`) || !strings.Contains(profile.Body.String(), `action="/profile/password"`) {
 		t.Fatal("profile forms missing")
 	}
-	for _, markup := range []string{`<div class="profile-layout">`, `<aside class="profile-account" aria-label="계정">`, `<div class="profile-forms profile-content">`, `<div class="profile-full profile-actions"><button class="primary">저장</button></div>`, `<div class="profile-full profile-actions"><button class="primary">비밀번호 변경</button></div>`, `<p class="profile-name">viewer</p><p class="profile-meta">사용자</p>`, `</label><small id="display-name-help">`, `</label><small id="profile-password-help">`} {
+	for _, markup := range []string{`<div class="profile-layout">`, ("<aside class=\"profile-account\" aria-label=\"" + en("profile.account") + "\">"), `<div class="profile-forms profile-content">`, ("<div class=\"profile-full profile-actions\"><button class=\"primary\">" + en("profile.save") + "</button></div>"), ("<div class=\"profile-full profile-actions\"><button class=\"primary\">" + en("profile.change_password") + "</button></div>"), ("<p class=\"profile-name\">viewer</p><p class=\"profile-meta\">" + en("tokens.user") + "</p>"), `</label><small id="display-name-help">`, `</label><small id="profile-password-help">`} {
 		if !strings.Contains(profile.Body.String(), markup) {
 			t.Fatalf("profile layout missing: %s", markup)
 		}
@@ -45,7 +45,7 @@ func TestProfileHTTPReadAndSelfUpdate(t *testing.T) {
 	if after.DisplayName != "표시 이름" || after.Email != "viewer@example.test" || after.ID != before.ID || after.Role != before.Role || after.Revision != before.Revision {
 		t.Fatal("incorrect profile change")
 	}
-	if got := c.call("GET", "/profile", nil); got.Code != 200 || (!strings.Contains(got.Body.String(), "viewer@example.test") || !strings.Contains(got.Body.String(), `<p class="profile-name">표시 이름</p><p class="profile-meta">viewer · 사용자</p>`)) {
+	if got := c.call("GET", "/profile", nil); got.Code != 200 || (!strings.Contains(got.Body.String(), "viewer@example.test") || !strings.Contains(got.Body.String(), `<p class="profile-name">표시 이름</p><p class="profile-meta">viewer · `+en("tokens.user")+`</p>`)) {
 		t.Fatal("saved profile not visible")
 	}
 }
@@ -61,10 +61,10 @@ func TestProfileHTTPProjectRolesRespectMembership(t *testing.T) {
 			c := loginPanelUser(t, h, user)
 			profile := c.call("GET", "/profile", nil)
 			body := profile.Body.String()
-			if profile.Code != 200 || !strings.Contains(body, `href="/projects/settings?project=demo"`) || !strings.Contains(body, `소속 프로젝트 <span class="profile-count">1</span>`) {
+			if profile.Code != 200 || !strings.Contains(body, `href="/projects/settings?project=demo"`) || !strings.Contains(body, en("profile.project_memberships")+` <span class="profile-count">1</span>`) {
 				t.Fatal("own project role or access link missing")
 			}
-			if !strings.Contains(body, `<li><a class="profile-project" href="/projects/settings?project=demo"><span class="profile-project__name">demo</span><span class="profile-role" data-role="`+role+`">`+role+`</span><span class="icon icon--arrow-right" aria-hidden="true"></span></a></li>`) || strings.Contains(body, "프로젝트 설정 보기") || strings.Contains(body, "profile-roles") || strings.Contains(body, "<dt>"+role) {
+			if !strings.Contains(body, `<li><a class="profile-project" href="/projects/settings?project=demo"><span class="profile-project__name">demo</span><span class="profile-role" data-role="`+role+`">`+role+`</span><span class="icon icon--arrow-right" aria-hidden="true"></span></a></li>`) || (strings.Contains(body, "View project settings") || strings.Contains(body, "프로젝트 설정 보기")) || strings.Contains(body, "profile-roles") || strings.Contains(body, "<dt>"+role) {
 				t.Fatal("profile project item structure missing")
 			}
 			if strings.Contains(body, "private-project") {

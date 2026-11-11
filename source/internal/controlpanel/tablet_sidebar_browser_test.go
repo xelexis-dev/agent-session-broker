@@ -15,6 +15,7 @@ func TestTabletSidebarFullChrome(t *testing.T) {
 		t.Skip("opt-in synthetic tablet sidebar Chrome check")
 	}
 	s := userStore(t)
+	useKorean(t, s)
 	if err := s.CreateProjectFor("admin", "tablet-demo"); err != nil {
 		t.Fatal("project fixture")
 	}

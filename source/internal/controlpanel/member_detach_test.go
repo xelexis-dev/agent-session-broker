@@ -149,7 +149,7 @@ func TestRevokedTokenSessionManagementUsesCurrentMemberRole(t *testing.T) {
 						t.Fatalf("%s button=%v, want%v", action, got, tc.allowed)
 					}
 				}
-				if tc.target == "owned" && !strings.Contains(row, `class="cell-account mono" data-label="계정">developer`) {
+				if tc.target == "owned" && !strings.Contains(row, `class="cell-account mono" data-label="`+en("sessions.col_account")+`">developer`) {
 					t.Fatal("revocation hid registered account")
 				}
 			}
@@ -347,7 +347,7 @@ func TestRecordedRegistrationOwnerSurvives31DayGrantSweep(t *testing.T) {
 		if strings.Contains(row, `action="/sessions/detach"`) != (tc.want == 303) {
 			t.Fatal("fallback button disagrees with POST")
 		}
-		if !strings.Contains(row, `data-label="계정">developer`) {
+		if !strings.Contains(row, `data-label="`+en("sessions.col_account")+`">developer`) {
 			t.Fatal("fallback owner account missing")
 		}
 		w := c.call("POST", "/sessions/detach", url.Values{"project": {"demo"}, "id": {"owned"}})
@@ -385,15 +385,15 @@ func TestRecordedOwnerFallbackHonorsCurrentRoleAndLatestGrant(t *testing.T) {
 			if f.store.SessionOwners("demo", b.sessions...)[identity] != "developer" {
 				t.Fatal("fallback account hidden")
 			}
-			rows, _, err := f.store.liveSessionRows("owner", "demo", b.sessions)
+			rows, _, err := f.store.liveSessionRows("owner", "demo", "en", b.sessions)
 			if err != nil || len(rows) == 0 {
 				t.Fatal("live snapshot failed", err)
 			}
-			if _, _, err := f.store.liveSessionRows("developer", "demo", b.sessions); role == "" && err == nil {
+			if _, _, err := f.store.liveSessionRows("developer", "demo", "en", b.sessions); role == "" && err == nil {
 				t.Fatal("removed member live status allowed")
 			}
 			if role == "developer" {
-				rows, _, err = f.store.liveSessionRows("developer", "demo", b.sessions)
+				rows, _, err = f.store.liveSessionRows("developer", "demo", "en", b.sessions)
 				if err != nil || !rows[0].CanManage {
 					t.Fatal("live fallback denied")
 				}

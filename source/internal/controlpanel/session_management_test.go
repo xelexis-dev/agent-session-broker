@@ -16,7 +16,7 @@ func TestSessionManagementAuditProjectionAndReload(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	view, err := s.directAuditViewFor("admin", "demo")
+	view, err := s.directAuditViewFor("admin", "demo", "en")
 	if err != nil || len(view.Rows) != 3 {
 		t.Fatal("audit projection", err)
 	}
@@ -26,12 +26,12 @@ func TestSessionManagementAuditProjectionAndReload(t *testing.T) {
 		}
 		wantActor := "manager"
 		if row.Kind == "suspended" {
-			wantActor = "관리 화면"
+			wantActor = en("audit.panel")
 		}
-		if row.Reason != "실행: "+wantActor {
+		if row.Reason != en("audit.by", "actor", wantActor) {
 			t.Fatal("actor reason missing")
 		}
-		if row.Event != map[string]string{"detached": "연결 해제", "suspended": "일시 중지", "unsuspended": "재개"}[row.Kind] {
+		if row.Event != map[string]string{"detached": en("audit.event.detached"), "suspended": en("audit.event.suspended"), "unsuspended": en("audit.event.unsuspended")}[row.Kind] {
 			t.Fatal("kind label missing")
 		}
 	}
@@ -55,7 +55,7 @@ func TestSessionManagementAuditProjectionAndReload(t *testing.T) {
 		}
 	}
 	reopened.data.ScopeIssuanceReady = false
-	gated, err := reopened.directAuditViewFor("admin", "demo")
+	gated, err := reopened.directAuditViewFor("admin", "demo", "en")
 	if err != nil || gated.Enabled || len(gated.Rows) != 0 {
 		t.Fatal("audit enable gate changed")
 	}

@@ -22,7 +22,7 @@ func TestGenerationHistoryAdminAuditUnknown(t *testing.T) {
 	h := New(s, tokenViewBackend{}, http.NotFoundHandler())
 	c := loginPanelUser(t, h, "admin")
 	w := c.call("GET", "/projects/audit?project=demo&bucket=history", nil)
-	if w.Code != 200 || !strings.Contains(w.Body.String(), "historic-worker") || !strings.Contains(w.Body.String(), "이전 기록(세대 불명)") {
+	if w.Code != 200 || !strings.Contains(w.Body.String(), "historic-worker") || !strings.Contains(w.Body.String(), enHTML("history.label_unknown")) {
 		t.Fatalf("admin cannot view unknown audit separately: status=%d", w.Code)
 	}
 }
@@ -83,9 +83,9 @@ func TestGenerationHistoryNoticesAndCurrentIsolation(t *testing.T) {
 		kinds  []string
 		notice string
 	}{
-		{"unknown", []string{"unknown"}, historyUnknownNotice},
-		{"previous", []string{"previous"}, historyPreviousNotice},
-		{"mixed", []string{"unknown", "previous"}, historyMixedNotice},
+		{"unknown", []string{"unknown"}, enHTML("history.notice_unknown")},
+		{"previous", []string{"previous"}, enHTML("history.notice_previous")},
+		{"mixed", []string{"unknown", "previous"}, enHTML("history.notice_mixed")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			kinds := append([]string{"current"}, tc.kinds...)
@@ -98,9 +98,9 @@ func TestGenerationHistoryNoticesAndCurrentIsolation(t *testing.T) {
 					t.Fatalf("%s: history isolation/notice status=%d", path, w.Code)
 				}
 				for _, kind := range tc.kinds {
-					label := "이전 세대"
+					label := enHTML("history.label_previous")
 					if kind == "unknown" {
-						label = "이전 기록(세대 불명)"
+						label = enHTML("history.label_unknown")
 					}
 					if !strings.Contains(body, label) {
 						t.Fatal("row label missing")
@@ -126,7 +126,7 @@ func TestGenerationHistoryNoticesAndCurrentIsolation(t *testing.T) {
 func TestGenerationHistoryDetailReadOnlyAndAccess(t *testing.T) {
 	s, reports, h := generationHistoryFixture(t, []string{"current", "unknown", "previous"})
 	admin := loginPanelUser(t, h, "admin")
-	for _, tc := range []struct{ id, bucket, notice string }{{"bug-unknown-001", "unknown", historyUnknownNotice}, {"bug-previous-002", "previous", historyPreviousNotice}} {
+	for _, tc := range []struct{ id, bucket, notice string }{{"bug-unknown-001", "unknown", enHTML("history.notice_unknown")}, {"bug-previous-002", "previous", enHTML("history.notice_previous")}} {
 		path := "/admin/bug-reports/detail?id=" + tc.id + "&bucket=" + tc.bucket + "&status=all&page=2&severity=critical"
 		w := admin.call("GET", path, nil)
 		body := w.Body.String()
@@ -192,11 +192,11 @@ func TestGenerationHistoryQueriesPagingAndAuditJoin(t *testing.T) {
 	}
 	w := c.call("GET", "/admin/bug-reports?bucket=history&status=all&severity=critical&page=99", nil)
 	body := w.Body.String()
-	if w.Code != 200 || !strings.Contains(body, "총 51건") || !strings.Contains(body, "2 / 2") || !strings.Contains(body, "bucket=history&amp;page=1&amp;severity=critical&amp;status=all") {
+	if w.Code != 200 || !strings.Contains(body, en("bug.total", "n", 51)) || !strings.Contains(body, "2 / 2") || !strings.Contains(body, "bucket=history&amp;page=1&amp;severity=critical&amp;status=all") {
 		t.Fatal("history count/clamp/filter links failed")
 	}
 	empty := c.call("GET", "/admin/bug-reports?bucket=history&severity=low", nil).Body.String()
-	if !strings.Contains(empty, `href="/admin/bug-reports?bucket=history&amp;page=1&amp;status=open">필터 초기화`) || strings.Contains(empty, historyUnknownNotice) {
+	if !strings.Contains(empty, `href="/admin/bug-reports?bucket=history&amp;page=1&amp;status=open">`+en("bug.reset_filters")) || strings.Contains(empty, enHTML("history.notice_unknown")) {
 		t.Fatal("empty history reset/notice failed")
 	}
 	if c.call("GET", "/admin/bug-reports?bucket=previous", nil).Code != 200 {
@@ -212,7 +212,7 @@ func TestGenerationHistoryQueriesPagingAndAuditJoin(t *testing.T) {
 	s.data.ScopeIssuanceReady = false
 	s.mu.Unlock()
 	body = c.call("GET", "/projects/audit?project=demo&bucket=history", nil).Body.String()
-	if !strings.Contains(body, "이전 기록(세대 불명)") || strings.Contains(body, "CURRENT-PRIVATE-LABEL") {
+	if !strings.Contains(body, enHTML("history.label_unknown")) || strings.Contains(body, "CURRENT-PRIVATE-LABEL") {
 		t.Fatal("old audit joined current tokens or blocked by issuance gate")
 	}
 	s.mu.Lock()

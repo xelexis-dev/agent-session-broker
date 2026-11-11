@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
+	"syscall"
 	"testing"
 )
 
@@ -161,13 +163,37 @@ func TestReleaseBackupRestoreBoundaries(t *testing.T) {
 					t.Fatal("fixture-write")
 				}
 			case "link":
-				if os.Symlink(source, filepath.Join(root, "link")) != nil {
-					t.Fatal("fixture-symlink")
+				if err := os.Symlink(source, filepath.Join(root, "link")); err != nil {
+					if releaseSymlinkPrivilegeMissing(runtime.GOOS, err) {
+						t.Skip("Windows symlink creation requires Developer Mode or the symbolic-link privilege")
+					}
+					t.Fatalf("fixture-symlink: %v", err)
 				}
 			}
 			if releaseRestore(root, filepath.Join(t.TempDir(), "restore"), manifest) == nil {
 				t.Fatal("altered-backup-accepted")
 			}
 		})
+	}
+}
+
+func releaseSymlinkPrivilegeMissing(goos string, err error) bool {
+	// ERROR_PRIVILEGE_NOT_HELD is specific; generic permission and I/O failures remain failures.
+	return goos == "windows" && errors.Is(err, syscall.Errno(1314))
+}
+func TestReleaseSymlinkPrivilegeMissing(t *testing.T) {
+	for _, tc := range []struct {
+		goos string
+		err  error
+		want bool
+	}{
+		{"windows", &os.LinkError{Op: "symlink", Old: "source", New: "link", Err: syscall.Errno(1314)}, true},
+		{"windows", syscall.EPERM, false}, {"windows", syscall.EACCES, false},
+		{"windows", os.ErrNotExist, false}, {"windows", nil, false},
+		{"darwin", syscall.Errno(1314), false}, {"darwin", syscall.EPERM, false},
+	} {
+		if got := releaseSymlinkPrivilegeMissing(tc.goos, tc.err); got != tc.want {
+			t.Errorf("%s %v: skip=%v want=%v", tc.goos, tc.err, got, tc.want)
+		}
 	}
 }

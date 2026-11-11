@@ -100,6 +100,7 @@ func OpenSQLite(directory string) (*Store, error) {
 	if err := s.loadAuditRecords(database); err != nil {
 		return fail()
 	}
+	s.loadLanguages(records)
 	if err := s.migrateControlState(); err != nil {
 		return fail()
 	}

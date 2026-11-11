@@ -155,7 +155,7 @@ func TestTokenCapHTTPExplainsIssueAndApprovalLimit(t *testing.T) {
 		{"/auth/code", url.Values{"action": {"approve"}, "code": {code.UserCode}, "nickname": {"blocked"}}, http.StatusConflict},
 	} {
 		w := owner.call("POST", tc.path, tc.form)
-		if w.Code != tc.status || !strings.Contains(w.Body.String(), "256") || !strings.Contains(w.Body.String(), "오래된 세션을 해제") {
+		if w.Code != tc.status || !strings.Contains(w.Body.String(), "256") || !strings.Contains(w.Body.String(), en("error.token_cap")) {
 			t.Fatalf("%s: missing cap guidance, status=%d", tc.path, w.Code)
 		}
 	}

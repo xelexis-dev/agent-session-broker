@@ -12,7 +12,7 @@ import (
 	"github.com/xelexis-dev/agent-session-broker/source/internal/sqlitestore"
 )
 
-var ErrDeleteIncomplete = errors.New("리포트는 삭제했지만 삭제 기록을 완료로 저장하지 못했습니다")
+var ErrDeleteIncomplete = errors.New("report deleted, but its deletion record was not saved as complete")
 
 type reportDatabase interface {
 	Get(string) ([]byte, error)

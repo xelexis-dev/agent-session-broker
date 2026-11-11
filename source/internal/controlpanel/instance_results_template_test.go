@@ -23,16 +23,16 @@ func TestInstanceResultsTemplateLabelsAndSummary(t *testing.T) {
 			}
 			body := out.String()
 			if tc.complete {
-				for _, text := range []string{`aria-labelledby="instance-results-title"`, `id="instance-results-title"`, `<td colspan="3">대상 세션이 없습니다.</td>`} {
+				for _, text := range []string{`aria-labelledby="instance-results-title"`, `id="instance-results-title"`, `<td colspan="3">` + en("admin.announce.no_targets") + `</td>`} {
 					if !strings.Contains(body, text) {
 						t.Fatalf("missing result markup %s", text)
 					}
 				}
-				if strings.Count(body, "접수 10개 · 실패 2개") != 1 {
+				if strings.Count(body, en("admin.announce.counts", "accepted", 10, "failed", 2)) != 1 {
 					t.Fatal("result counts must render exactly once")
 				}
 			} else if tc.message != "" {
-				if !strings.Contains(body, `aria-label="공지 접수 결과"`) || strings.Contains(body, `aria-labelledby="instance-results-title"`) {
+				if !strings.Contains(body, `aria-label="`+en("admin.announce.results_aria")+`"`) || strings.Contains(body, `aria-labelledby="instance-results-title"`) {
 					t.Fatal("message-only accessible label missing or dangling")
 				}
 			} else if strings.Contains(body, `class="card instance-results"`) {

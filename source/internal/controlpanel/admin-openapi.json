@@ -5558,6 +5558,13 @@
           },
           "version": {
             "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ko"
+            ]
           }
         },
         "additionalProperties": false,
@@ -5568,7 +5575,8 @@
           "email",
           "role",
           "enabled",
-          "version"
+          "version",
+          "language"
         ]
       },
       "profile": {
@@ -5582,6 +5590,13 @@
           },
           "version": {
             "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ko"
+            ]
           }
         },
         "additionalProperties": false

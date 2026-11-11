@@ -130,11 +130,11 @@ func (p *panel) deleteProject(w http.ResponseWriter, r *http.Request, session lo
 	case errors.Is(err, errProjectDeleteInterrupted):
 		http.Error(w, "project deletion interrupted", http.StatusServiceUnavailable)
 	case errors.Is(err, errProjectDeletePending):
-		p.show(w, r, session, "settings", name, 503, "삭제 대기: 데이터를 모두 삭제하지 못했습니다. 이름을 확인하여 다시 시도해 주세요.", "")
+		p.show(w, r, session, "settings", name, 503, "projects.error_delete_pending", "")
 	case errors.Is(err, ErrForbidden):
 		http.Error(w, "forbidden", http.StatusForbidden)
 	case errors.Is(err, ErrInvalid):
-		p.show(w, r, session, "settings", name, 400, "프로젝트 이름을 정확히 입력해 주세요.", "")
+		p.show(w, r, session, "settings", name, 400, "projects.error_confirm_name", "")
 	default:
 		http.Error(w, "project deletion unavailable", http.StatusServiceUnavailable)
 	}

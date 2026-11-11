@@ -1,327 +1,331 @@
-# 업그레이드 경로
+English | [한국어](UPGRADE_PATH.ko.md)
 
-## 현재 배포 경로
+# Upgrade paths
 
-새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
+## Current distribution
 
+New GitHub Releases provide four server executables plus LICENSE and THIRD_PARTY_NOTICES (six assets). On Windows, macOS and Linux, check the published client version with `npm view @xelexis/x-broker version`, prepare it with `npx -y @xelexis/x-broker@<version> --version`, then reconnect MCP. Keep existing client state and credentials. Server-only releases may skip npm publication. Existing Releases and client downloads through 0.14.0 remain available; executable instructions below describe the distribution method used at the time.
 
-이 안내는 **1.0.4까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
+This guide covers updates and data migration **through 1.1.0**. See the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for replacing executables and [public releases](https://github.com/xelexis-dev/agent-session-broker/releases) for files and changes. Files for 1.0.2 and earlier remain in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). Docker images older than 1.0.3 are no longer available; use server executables when upgrading through or restoring those versions.
 
-0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+0.20.0 published only an npm client, with no server Release. Release candidates containing both server and client start at 0.20.1.
+
+## 1.0.4 → 1.1.0
+
+The control panel is available in English and Korean. Each account chooses its language in My profile. English is the default, so existing accounts start in English. Pages before sign-in follow the language last used in the browser (the `asb_lang` cookie), and English without it. Agent-facing text is English: MCP tool descriptions and results, Management API errors, client diagnostics and command-line output. Machine codes are unchanged. Clients 0.17.3 and later keep working with the 1.1.0 server; client 1.1.0 carries the English agent-facing text. The server adds one language setting per account and does not change the format of existing data. Upgrade the client to `@xelexis/x-broker@1.1.0`, stop the server and back up all data, replace the server with 1.1.0 (Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.1.0`), then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.0.4 server.
 
 ## 1.0.3 → 1.0.4
 
-동작과 데이터 형식은 1.0.3과 같습니다. 1.0.4부터 Docker 이미지 이름이 `ghcr.io/xelexis-dev/agent-session-broker`로 바뀝니다. 이전 이름 `ghcr.io/xelexis-dev/agent-session-broker-deploy`는 폐기되어 삭제됩니다. 1.0.3은 `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`으로도 받을 수 있지만 그보다 오래된 이미지는 더 이상 제공하지 않습니다. 이전 버전의 서버 실행파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)의 Release에 그대로 있습니다. Docker Compose를 쓰면 `compose.yaml`의 `image:`를 `ghcr.io/xelexis-dev/agent-session-broker:1.0.4`로 직접 바꾸세요. `BROKER_IMAGE` 환경 변수로 image를 지정했다면 그 값도 바꿉니다. 1.0.3 image는 새 이름에도 같은 digest로 있으므로 이름만 먼저 바꾸고 버전은 나중에 올려도 됩니다. 실행파일로 운영하면 image 변경은 없습니다. 클라이언트 1.0.4는 버전만 바뀐 갱신이며 동작은 같습니다. 클라이언트를 `@xelexis/x-broker@1.0.4`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.4로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.0.3 서버를 함께 복원하는 방법만 지원합니다.
+Behavior and data formats are unchanged from 1.0.3. From 1.0.4 the Docker image is named `ghcr.io/xelexis-dev/agent-session-broker`. The old name, `ghcr.io/xelexis-dev/agent-session-broker-deploy`, is retired and will be deleted. 1.0.3 is also available as `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`; older images are no longer provided. Earlier server executables remain in Releases in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). For Docker Compose, change `image:` in `compose.yaml` to `ghcr.io/xelexis-dev/agent-session-broker:1.0.4`. If `BROKER_IMAGE` specifies the image, change that value too. The 1.0.3 image has the same digest under the new name, so you may change the name first and upgrade the version later. Executable deployments have no image change. Client 1.0.4 changes only the version, with unchanged behavior. Upgrade the client to `@xelexis/x-broker@1.0.4`, stop the server and back up all data, replace the server with 1.0.4, then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.0.3 server.
 
 ## 1.0.2 → 1.0.3
 
-동작과 데이터 형식은 1.0.2와 같습니다. 이번 버전부터 서버 실행파일 Release, npm 클라이언트의 provenance와 소스가 https://github.com/xelexis-dev/agent-session-broker 에서 나옵니다. npm 패키지의 저장소 정보가 바뀌어 클라이언트도 1.0.3으로 게시합니다. Docker 이미지 이름(`ghcr.io/xelexis-dev/agent-session-broker-deploy`)은 그대로입니다. 클라이언트를 `@xelexis/x-broker@1.0.3`으로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.3으로 교체하고, 각 대화를 다시 연결하세요. 1.0.2 이하의 파일은 이전 배포 저장소에서 계속 받을 수 있습니다. 되돌리기는 전체 백업과 1.0.2 서버를 함께 복원하는 방법만 지원합니다.
+Behavior and data formats are unchanged from 1.0.2. Server executable Releases, npm client provenance and source now come from [public repository](https://github.com/xelexis-dev/agent-session-broker). The npm repository metadata changed, so client 1.0.3 is also published. The Docker image name (`ghcr.io/xelexis-dev/agent-session-broker-deploy`) is unchanged. Upgrade the client to `@xelexis/x-broker@1.0.3`, stop the server and back up all data, replace the server with 1.0.3, then reconnect each conversation. Files for 1.0.2 and earlier remain available from the previous distribution repository. Rollback requires restoring the complete backup together with the 1.0.2 server.
 
 ## 1.0.1 → 1.0.2
 
-동작과 데이터 형식은 1.0.1과 같습니다. Go 1.27.4 보안 릴리스로 다시 빌드해 클라이언트 실행파일도 달라졌으므로 npm 클라이언트도 1.0.2로 게시합니다. 클라이언트를 `@xelexis/x-broker@1.0.2`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.2로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.0.1 서버를 함께 복원하는 방법만 지원합니다.
+Behavior and data formats are unchanged from 1.0.1. Rebuilding with the Go 1.27.4 security release also changes the client executables, so npm client 1.0.2 is published. Upgrade the client to `@xelexis/x-broker@1.0.2`, stop the server and back up all data, replace the server with 1.0.2, then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.0.1 server.
 
 ## 1.0.0 → 1.0.1
 
-동작과 데이터 형식은 1.0.0과 같습니다. 소스 코드 공개에 맞춰 Go module 경로가 바뀌어 클라이언트 실행파일도 달라졌으므로 npm 클라이언트도 1.0.1로 게시합니다. 클라이언트를 `@xelexis/x-broker@1.0.1`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.1로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.0.0 서버를 함께 복원하는 방법만 지원합니다.
+Behavior and data formats are unchanged from 1.0.0. The Go module path changed for the public source release, changing the client executables too, so npm client 1.0.1 is published. Upgrade the client to `@xelexis/x-broker@1.0.1`, stop the server and back up all data, replace the server with 1.0.1, then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.0.0 server.
 
 ## 0.20.2 → 1.0.0
 
-첫 정식 릴리스입니다. API, 데이터 형식, 클라이언트 동작은 0.20.2와 같습니다. 클라이언트를 `@xelexis/x-broker@1.0.0`으로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.0으로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 0.20.2 서버를 함께 복원하는 방법만 지원합니다.
+This is the first stable release. APIs, data formats and client behavior are unchanged from 0.20.2. Upgrade the client to `@xelexis/x-broker@1.0.0`, stop the server and back up all data, replace the server with 1.0.0, then reconnect each conversation. Rollback requires restoring the complete backup together with the 0.20.2 server.
 
 ## 0.20.1 → 0.20.2
 
-관리 화면 아이콘을 수정하지 않은 Lucide 아이콘으로 바꾼 릴리스입니다. API, 데이터 형식, 클라이언트 동작은 바뀌지 않았습니다. 클라이언트를 `@xelexis/x-broker@0.20.2`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 0.20.2로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 아래 절차의 전체 백업 복원만 지원합니다.
+This release replaces control panel icons with unmodified Lucide icons. APIs, data formats and client behavior are unchanged. Upgrade the client to `@xelexis/x-broker@0.20.2`, stop the server and back up all data, replace the server with 0.20.2, then reconnect each conversation. Rollback supports only the complete backup restore described below.
 
 ## 0.19.x → 1.0
 
-0.19.x 이하에서 1.0으로 올리는 절차입니다. 0.20.x 릴리스 후보는 이미 1.0과 같은 정책이므로 위 `0.20.2 → 1.0.0`과 그 뒤 1.0.x 절처럼 클라이언트와 서버만 교체하면 됩니다.
+Follow these steps when upgrading from 0.19.x or earlier to 1.0. The 0.20.x release candidates already use the 1.0 policy; for those, replace the client and server as described under `0.20.2 → 1.0.0` and the subsequent 1.0.x sections.
 
-이 버전부터 **0.17.3 미만 클라이언트는 사용할 수 없습니다.** 다른 프로젝트의 PC도 포함되므로 반드시 클라이언트를 먼저 올리세요.
+**Clients older than 0.17.3 can no longer connect.** This includes PCs belonging to other projects, so upgrade clients first.
 
-1. **남은 구 클라이언트 확인**: 모든 프로젝트 담당자에게 PC별 client 버전을 확인하고 0.17.3 미만을 업데이트하도록 알립니다. 1.0에서는 버전 현황 집계가 제거되므로 꺼져 있던 PC도 별도로 확인하세요.
-2. **클라이언트 먼저 갱신**: 모든 PC에서 `npm install -g @xelexis/x-broker@1.0.3`(npx 사용자는 MCP 설정의 고정 버전)으로 올리고 각 대화를 다시 연결합니다. 1.0 클라이언트는 0.17.3 이상 서버(지금의 0.19.x 포함)에서 동작하므로 서버보다 먼저 올려도 됩니다. 재연결 방법은 [연결된 채 업그레이드](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#연결된-채-업그레이드)를 따릅니다.
-3. **전체 백업**: 서버를 멈추고 데이터 폴더 전체를 백업합니다. 파일 목록과 해시를 함께 기록하고, 백업 위치의 접근을 제한하세요(토큰 해시와 설정 정보가 들어 있습니다). 서버 메모리 대기열은 백업되지 않으므로 대기 메시지를 먼저 비웁니다.
-4. **서버 교체**: 같은 데이터 경로로 새 서버를 시작합니다. Compose는 image 버전을 바꾸고 `docker compose pull`, `docker compose up -d`를 실행합니다.
-   - 이미 최초 설정을 마친 서버는 설정 코드가 필요 없습니다.
-5. **구 클라이언트 거부 확인**: 0.17.3 미만 클라이언트는 모든 도구 호출이 거부됩니다. 표시되는 안내는 [버전 호환](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#버전-호환)을 확인하세요.
-6. **연결 확인**: 각 대화의 `auth_status`에서 버전과 `compatible`, 같은 등록 ID·이름을 확인하고, peer 메시지를 실제로 주고받는지 확인합니다.
+1. **Find remaining old clients:** ask the people responsible for each project to check client versions on each PC and update anything older than 0.17.3. The version summary is removed in 1.0, so check powered-off PCs separately too.
+2. **Upgrade clients first:** on every PC, run `npm install -g @xelexis/x-broker@1.0.3` (or update the pinned version in the MCP config for npx), then reconnect each conversation. The 1.0 client works with servers 0.17.3 and later, including the current 0.19.x server, so clients may be updated first. Follow [upgrading while connected](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#upgrading-while-connected) to reconnect.
+3. **Make a complete backup:** stop the server and back up the entire data directory. Record the file list and hashes, and restrict access to the backup: it contains token hashes and configuration. Drain pending messages first; the server's in-memory queue is not backed up.
+4. **Replace the server:** start the new server with the same data path. For Compose, change the image version and run `docker compose pull` and `docker compose up -d`.
+   - A server that has completed initial setup does not need a setup code.
+5. **Check old-client refusal:** every tool call from clients older than 0.17.3 is refused. See [version compatibility](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#version-compatibility) for the guidance shown.
+6. **Check connections:** in each conversation's `auth_status`, check the versions, `compatible`, and unchanged registration ID and name. Verify actual peer message exchange.
 
-**되돌리기**는 전체 백업 복원만 지원합니다.
+**Rollback** supports only a complete backup restore.
 
-1. 새 서버를 멈춥니다. 문제가 생긴 데이터 폴더는 지우지 말고 따로 보관합니다.
-2. **비어 있는 새 폴더**에 3단계의 백업 전체를 복원하고, 파일 목록·해시가 기록과 같은지 확인합니다.
-3. 백업을 만든 버전(0.19.x)의 서버로 시작합니다. 새 버전 데이터로 0.19.x 서버를 바로 시작하지 마세요.
-4. 외부 연결을 다시 열기 전에, **백업 뒤에 취소했던 토큰·자격증명·사용자 API 토큰을 다시 취소**합니다. 백업 뒤에 발급한 토큰, 메모리 변경, 권한 변경은 복원되지 않습니다.
-5. 클라이언트는 되돌릴 필요가 없습니다. 1.0 클라이언트는 0.19.x 서버에서도 동작합니다. 복원한 0.19.x 서버는 0.17.3 미만 클라이언트도 다시 받습니다.
+1. Stop the new server. Keep the problematic data directory separately rather than deleting it.
+2. Restore the complete backup from step 3 into a **new, empty directory**, and verify its file list and hashes against the record.
+3. Start the server version that made the backup (0.19.x). Do not start a 0.19.x server directly on data from the new version.
+4. Before reopening external connections, **revoke again every token, credential and user API token revoked after the backup**. Tokens issued, memory changes and permission changes made after the backup are not restored.
+5. Clients do not need to be downgraded: the 1.0 client also works with a 0.19.x server. The restored 0.19.x server will accept clients older than 0.17.3 again.
 
-### 1.0에서 바뀌는 저장 데이터와 도구
+### Stored data and tools changed in 1.0
 
-백업에는 control·registration·bugreport·memory를 포함한 전체 인스턴스 데이터와 클라이언트 상태가 들어가야 합니다. 메시지 큐는 메모리 전용입니다.
+Backups must include all instance data, including control, registration, bugreport and memory, plus client state. Message queues exist only in memory.
 
-- `spawn_session`은 제거됩니다. 캐시된 호출은 unknown tool 오류가 나므로 MCP를 재연결하세요. 하네스는 각 PC에서 직접 실행합니다.
-- 시작 시 모든 토큰·grant·기기 승인 scope에서 `session:spawn`만 한 번의 원자적 저장으로 제거합니다. control version은 5이며 다른 scope·승인 방식·만료·취소 상태와 감사 이력은 유지됩니다. 재시작은 같은 정리를 다시 저장하지 않습니다.
-- 제거 후 scope가 빈 목록이 되는 비정상 데이터는 **아무것도 쓰지 않고 시작을 거부**합니다. 정상 0.17.3–0.19.2 발급·편집 경로는 `session:register`를 유지합니다. scope를 임의로 채우거나 빈 배열로 바꾸지 말고, 중지한 상태의 전체 백업을 복원해 원인을 확인하세요.
-- 과거 감사 이력과 구 서버 응답의 `session:spawn` 읽기는 계속 허용하지만 새 발급·편집·위임은 허용하지 않습니다.
-- 전체 권한 응답에는 구 클라이언트 호환을 위해 2.0까지 `session:spawn`을 표시합니다. 기능은 없으며 저장값·신규 발급·편집기·권한 카탈로그에서는 제거됩니다. 제한된 권한 응답에는 추가하지 않습니다.
+- `spawn_session` is removed. Cached calls return an unknown-tool error; reconnect MCP. Start harnesses directly on each PC.
+- At startup, one atomic save removes only `session:spawn` from every token, grant and device-approval scope set. The control version remains 5; other scopes, admission modes, expiry, revocation state and audit history are preserved. Restarting does not save the same cleanup again.
+- If this would leave an invalid empty scope list, startup **refuses without writing anything**. Normal issuance and editing in 0.17.3–0.19.2 retain `session:register`. Do not invent scopes or replace them with an empty array; restore a complete backup made while stopped and investigate.
+- Reading `session:spawn` in historical audit entries and old-server responses remains supported, but new issuance, editing and delegation are refused.
+- Full-permission responses display `session:spawn` through 2.0 for old-client compatibility. It has no function and is removed from stored values, new issuance, editors and the scope catalog. It is not added to restricted-permission responses.
 
 ## 0.19.2 → 0.19.3
 
-0.19.3은 1.0 준비용 릴리스입니다. 최소 호환 버전과 저장 형식은 바뀌지 않습니다.
+0.19.3 prepares for 1.0. Minimum compatible versions and storage formats are unchanged.
 
-1. 전체 인스턴스 데이터를 백업하고 같은 데이터 경로로 서버를 0.19.3으로 교체합니다. 0.19.3은 새 npm 클라이언트도 게시합니다. 기존 클라이언트(0.12 이상)는 0.19.3 서버에서 계속 동작합니다.
-2. 관리자 계정으로 **인스턴스 설정 → 클라이언트 버전 현황**을 엽니다. 모든 프로젝트의 클라이언트 버전별 살아 있는 등록 수, 0.17.3 미만 수, 미확인 등록 수, 24시간 호환 거부 수와 마지막 관측 시각(UTC)을 보여 줍니다. 등록 이름·ID·토큰은 표시하지 않습니다. 현황은 메모리에만 있어 서버를 다시 시작하면 처음부터 다시 셉니다. 현재 lease 기준이며 미관측·중지 클라이언트의 안전을 보장하지 않습니다.
-3. 1.0으로 올리기 전에 최소 48시간 이상 현황을 보고, 0.17.3 미만이 남은 프로젝트에 알립니다.
-4. 이미 설정한 서버는 변화가 없습니다. 설정하지 않은 채 둔 서버는 데이터 폴더의 `control/setup-code` 코드가 최초 관리자 설정에 필요합니다. 로그에는 코드 대신 파일 위치만 나옵니다. 재시작하면 코드가 바뀌고 설정 성공 후 삭제됩니다. 설정 전 상태로 롤백하면 구버전의 코드 없는 설정 동작으로 돌아가므로, 외부 노출을 막고 loopback·SSH 터널로 설정하세요. 설정 전 백업에도 코드가 들어갈 수 있으므로 접근을 제한하세요.
+1. Back up all instance data and replace the server with 0.19.3 using the same data path. 0.19.3 also publishes a new npm client. Existing clients (0.12 and later) continue to work with the 0.19.3 server.
+2. As an administrator, open **Instance settings → Client version status**. It shows live registrations by client version across all projects, counts below 0.17.3 and of unconfirmed versions, compatibility refusals over 24 hours, and the last observation time (UTC). Registration names, IDs and tokens are not shown. This status is kept only in memory and starts over after a server restart. It reflects current leases and cannot establish that unobserved or stopped clients are safe.
+3. Observe the status for at least 48 hours before upgrading to 1.0, and notify projects with clients below 0.17.3.
+4. Already configured servers are unaffected. An unconfigured server requires the code in `control/setup-code` under its data directory to create the first administrator. Logs show the file location, not the code. Restarting changes the code; successful setup deletes it. Rolling back an unconfigured server restores the old setup behavior without a code, so prevent external exposure and configure it through loopback or an SSH tunnel. Pre-setup backups may also contain the code; restrict access to them.
 
-롤백은 서버를 멈추고 업그레이드 전 전체 백업과 0.19.2 실행 파일(또는 image)을 함께 복원합니다.
+For rollback, stop the server and restore both the complete pre-upgrade backup and the 0.19.2 executable (or image).
 
 ## 0.19.1 → 0.19.2
 
-1. 전체 인스턴스 데이터를 백업하고 서버를 0.19.2로 교체합니다. 필수 저장 형식 이전이나 최소 호환 버전 변경은 없습니다.
-2. Windows에서 실행 중 Claude Code의 자동 업데이트 후 MCP 재연결이 실패했다면 `npm install -g @xelexis/x-broker@0.19.2`로 갱신하고 MCP를 다시 연결합니다. 업데이트 후 새로 시작한 세션은 영향이 없었습니다. 갱신 전에는 세션을 종료한 뒤 재개하면 우회할 수 있습니다.
-3. 부모 식별 실패 시 `auth_status.parentDiagnostic`에서 실패 단계·오류 번호·허용된 프로그램 이름을 확인합니다. 경로·인자·토큰은 표시하지 않습니다.
+1. Back up all instance data and replace the server with 0.19.2. There is no required storage migration or minimum-version change.
+2. If MCP reconnection failed after Claude Code updated itself while running on Windows, run `npm install -g @xelexis/x-broker@0.19.2` and reconnect MCP. Sessions started after the update were unaffected. Before installing the fix, stopping and resuming the session is a workaround.
+3. If parent identification fails, inspect `auth_status.parentDiagnostic` for the failing step, error number and allowlisted program names. Paths, arguments and tokens are not shown.
 
 ## 0.19.0 → 0.19.1
 
-1. 전체 인스턴스 데이터를 백업한 뒤 같은 데이터 경로로 서버 0.19.1을 교체합니다. 필수 저장 형식 이전은 없으며, 제어판의 태블릿 사이드 메뉴 수정을 포함합니다.
-2. VS Code Claude 확장에서 broker 메시지를 보려면 npm 게시를 확인한 뒤 `npm install -g @xelexis/x-broker@0.19.1`로 직접 갱신하고 각 MCP를 다시 연결합니다. 새 메시지는 접힌 "Sender not recorded" peer 행에 발신자와 본문 앞부분을 표시합니다. 터미널 CLI와 다른 host의 전달 형식은 유지됩니다.
-3. 최소 서버·클라이언트 0.12.0과 legacy 허용은 유지합니다. 기존 메시지와 큰 메시지의 plain fallback은 VS Code에서 계속 숨겨질 수 있습니다.
+1. Back up all instance data, then replace the server with 0.19.1 using the same data path. No required storage migration is introduced; the release includes a tablet sidebar fix for the control panel.
+2. To see broker messages in the VS Code Claude extension, confirm npm publication, manually run `npm install -g @xelexis/x-broker@0.19.1`, and reconnect each MCP instance. New messages show the sender and the beginning of the body in a collapsed "Sender not recorded" peer row. Delivery formats in the terminal CLI and other hosts are unchanged.
+3. The minimum server/client version of 0.12.0 and legacy allowance remain unchanged. Old messages and the plain fallback for large messages may remain hidden in VS Code.
 
 ## 0.18.1 → 0.19.0
 
-1. 승인된 점검 시간에 미전달 메시지를 가능한 한 비우고, 서버를 중지한 상태에서 control·registration·bugreport를 포함한 전체 인스턴스 데이터를 백업합니다. 메모리 대기열은 백업되지 않습니다.
-2. 서버 0.19.0을 같은 데이터 경로로 교체합니다. 관리 API는 기본 OFF이며 기존 MCP 사용에 API 토큰이 필요하지 않습니다. 제어판의 관리자 설정에서 필요한 경우에만 관리 API를 켜세요.
-3. HTTPS와 기존 trusted proxy 설정을 확인합니다. HTTP 연결 허용이 OFF이면 평문 API는 거부됩니다. 평문 허용은 비밀번호와 토큰 노출 위험을 감수하는 설정입니다.
-4. 관리 API 자동화는 별도 일반 사용자와 최소 프로젝트 멤버십·scope로 준비합니다. 내 프로필의 API 토큰 화면에서 현재 비밀번호로 자기 토큰을 발급하거나 로그인 API를 사용합니다. 관리자 write 토큰은 모든 프로젝트 Owner 권한이며, 기기 승인에는 별도 approve scope가 필요합니다. 원문을 로그·Git·명령 인자에 남기지 마세요.
-5. npm 게시를 확인한 뒤 필요한 클라이언트를 `@xelexis/x-broker@0.19.0`으로 직접 갱신하고 각 MCP를 재연결합니다. 관리 REST API는 서버 기능이므로 기존 MCP 사용자의 일괄 갱신은 필수가 아닙니다. 최소 서버·클라이언트 0.12.0과 legacy 허용은 유지합니다. auth_status의 버전·등록 ID와 실제 peer 수신을 확인하세요.
+1. During an approved maintenance window, drain undelivered messages as far as possible. Stop the server and back up all instance data, including control, registration and bugreport. In-memory queues are not backed up.
+2. Replace the server with 0.19.0 using the same data path. The management API defaults to OFF; existing MCP use does not need an API token. Enable it in administrator settings only if needed.
+3. Check HTTPS and the existing trusted-proxy configuration. When Allow HTTP connections is OFF, plain-HTTP API requests are refused. Allowing plain HTTP accepts the risk of exposing passwords and tokens.
+4. Prepare management API automation with a separate regular user and minimum project memberships and scopes. Issue your own token with your current password on the profile API-token screen, or use the login API. An administrator write token has Owner permissions in every project; device approval needs the separate approve scope. Never put raw credentials in logs, Git or command arguments.
+5. Confirm npm publication, manually update clients that need it to `@xelexis/x-broker@0.19.0`, and reconnect each MCP instance. The management REST API is a server feature, so updating all existing MCP users is not required. The minimum server/client version of 0.12.0 and legacy allowance remain unchanged. Check versions and registration IDs in auth_status, and actual peer receipt.
 
-롤백은 서버를 중지하고 전체 백업과 이전 실행 파일을 함께 복원합니다. 백업 뒤의 변경과 메모리 대기열은 복원되지 않습니다. 사용자 API 토큰은 0.18.x에서 잠자더라도 다시 업그레이드하면 살아 있을 수 있으므로, 유출 대응 시 다운그레이드 전에 취소하고 이미 내렸으면 해당 사용자 비밀번호를 변경하세요. 스위치 OFF만으로 토큰이 취소되지는 않습니다.
+For rollback, stop the server and restore the complete backup together with the previous executable. Changes after the backup and in-memory queues are not restored. User API tokens may become active again after re-upgrading even if dormant in 0.18.x. For credential exposure, revoke them before downgrading; if already downgraded, change the affected user's password. Switching the API OFF does not revoke tokens.
 
 ## 0.17.3 → 0.18.0
 
+File attachments require the server and both sending and receiving clients to be updated. Prepare HTTP policy and backups first, then follow this order.
 
-메시지 파일 첨부에는 서버와 송신·수신 클라이언트의 갱신이 모두 필요합니다. HTTP 정책과 백업을 먼저 준비하고 아래 순서로 갱신하세요.
+1. Determine whether the current server uses direct HTTP or sits behind a TLS proxy. When HTTP is disallowed, plaintext connections are refused even from localhost. For TLS proxies, prepare `--trusted-proxy <proxy CIDR>` and overwrite `X-Forwarded-Proto` with the single original scheme. To keep using direct HTTP, explicitly enable HTTP in administrator policy. Do not trust an unknown proxy.
+2. During an approved maintenance window, drain undelivered messages as far as possible. Stop the server and back up all instance data, including control, registration, bugreport and deletion history, plus client state. ACK queues exist only in memory.
+3. Replace the server with 0.18.0 using the same data path. There is no new mandatory storage migration. Registrations whose LastSeen is at least 30 days old and whose response deadline has expired may be detached. Suspended registrations are excluded; name and credential cleanup follows the existing verified policy.
+4. After npm publication of 0.18.0 is verified, update clients to `@xelexis/x-broker@0.18.0`. Reconnect Claude through `/mcp`; reopen Codex sessions with their original launch mode and flags. Resuming a shared daemon does not prove that a new MCP process started. If the Windows launcher reported fallback to the original installation, stop that client before updating.
+5. Check clientVersion/serverVersion in `auth_status`, the existing name and registration ID, and actual peer message receipt. The minimum compatible server/client version remains 0.12.0, but client fixes require new executables. For rollback, stop the server and restore the complete pre-upgrade backup together with the previous executable. Later changes and in-memory queues are not restored.
 
-1. 현재 서버가 직접 HTTP인지 TLS proxy 뒤인지 먼저 확인합니다. HTTP 허용 OFF인 plaintext 연결은 localhost도 거부됩니다. TLS proxy는 `--trusted-proxy <proxy CIDR>`와 단일 원래 scheme의 `X-Forwarded-Proto` 덮어쓰기를 준비하세요. 직접 HTTP를 계속 쓸 경우 관리자 정책에서 HTTP 허용을 명시적으로 켜야 합니다. 모르는 proxy를 신뢰 목록에 넣지 마세요.
-2. 승인된 점검 시간에 미전달 메시지를 가능한 한 비우고, 서버를 중지한 상태에서 control·registration·bugreport·삭제 이력을 포함한 전체 인스턴스 데이터와 클라이언트 상태를 백업합니다. ACK 대기열은 메모리 전용입니다.
-3. 서버 0.18.0를 같은 데이터 경로로 교체합니다. 새 필수 저장 형식 마이그레이션은 없습니다. LastSeen이 30일 이상이고 응답 기한이 지난 등록은 분리될 수 있습니다. 일시 중지는 제외되며 이름·자격 정리는 검증된 기존 정책에 따릅니다.
-4. 0.18.0 npm 게시가 검증된 뒤 클라이언트를 `@xelexis/x-broker@0.18.0`로 갱신합니다. Claude는 `/mcp`에서 재연결하고 Codex는 원래 방식·플래그로 세션을 다시 여세요. 공유 daemon 재개만으로 새 MCP 실행을 단정하지 마세요. Windows launcher의 기존 설치 원본 fallback 안내가 있었다면 해당 client를 종료한 뒤 갱신합니다.
-5. `auth_status`의 clientVersion/serverVersion, 기존 이름·등록 ID와 실제 peer 메시지 수신을 확인합니다. server/client 최소 호환 버전은 0.12.0으로 유지되지만 새 client 수정에는 새 실행 파일이 필요합니다. 롤백은 서버를 중지하고 업그레이드 전 전체 백업과 이전 실행 파일을 함께 복원합니다. 백업 뒤 변경과 메모리 대기열은 복원되지 않습니다.
-
-파일 첨부를 사용하려면 서버와 송신·수신 클라이언트가 모두 0.18.0 이상인지 확인한 뒤 관리자 스위치(기본 OFF)를 켭니다. 기존 메시지는 첨부를 켜지 않아도 사용할 수 있습니다. 서버의 `attachments-v1`은 기한 있는 임시 데이터이며 재시작하면 지워집니다. 완료된 받은 파일함은 사용자 캐시에 남고 자동 삭제되지 않으므로 별도로 정리하세요. 파일의 한도·자격증명 거부·디스크 보호·Windows junction 제한은 [변경 사항](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/tag/0.18.0)의 메시지 파일 첨부 안내를 확인하세요.
+To use attachments, verify that the server and both clients are at least 0.18.0, then enable the administrator switch (OFF by default). Existing messages work without attachments enabled. Server `attachments-v1` data is temporary and is cleared on restart. Completed inbox files remain in the user cache without automatic deletion; clean them up separately. See the attachment section in the [release changes](https://github.com/xelexis-dev/agent-session-broker-deploy/releases/tag/0.18.0) for size limits, credential-file refusal, disk protection and Windows junction restrictions.
 
 ## 0.17.2 → 0.17.3
 
-1. 서버를 중지하고 control·registration·bugreport를 포함한 전체 인스턴스 데이터와 클라이언트 상태를 백업합니다. ACK 대기열은 메모리 전용이므로 재시작 전에 가능한 한 비웁니다.
-2. 같은 데이터 경로로 서버 0.17.3을 시작합니다. 0.17.2의 controlVersion 5를 유지하며 새 필수 마이그레이션은 없습니다.
-3. npm 클라이언트를 `@xelexis/x-broker@0.17.3`으로 올리고 같은 버전의 `--version`으로 확인합니다. Windows는 **이전 launcher 최초 전환 때 실행 중인 asb-client를 한 번 모두 종료**해야 합니다. 새 launcher는 설치 폴더 밖 검증 사본을 실행하지만 cache fallback 안내가 나온 연결은 다음 npm 갱신 전에 종료해야 합니다.
-4. Claude는 `/mcp` 재연결, Codex는 원래 실행 방식·플래그로 세션을 다시 엽니다. Codex의 세션별 도구 목록과 clientVersion을 확인하고 공유 daemon 재개만으로 새 MCP 실행을 단정하지 않습니다. 같은 등록 ID·이름과 실제 peer 메시지 수신을 확인합니다. Kimi 업그레이드는 미측정입니다.
+1. Stop the server and back up all instance data, including control, registration and bugreport, plus client state. ACK queues exist only in memory; drain them as far as possible before restarting.
+2. Start server 0.17.3 using the same data path. It retains controlVersion 5 from 0.17.2 and adds no mandatory migration.
+3. Upgrade the npm client to `@xelexis/x-broker@0.17.3` and confirm with that version's `--version`. On Windows, **stop all running asb-client processes once when first moving from the old launcher**. The new launcher runs a verified copy outside the installation directory, but connections that report cache fallback must be stopped before the next npm update.
+4. Reconnect Claude through `/mcp`; reopen Codex with its original launch mode and flags. Check each Codex session's tool list and clientVersion; resuming a shared daemon does not prove a new MCP process started. Verify the same registration ID and name, and actual peer message receipt. Kimi upgrades have not been measured.
 
-새 retire·버그 리포트 도구에는 양쪽 0.17.3이 필요합니다. 구 client는 서버 업데이트나 재연결만으로 새 도구가 생기지 않으며 새 client+구server 호출은 미지원 안내로 끝납니다. 메시지 ACK는 양쪽에서 협상할 때 host 인계까지 재전달하며 모델 읽음 확인은 아닙니다. 구 client 하향 시 발급된 미확인 메시지가 남아 있으면 최초 사건부터 고정 최대10분 동안 `storage` 재시도로 보호한 뒤 legacy 전달로 돌아갑니다. 서버 재시작·retire·관리 분리·일시 중지·identity-invalid는 메시지를 폐기합니다.
+The new retire and bug-report tools require 0.17.3 on both sides. Updating or reconnecting the server alone does not add tools to an old client; a new client calling an old server receives unsupported guidance. When both sides negotiate message ACKs, redelivery continues until host handoff; this is not confirmation that the model read the message. When downgrading to an old client with outstanding unacknowledged messages, `storage` retries protect them for a fixed maximum of 10 minutes from the first incident, then delivery returns to legacy mode. Server restart, retire, administrative detachment, suspension and identity-invalid discard messages.
 
-서버 ACK는 메모리 전용이라 영속 큐 형식 변경은 없습니다. 버그 리포트는 open/closed에 resolution·메모·최근 기록을 추가합니다. 0.17.2에서 읽을 수 있지만 구서버 쓰기는 확장 필드를 잃고32KiB 초과 record의 상태 변경이 거부될 수 있습니다. 무손실 롤백을 보장하지 않습니다. 롤백 시 서버를 중지하고 **업그레이드 전 전체 백업과 이전 실행파일을 함께 복원**하며, 백업 이후 변경과 메모리 대기 메시지는 복원되지 않습니다.
+Server ACKs are memory-only, so there is no persistent queue format change. Bug reports add resolution, notes and recent history to open/closed status. 0.17.2 can read them, but writes by an old server lose extension fields and may refuse status changes for records above 32 KiB. Lossless rollback is not guaranteed. For rollback, stop the server and **restore the complete pre-upgrade backup together with the previous executable**. Changes after the backup and pending in-memory messages are not restored.
 
-진단 v2는 별도 파일에 기록하고 v1은 읽기만 합니다. 0.17.2로 내리면 v2 진단은 보이지 않으며 재업그레이드하면 함께 조회합니다. 전체 백업에는 삭제 이력 `deletions.db`도 포함하세요. 이미 회수한 자격과 삭제한 리포트는 구버전 실행만으로 복원되지 않습니다. 구서버가 등록을 다시 저장하면 재승인 capability가 없어질 수 있으므로 재업그레이드 후 새 holder의 광고 전까지 자동 회수 대상에서 제외됩니다.
+Diagnostics v2 are written to separate files; v1 is read-only. Downgrading to 0.17.2 hides v2 diagnostics, which appear alongside v1 after re-upgrading. Include deletion history, `deletions.db`, in the complete backup. Running an old version alone does not restore revoked credentials or deleted reports. If an old server saves a registration again, its reapproval capability may be lost; after re-upgrading it is excluded from automatic revocation until a new holder advertises that capability.
 
-프로젝트에 맞춰 daemon(즉시 전달·재시작 중복 보호)과 embedded(대화별 환경·도구 경계 전달)를 선택하고, 한 대화에서는 모드를 유지하세요. 새 launcher는 daemon/embedded 재개를 첫 프롬프트 없이 연결할 수 있지만 실행 중 MCP의 버전은 별도로 확인해야 합니다. daemon restart/update는 다른 대화도 끊습니다. steer는 본문 없는 시도 기록을 먼저 남기고 재시작 뒤 대화 기록·대기열로 확인하며, 미확인 메시지와 뒤의 전달은 보류합니다. embedded·Windows 전환과 기존 hook·queue의 짧은 저장 창에는 중복 가능성이 남습니다. Windows에는 steer가 없습니다. 제한 계정의 Windows 검사에서 확인된 제품 결함은 0건이며 테스트·환경 보완 뒤 최종 재검사는 대기 중입니다. Linux/macOS amd64 실기 검증은 별도입니다.
+Choose daemon mode (immediate delivery and restart duplicate protection) or embedded mode (per-conversation environment and delivery at tool boundaries) for each project, and keep the mode consistent within a conversation. The new launcher can resume daemon/embedded conversations without an initial prompt, but check the running MCP version separately. Restarting or updating the daemon also disconnects other conversations. Steer records an attempt without the body before sending, then checks conversation history and the queue after restart; unconfirmed messages and later deliveries are held. Duplicate delivery remains possible during embedded/Windows transitions and the small persistence window in existing hooks and queues. Windows has no steer support. Restricted-account Windows testing found no product defects; the final rerun after test/environment fixes was still pending. Linux/macOS amd64 hardware validation is separate.
 
 ## 0.17.1 → 0.17.2
 
-1. 서버를 중지하고 **전체 인스턴스 데이터 디렉터리**를 백업합니다. control·registration·bugreport와 기존 클라이언트 상태를 함께 보존합니다.
-2. 서버를 먼저 0.17.2로 교체하고 같은 데이터 경로로 시작합니다. 첫 시작에 기존 프로젝트의 세대 ID를 한 번 부여하고 `controlVersion`을 5로 올립니다. 세대 ID는 재시작·백업 복원 뒤에도 유지됩니다.
-3. 각 PC의 MCP 설정에서 npm 버전을 `@xelexis/x-broker@0.17.2`로 바꿉니다. `npx -y @xelexis/x-broker@0.17.2 --version`으로 준비합니다.
-4. 각 대화에서 Claude는 `/mcp`로 재연결하거나 재시작합니다. Codex는 앱·프로세스를 재시작합니다. Kimi도 MCP를 재연결합니다. `auth_status`의 두 버전, 기존 등록과 실제 메시지 수신을 확인합니다.
+1. Stop the server and back up the **entire instance data directory**, including control, registration and bugreport, together with existing client state.
+2. Replace the server first with 0.17.2 and start it with the same data path. The first startup assigns a generation ID to existing projects once and raises `controlVersion` to 5. Generation IDs survive restarts and backup restoration.
+3. Change the npm version in each PC's MCP configuration to `@xelexis/x-broker@0.17.2`. Prepare it with `npx -y @xelexis/x-broker@0.17.2 --version`.
+4. For each conversation, reconnect Claude through `/mcp` or restart it. Restart the Codex application/process. Reconnect Kimi MCP too. Check both versions in `auth_status`, the existing registration, and actual message receipt.
 
-서버 0.17.2와 클라이언트 0.17.1은 함께 사용할 수 있습니다. 프로젝트 기록 격리·관리 화면은 서버 업데이트만으로 적용되지만, 프로젝트 종료 안내·상대 등록 기대값·수신 프로세스 보호에는 양쪽 0.17.2가 필요합니다. 구클라이언트의 도구 입력·전달 필드는 그대로이며 구클라이언트끼리의 등록 경합은 보호하지 못합니다. 수신 권한을 다시 켠 뒤 구클라이언트는 재시작해야 합니다.
+Server 0.17.2 works with client 0.17.1. Project-history isolation and the control panel need only a server update; project-ended guidance, recipient registration expectations and receiver-process protection require 0.17.2 on both sides. Old-client tool inputs and delivery fields are unchanged, and registration races between old clients are not protected. Old clients must restart after receive permission is re-enabled.
 
-클라이언트 0.17.2와 서버 0.17.1 조합에서는 프로젝트 종료 판단·수신 프로세스 보호를 사용할 수 없고, `expectRegistrationId`는 `unsupported`로 거부하며 기대값 없이 재전송하지 않습니다. Kimi는 서버와 클라이언트 모두 0.17.2 이상이 필요하며 이전 서버에서는 `unsupported-server`로 안내합니다.
+Client 0.17.2 with server 0.17.1 cannot determine project termination or protect receiver processes. It refuses `expectRegistrationId` with `unsupported` and never resends without the expectation. Kimi requires both server and client 0.17.2 or later; older servers return `unsupported-server` guidance.
 
-Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤** 추가하세요. 0.17.1은 알 수 없는 키를 거절합니다. Kimi는 `SessionStart`·`UserPromptSubmit`·`Stop`에 `kimi-hook`을 설정하고 MCP와 같은 상태 경로를 사용합니다. idle 대화를 깨우지 않으며 다음 프롬프트 또는 턴 종료 시 메시지를 받습니다. 설정 예시는 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md)를 따르세요.
+Add `turn_id` to Codex hooks **only after upgrading the client to 0.17.2 or later**; 0.17.1 rejects unknown keys. For Kimi, configure `kimi-hook` for `SessionStart`, `UserPromptSubmit` and `Stop`, using the same state path as MCP. It does not wake idle conversations; messages arrive at the next prompt or turn end. Follow the examples in [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md).
 
-버전 사이의 데이터 쓰기 호환은 보장하지 않습니다. 롤백은 서버를 중지하고 **업그레이드 전 전체 데이터 백업과 이전 실행파일을 함께 복원**합니다. `control.db`만 되돌리지 마세요. 백업 이후 변경은 전체 복원에 포함되지 않습니다. 서버 재시작 전 미전달 메시지는 보존되지 않으며 실패한 메시지를 자동으로 다시 보내지 않습니다.
+Data-write compatibility between versions is not guaranteed. For rollback, stop the server and **restore the complete pre-upgrade data backup together with the previous executable**. Do not restore only `control.db`. Changes after the backup are not included in a complete restore. Undelivered messages do not survive server restart, and failed messages are not resent automatically.
 
 ## 0.17.0 → 0.17.1
 
-1. 서버를 중지하고 전체 데이터 디렉터리를 백업합니다. 기존 클라이언트 상태도 보존합니다.
-2. 서버를 먼저 0.17.1로 교체하고 같은 데이터 경로로 시작합니다. 실행 중인 세션은 서버가 돌아오면 약 1초 안에 같은 등록으로 자동 재연결합니다. 환경에 따라 더 걸릴 수 있습니다.
-3. 각 PC의 MCP 설정에서 npm 버전을 `@xelexis/x-broker@0.17.1`로 바꿉니다. `npx -y @xelexis/x-broker@0.17.1 --version`으로 준비합니다.
-4. 각 대화에서 Claude는 `/mcp`로 재연결하거나 재시작합니다. Codex는 앱·프로세스를 재시작합니다. `auth_status`의 두 버전, 기존 등록과 실제 메시지 수신을 확인합니다.
+1. Stop the server and back up its entire data directory. Preserve existing client state too.
+2. Replace the server first with 0.17.1 and start it using the same data path. Running sessions automatically reconnect with the same registration about one second after the server returns; some environments take longer.
+3. Change the npm version in each PC's MCP configuration to `@xelexis/x-broker@0.17.1`. Prepare it with `npx -y @xelexis/x-broker@0.17.1 --version`.
+4. For each conversation, reconnect Claude through `/mcp` or restart it. Restart the Codex application/process. Check both versions in `auth_status`, the existing registration, and actual message receipt.
 
-서버 0.17.1은 클라이언트 0.17.0의 연결을 유지합니다. 실행 중인 구클라이언트의 도구 목록은 그대로이므로 `suspend_session`·`unsuspend_session`·`report_bug`에는 클라이언트 0.17.1도 필요합니다. 기존 `stop_session`의 다른 세션 해제는 서버만 올려도 권한 범위 안에서 동작합니다.
+Server 0.17.1 retains connections from client 0.17.0. The tool list of a running old client is unchanged, so `suspend_session`, `unsuspend_session` and `report_bug` also need client 0.17.1. Existing `stop_session` calls that disconnect other sessions work within their permission boundaries with a server-only update.
 
-클라이언트 0.17.1도 서버 0.17.0에 연결할 수 있습니다. 다만 `/clear` 등록 인계, 다른 세션 관리, 서버의 현재 권한 조회와 `report_bug`는 사용할 수 없습니다. 서버 재시작 전 미전달 메시지는 보존되지 않으며 실패한 메시지를 자동으로 다시 보내지 않습니다.
+Client 0.17.1 can also connect to server 0.17.0, but `/clear` registration handover, management of other sessions, reading current server permissions and `report_bug` are unavailable. Undelivered messages do not survive server restart, and failed messages are not resent automatically.
 
-롤백하려면 서버를 중지하고 **업그레이드 전 전체 백업과 이전 실행파일을 함께 복원**합니다.
+For rollback, stop the server and **restore the complete pre-upgrade backup together with the previous executable**.
 
-## 0.9.x → 0.17.0 요약
+## 0.9.x → 0.17.0 summary
 
-각 버전은 교체 전에 서버를 중지하고 전체 데이터 폴더를 백업합니다. 기존 데이터 경로와 클라이언트 상태를 유지합니다. 아래 표는 [버전별 릴리스 노트](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 명시된 변경입니다. 나열된 버전을 하나씩 설치해야 한다는 뜻은 아닙니다.
+Before replacing any version, stop the server and back up the complete data directory. Keep the existing data path and client state. The table lists changes documented in the [release notes](https://github.com/xelexis-dev/agent-session-broker-deploy/releases); it does not mean that every listed version must be installed in sequence.
 
-| 버전 | 데이터·설정 확인 |
+| Version | Data and configuration checks |
 | --- | --- |
-| 0.9.0 | 닉네임 변경과 복구 상태를 저장합니다. 기존 등록 ID·토큰을 유지합니다. 아래 0.9.0 안내를 적용합니다. |
-| 0.9.2 | npm 배포를 도입했습니다. 데이터 형식·자격증명을 유지합니다. 0.9.1은 공개 배포되지 않았습니다. |
-| 0.10.0~0.14.0 | 관리 화면·연결·소유권 처리를 개선했습니다. 기존 데이터·계정을 유지하며 별도 수동 데이터 변환은 안내하지 않습니다. |
-| 0.15.0 | **관리 DB 형식을 v4로 업그레이드합니다.** 서버를 중지하고 전체 데이터 폴더를 백업한 뒤 같은 경로로 시작합니다. 구버전으로 돌아가려면 이전 백업도 복원합니다. 클라이언트 배포는 npm으로 통일됩니다. |
-| 0.16.0 | 관리 DB v4를 유지합니다. 0.14.0 이하에서 올리면 0.15.0의 백업·이전 조건을 적용합니다. |
-| 0.17.0 | 관리 DB v4를 유지하고 저장소를 SQLite로 통일합니다. 최초 JSON 가져오기와 기존 0.15·0.16 SQLite 업그레이드 경로는 유지됩니다. JSON을 수동 편집하거나 DB를 삭제하지 않습니다. |
+| 0.9.0 | Saves nickname changes and recovery state. Keeps existing registration IDs and tokens. Follow the 0.9.0 instructions below. |
+| 0.9.2 | Introduces npm distribution. Keeps data formats and credentials. 0.9.1 was not publicly released. |
+| 0.10.0–0.14.0 | Improves the control panel, connections and ownership handling. Keeps existing data and accounts; no separate manual data conversion is prescribed. |
+| 0.15.0 | **Upgrades the management DB format to v4.** Stop the server, back up the complete data directory and start with the same path. Restore the old backup too when downgrading. Client distribution moves entirely to npm. |
+| 0.16.0 | Keeps management DB v4. Upgrades from 0.14.0 or earlier must follow the 0.15.0 backup and migration conditions. |
+| 0.17.0 | Keeps management DB v4 and standardizes storage on SQLite. Initial JSON import and upgrades from existing 0.15/0.16 SQLite remain supported. Do not manually edit JSON or delete the DB. |
 
-0.17.0에서 무제한 토큰을 발급했거나 등록 수 64개·수명 90일을 넘는 값을 사용했다면, 0.16.0 이하로 되돌릴 때 업그레이드 전 전체 백업을 복원해야 합니다. 0.17 서버와 클라이언트의 상대 최소 버전은 0.12.0입니다. 0.9.x~0.11.x 클라이언트는 서버 교체와 함께 업데이트하세요.
+If you issued unlimited tokens in 0.17.0, or used limits above 64 registrations or 90 days, restore the complete pre-upgrade backup when rolling back to 0.16.0 or earlier. The 0.17 server and client require the other side to be at least 0.12.0. Update 0.9.x–0.11.x clients when replacing the server.
 
-## 0.9.0으로 업데이트
+## Updating to 0.9.0
 
-**0.8.3 → 0.9.0은 직접 업데이트합니다.** 연결된 대화가 자기 닉네임을 바꾸는 `rename_session` 도구가 추가됩니다. 서버를 중지한 뒤 데이터 디렉터리 전체를 백업하고 서버를 먼저 교체합니다. 이어서 각 PC의 클라이언트를 교체하고 MCP를 재연결합니다. 서버와 클라이언트 모두 새 버전이어야 닉네임 변경을 사용할 수 있습니다.
+**Upgrade directly from 0.8.3 to 0.9.0.** The new `rename_session` tool lets a connected conversation rename its own nickname. Stop the server, back up the entire data directory and replace the server first. Then replace each PC's client and reconnect MCP. Nickname changes require the new version on both server and client.
 
-기존 프로젝트 토큰, 세션 자격증명, 등록 및 클라이언트 상태 디렉터리는 유지합니다. 닉네임 변경 후 기존 이름은 별칭으로 유지되지 않으므로 새 이름으로 메시지를 보내세요. 등록 ID와 대화는 바뀌지 않으며 새 이름은 재접속과 서버 재시작 후에도 유지됩니다. 변경 중 저장 오류가 발생하면 복구할 수 있도록 변경 상태를 저장하므로, 다운그레이드는 서버를 중지하고 업데이트 전 전체 백업과 이전 실행파일을 함께 복원합니다. 0.8.2 이하에서 업데이트한다면 아래 해당 버전의 안내도 적용하세요.
+Keep existing project tokens, session credentials, registrations and client state directories. The old nickname is not retained as an alias after a rename; send messages to the new name. The registration ID and conversation do not change, and the new name survives reconnects and server restarts. Rename state is saved to recover from storage failures during the change. To downgrade, stop the server and restore both the complete pre-update backup and the previous executable. If upgrading from 0.8.2 or earlier, also apply the relevant instructions below.
 
-## 0.8.3으로 업데이트
+## Updating to 0.8.3
 
-**0.8.2 → 0.8.3은 직접 업데이트합니다.** 프로젝트 토큰 발급 완료 화면의 새로고침이 토큰을 중복 발급하던 오류를 수정합니다. 기존 데이터 디렉터리를 유지하고 서버 실행파일 또는 컨테이너를 교체하면 적용되며, 데이터 형식과 연결 프로토콜은 바뀌지 않습니다. 업데이트 전에 열린 발급 완료 화면은 닫고 프로젝트 설정으로 다시 들어가세요. 이미 발급된 토큰은 유지되므로 불필요한 중복 토큰은 목록에서 확인한 뒤 취소합니다. 클라이언트 교체는 이 오류 수정의 필수 조건이 아닙니다. 이전 버전에서 올라오는 경우 아래 해당 버전의 백업·이전 안내도 적용합니다.
+**Upgrade directly from 0.8.2 to 0.8.3.** This fixes duplicate token issuance when refreshing the project-token completion page. Keep the data directory and replace the server executable or container; data formats and the connection protocol are unchanged. Close completion pages opened before the update and return to project settings. Already issued tokens remain valid; inspect and revoke unwanted duplicates in the list. Replacing the client is not required for this fix. For earlier starting versions, also apply their backup and migration instructions below.
 
-## 0.8.2로 업데이트
+## Updating to 0.8.2
 
-**0.8.1 → 0.8.2는 직접 업데이트합니다.** 클라이언트가 승인 자격증명을 디스크에 저장하기 전에 연결할 수 있던 순서 문제를 수정합니다. 기존 토큰·등록·상태 디렉터리를 유지하고 클라이언트 실행파일을 교체한 뒤 MCP를 재연결합니다. 이번 패치는 서버 저장 형식이나 연결 프로토콜을 바꾸지 않습니다. 0.7.0에서 직접 올라온다면 아래 0.8.1의 데이터 백업과 HTTP 정책 이전 안내도 적용합니다.
+**Upgrade directly from 0.8.1 to 0.8.2.** This fixes an ordering issue that allowed clients to connect before saving approved credentials to disk. Keep existing tokens, registrations and state directories; replace the client executable and reconnect MCP. The patch does not change server storage formats or the connection protocol. If upgrading directly from 0.7.0, also follow the 0.8.1 data-backup and HTTP-policy migration instructions below.
 
-## 0.8.1로 업데이트
+## Updating to 0.8.1
 
-**0.7.0 → 0.8.1은 직접 업데이트합니다.** 0.8.0은 공개 배포되지 않았으며 필수 중간 버전이 아닙니다. 서버를 중지하고 데이터 디렉터리 전체(DB와 존재하는 journal 포함)를 백업한 뒤 서버를 교체합니다. 기존 프로젝트 토큰·세션 자격증명·등록 상태를 유지하며 0.7.0 클라이언트도 연결할 수 있습니다. 클라이언트를 교체했다면 MCP를 재연결해 새 실행파일을 적용합니다.
+**Upgrade directly from 0.7.0 to 0.8.1.** 0.8.0 was not publicly released and is not a required intermediate version. Stop the server, back up the entire data directory (including the DB and any journals), then replace the server. Keep existing project tokens, session credentials and registration state; 0.7.0 clients can still connect. If you replace a client, reconnect MCP to use the new executable.
 
-- HTTP 연결 허용은 **사용자 메뉴 → 관리자 패널 → 인스턴스 설정**에서 모든 프로젝트에 공통으로 적용합니다. 삭제 중이 아닌 프로젝트가 하나 이상이고 모두 기존 HTTP 허용 상태였다면 허용으로 이전합니다. 허용·불허가 섞였거나 대상 프로젝트가 없다면 불허입니다. HTTP를 사용하는 관리자는 업데이트 후 정책을 확인하세요. 정책을 저장하면 모든 프로젝트 연결이 정책을 다시 확인합니다.
-- 프로젝트 목록에서 행을 눌러 연결 세션을 확인하고 상단 톱니바퀴로 설정을 엽니다. 프로젝트 토큰의 마지막 사용일·등록 이력·상태는 설정 화면에 표시됩니다. 기존 닉네임 지정 세션 토큰은 화면에 나오지 않지만 이미 발급된 자격증명의 인증은 유지됩니다.
-- 세션 승인 화면은 클라이언트가 알려 주는 `/auth/code` 주소로 직접 엽니다. 승인 시 닉네임 지정은 유지됩니다.
-- 기존 프로젝트 토큰 이력은 서버에 남아 있는 자격증명에서 보완합니다. 이미 만료되어 삭제된 자격증명은 집계할 수 없습니다.
-- 업데이트 후 `/healthz`, 로그인, 프로젝트·세션·토큰 목록, HTTP 정책과 기존 세션 재접속을 확인합니다. 새 저장 필드를 이전 서버가 읽지 못할 수 있으므로 **다운그레이드는 서버를 중지한 뒤 업데이트 전 전체 백업과 그 버전 실행파일을 함께 복원**합니다.
+- Allow HTTP connections now applies to every project under **User menu → Admin panel → Instance settings**. Migration enables it only if at least one project is not being deleted and every such project previously allowed HTTP. Mixed permissions or no eligible projects result in HTTP being disallowed. Administrators using HTTP should check the policy after updating. Saving it makes all project connections recheck policy.
+- Click a project row to view connected sessions, and use the gear at the top to open settings. Project-token last-use dates, registration history and status appear in settings. Existing nickname-bound session tokens are hidden from the screen, but their issued credentials continue to authenticate.
+- Open the session-approval screen directly at the `/auth/code` URL supplied by the client. Approval still assigns a nickname.
+- Historical project-token usage is supplemented from credentials remaining on the server. Credentials already expired and deleted cannot be counted.
+- After updating, check `/healthz`, login, project/session/token lists, HTTP policy and existing session reconnection. An older server may not read new stored fields; **to downgrade, stop the server and restore the complete pre-update backup together with that version's executable**.
 
-## 0.7.0으로 업데이트
+## Updating to 0.7.0
 
-**0.6.0 → 0.7.0은 직접 업데이트합니다.** 서버 데이터 전체와 클라이언트 상태를 백업하고 서버를 먼저, 클라이언트를 다음으로 교체한 뒤 MCP를 재연결합니다. 기존 프로젝트 토큰·세션 자격증명·등록 상태는 유지합니다.
+**Upgrade directly from 0.6.0 to 0.7.0.** Back up all server data and client state, replace the server first and clients next, then reconnect MCP. Keep existing project tokens, session credentials and registration state.
 
-- 프로젝트별 HTTP 허용은 기본적으로 꺼져 있습니다. HTTP가 필요한 프로젝트만 시스템 관리자가 **프로젝트 설정 → HTTP 연결 허용**을 켭니다. 일반 프로젝트 Owner·Developer·Viewer는 이 정책을 변경할 수 없습니다.
-- HTTP 프로젝트 토큰 연결에는 서버와 클라이언트 모두 0.7.0 이상이 필요합니다. 0.6.0 클라이언트는 여전히 HTTP 주소를 거부하며, 0.7.0 클라이언트도 정책 API가 없는 이전 서버에 HTTP로 자격증명을 보내지 않습니다.
-- HTTPS와 기존 닉네임 지정 세션 토큰 연결은 그대로 사용할 수 있습니다. HTTP 허용은 신뢰망용 예외이며 TLS를 제공하거나 서버의 진위를 보증하지 않습니다.
-- 새로운 정책은 서버에 저장되어 재시작 후 유지됩니다. 이전 서버는 새 저장 필드를 이해하지 못할 수 있으므로 다운그레이드는 업데이트 전 전체 백업과 해당 버전 실행파일을 함께 복원합니다.
-- HTTP 허용을 끄면 프로젝트의 진행 중 연결이 재연결됩니다. 자격증명을 취소하는 동작은 아니며 HTTP 클라이언트는 정책을 다시 확인합니다.
+- Per-project HTTP permission defaults to OFF. A system administrator enables **Project settings → Allow HTTP connections** only for projects that need it. Regular project Owners, Developers and Viewers cannot change this policy.
+- HTTP connections with project tokens require server and client 0.7.0 or later. Client 0.6.0 still rejects HTTP URLs; client 0.7.0 does not send credentials over HTTP to an older server without the policy API.
+- HTTPS and existing nickname-bound session-token connections still work. Allowing HTTP is an exception for trusted networks; it neither supplies TLS nor establishes the server's authenticity.
+- The new policy is persisted across server restarts. Older servers may not understand the new fields; restore the complete pre-update backup together with the matching executable when downgrading.
+- Disabling HTTP reconnects the project's active connections. It does not revoke credentials; HTTP clients check policy again.
 
-## 0.6.0으로 업데이트
+## Updating to 0.6.0
 
-**0.5.1 → 0.6.0은 직접 업데이트하며 필수 중간 버전이 없습니다.** 기존 서버 데이터, 클라이언트 상태 디렉터리, 세션 토큰과 MCP 설정을 유지합니다. 아래 **업데이트 전에** 절에 따라 전체 백업을 만든 뒤 **서버를 먼저** 교체하고, 이어서 각 PC의 클라이언트를 교체하고 MCP 연결을 다시 시작합니다.
+**Upgrade directly from 0.5.1 to 0.6.0; no intermediate version is required.** Keep existing server data, client state directories, session tokens and MCP settings. Make a complete backup as described under **Before updating**, replace the **server first**, then each PC's client, and restart MCP connections.
 
-- 관리 상태(`control/control.db`)의 저장 형식이 Version 3으로 바뀝니다. 프로젝트 토큰이나 세션 승인을 한 번이라도 사용하면 그 형식으로 저장되며 0.5.x 이하 서버는 이 상태를 열지 못합니다. 되돌릴 때는 업데이트 전 전체 백업과 그 버전의 실행파일을 함께 복구합니다.
-- 기존 닉네임 지정 세션 토큰과 그 등록은 그대로 동작합니다. 새 **프로젝트 토큰**(`asb_p_`)은 원하는 프로젝트에서 발급해 여러 대화의 MCP 설정에 공유할 수 있고, 각 대화는 관리 패널 **세션 승인**(`/auth/code`)에서 코드와 닉네임으로 승인합니다.
-- 프로젝트 토큰 승인 방식은 클라이언트의 `--broker-url`이 **HTTPS**여야 합니다. 서버는 기존처럼 HTTP로 수신하므로 TLS를 종단하는 리버스 프록시를 준비한 뒤 프로젝트 토큰으로 전환하세요. 기존 HTTP 주소와 세션 토큰 연결은 그대로 유지됩니다.
-- 클라이언트의 `--state-dir`는 계속 사용할 수 있으며 `--auth-dir`와 같은 설정입니다. 승인한 대화의 자격증명은 같은 디렉터리의 `sessions/` 아래에 대화별로 저장됩니다. 같은 서버 주소(`https://호스트`)와 프로젝트에서 세션 토큰으로 등록했던 대화는 프로젝트 토큰으로 바꿔도 기존 등록을 이어 쓰지만, 주소가 HTTP에서 HTTPS로 바뀌면 다른 서버로 취급하므로 관리 패널에서 이전 등록을 해제한 뒤 새로 승인합니다.
-- 0.5.1 이하 클라이언트에 프로젝트 토큰을 넣으면 인증 실패로 시작하지 않습니다. 0.6.0 클라이언트를 0.5.x 서버에 프로젝트 토큰으로 연결하면 서버 업그레이드가 필요하다고 알리고 멈춥니다.
-- 업데이트 후 `/healthz`, 관리자 로그인, 프로젝트·토큰 목록, 기존 세션의 자동 재연결과 실제 답신을 확인합니다. 프로젝트 토큰을 도입할 프로젝트에서는 토큰 발급 → 클라이언트 연결 → 코드 승인 → 세션 목록 표시까지 한 대화로 확인하세요.
+- The management state (`control/control.db`) storage format changes to Version 3. Once project tokens or session approval are used, state is saved in that format, which servers 0.5.x and earlier cannot open. Restore both the complete pre-update backup and its matching executable to roll back.
+- Existing nickname-bound session tokens and their registrations continue to work. New **project tokens** (`asb_p_`) can be issued in the desired project and shared across multiple conversations' MCP settings. Approve each conversation with its code and nickname under **Session approval** (`/auth/code`) in the management panel.
+- Project-token approval requires an **HTTPS** client `--broker-url`. The server still listens over HTTP, so prepare a TLS-terminating reverse proxy before switching to project tokens. Existing HTTP URLs with session-token connections remain supported.
+- Client `--state-dir` remains available and is equivalent to `--auth-dir`. Approved conversation credentials are saved per conversation under `sessions/` in the same directory. A conversation registered with a session token at the same server URL (`https://host`) and project keeps its registration when switching to a project token. Changing HTTP to HTTPS makes it a different server identity; disconnect the old registration in the management panel, then approve again.
+- A client at 0.5.1 or earlier fails authentication and does not start with a project token. Client 0.6.0 connecting to a 0.5.x server with a project token stops with a server-upgrade requirement.
+- After updating, check `/healthz`, administrator login, project/token lists, automatic reconnection of existing sessions and actual replies. For projects adopting project tokens, test one conversation through token issuance → client connection → code approval → appearance in the session list.
 
-0.4.0 및 0.2.0~0.3.3의 정상 지원 데이터는 아래 0.5.0 안내의 목표 버전을 0.6.0으로 바꾸어 직접 업데이트할 수 있습니다. 기존 무인증 사용자는 **0.4.0 토큰 전용 전환** 절차를 반드시 적용합니다.
+Normal supported data from 0.4.0 and 0.2.0–0.3.3 can upgrade directly by using 0.6.0 as the target in the 0.5.0 instructions below. Existing unauthenticated users **must follow the 0.4.0 token-only transition**.
 
-## 0.5.1로 업데이트
+## Updating to 0.5.1
 
-**0.5.0 → 0.5.1은 직접 업데이트하며 필수 중간 버전이나 DB 이전이 없습니다.** 기존 서버 데이터, 클라이언트 상태, 토큰과 MCP 설정을 유지하고 서버·클라이언트 실행파일을 교체한 뒤 MCP를 다시 연결합니다.
+**Upgrade directly from 0.5.0 to 0.5.1; no intermediate version or DB migration is required.** Keep existing server data, client state, tokens and MCP settings. Replace server/client executables and reconnect MCP.
 
-구형 `register` 프롬프트와 내장 스킬·리소스는 더 이상 제공하지 않습니다. 정상 연결은 자동 등록하며, 명시 복구가 필요하면 `x-broker에 현재 세션을 등록해줘`라고 요청합니다. 복구용 `attach_session`은 유지됩니다.
+The old `register` prompt and embedded skills/resources are no longer provided. Normal connections register automatically. For explicit recovery, ask `Register the current session with x-broker`. The recovery tool `attach_session` remains available.
 
-0.4.0 및 0.2.0~0.3.3의 정상 지원 데이터는 아래 0.5.0 안내의 목표 버전을 0.5.1로 바꾸어 직접 업데이트할 수 있습니다. 기존 무인증 사용자는 **0.4.0 토큰 전용 전환** 절차를 반드시 적용합니다. 0.5.0을 먼저 설치할 필요는 없습니다. 이전 버전으로 되돌릴 때의 전체 백업 복구 원칙은 그대로입니다.
+Normal supported data from 0.4.0 and 0.2.0–0.3.3 can upgrade directly by using 0.5.1 as the target in the 0.5.0 instructions below. Existing unauthenticated users **must follow the 0.4.0 token-only transition**. Installing 0.5.0 first is unnecessary. Rollback still requires a complete backup restore.
 
-## 0.5.0으로 업데이트
+## Updating to 0.5.0
 
-**0.4.0 → 0.5.0은 직접 업데이트하며 필수 중간 버전이 없습니다.** 서버 데이터 전체와 클라이언트 상태 디렉터리를 유지하고 서버·클라이언트를 함께 교체합니다. 기존 토큰을 다시 발급할 필요는 없습니다.
+**Upgrade directly from 0.4.0 to 0.5.0; no intermediate version is required.** Keep all server data and client state directories, and replace server and client together. Existing tokens do not need to be reissued.
 
-0.2.0~0.3.3의 정상 지원 데이터도 중간 버전 없이 직접 올릴 수 있지만, 아래 **0.4.0 토큰 전용 전환** 절차를 반드시 적용합니다. 표에 기재된 0.4.0 설치 단계 대신 0.5.0을 사용합니다. 0.1.x와 알 수 없는 개발·수정·손상 데이터는 기존 지원 범위를 따릅니다.
+Normal supported data from 0.2.0–0.3.3 can also upgrade directly, but **must follow the 0.4.0 token-only transition** below. Use 0.5.0 in place of the table's 0.4.0 installation step. Existing support limits still apply to 0.1.x and unknown development, modified or damaged data.
 
-일시 중지 상태와 중지된 수신 연결 정보가 등록 DB에 추가됩니다. 0.4.0 이하 클라이언트는 일시 중지 해제 후 자동 복귀를 보장하지 않으므로 0.5.0 이상으로 교체하고 MCP를 다시 연결하세요. 이전 서버는 일시 중지 정책을 이해하지 못합니다. **신버전 데이터에 구버전 서버를 바로 연결하지 말고, 업데이트 전 전체 백업과 해당 버전 실행파일을 함께 복구합니다.**
+Suspension state and information about suspended receiving connections are added to the registration DB. Clients 0.4.0 and earlier do not guarantee automatic recovery after resumption; replace them with 0.5.0 or later and reconnect MCP. Older servers do not understand suspension policy. **Do not run an older server directly on new-version data; restore the complete pre-update backup together with its matching executable.**
 
-## 반드시 거쳐야 하는 버전 순서
+## Required version sequence
 
-**0.2.0부터 0.3.3까지의 정상 지원 데이터는 0.4.0으로 직접 올릴 수 있으며 필수 중간 버전은 없습니다.** 다만 0.4.0은 토큰 인증 전용으로 전환하므로 기존 무인증 클라이언트의 설정 변경이 반드시 필요합니다.
+**Normal supported data from 0.2.0 through 0.3.3 can upgrade directly to 0.4.0, with no required intermediate version.** However, 0.4.0 switches to token-only authentication, so existing unauthenticated clients must change their configuration.
 
-| 현재 버전 / 데이터 | 0.4.0으로 가는 경로 | 확인 범위 |
+| Current version / data | Path to 0.4.0 | Checks |
 | --- | --- | --- |
-| 새 설치 | 0.4.0 설치 후 최초 설정·프로젝트 생성·토큰 발급 | 모든 클라이언트에 토큰 필요 |
-| 0.2.0, 0.2.1의 정상 JSON 데이터 | 0.4.0으로 직접 교체하고 기존 데이터 디렉터리 사용 | 아래 JSON → SQLite 이전과 토큰 전환 절차 적용 |
-| 0.3.0~0.3.3의 정상 SQLite 데이터 | 0.4.0으로 직접 교체하고 기존 데이터 디렉터리 사용 | DB 엔진 변경 없음. 기존 open 프로젝트를 token으로 영속 전환 |
-| 0.1.x, 알 수 없는 개발 버전, 수정·손상 데이터, 0.4.0보다 새로운 버전 | 아래 지원 범위와 이전 설치 확인 절차 참고 | 정상 지원 데이터와 동일한 이전을 보장하지 않음 |
+| New installation | Install 0.4.0, complete initial setup, create projects and issue tokens | Every client needs a token |
+| Normal JSON data from 0.2.0 or 0.2.1 | Replace directly with 0.4.0 and use the existing data directory | Apply JSON → SQLite migration and token transition below |
+| Normal SQLite data from 0.3.0–0.3.3 | Replace directly with 0.4.0 and use the existing data directory | No DB engine change; existing open projects are persistently converted to token mode |
+| 0.1.x, unknown development versions, modified/damaged data, or versions newer than 0.4.0 | Follow the support limits and older-installation checks below | Migration equivalent to normal supported data is not guaranteed |
 
-## 0.4.0 토큰 전용 전환
+## 0.4.0 token-only transition
 
-1. 아래 **업데이트 전에** 절에 따라 서버 전체 데이터와 클라이언트 상태·설정을 백업합니다. 서버와 클라이언트는 같은 버전으로 교체합니다.
-2. 기존 데이터 디렉터리로 서버를 시작합니다. 기존 무인증 프로젝트는 토큰 인증으로 바뀌며 계정·멤버·등록·토큰·공유 메모리는 보존합니다. 무인증 허용 설정은 제거되며 옛 설정으로 다시 허용할 수 없습니다.
-3. 기존 토큰 인증 사용자는 유효하고 같은 대화에 연결된 토큰과 로컬 등록 상태를 유지합니다. 무인증 사용자는 세션 목록에서 **기존 등록의 닉네임을 정확히 복사하여** 그 이름으로 대화별 토큰을 발급하고 MCP 설정에 `--token "토큰 값"`을 추가합니다. `--token-file`은 지원하지 않습니다.
-4. **기존 무인증 대화의 저장된 등록을 새 토큰에 연결할 때는 한 번 명시 등록이 필요합니다.** 토큰 닉네임은 기존 등록과 같아야 합니다. 다른 이름의 토큰으로 기존 등록을 연결하거나 개명할 수 없습니다. 같은 PC·대화와 기존 클라이언트 상태를 유지하고 `x-broker에 현재 세션을 등록해줘`라고 요청합니다. 새 토큰은 아직 기존 등록에 묶이지 않아 자동 resume만으로는 연결되지 않습니다. 로컬 상태를 삭제해서 해결하지 마세요.
-5. 신규 대화는 실제 대화 식별 후 자동 등록합니다. Codex가 시작 시 대화 ID를 제공하지 않으면 첫 일반 도구 호출에서 자동 등록합니다. 발급 후 30분 안에 관리 패널에서 등록 대기가 해제되었는지 확인합니다.
-6. 명시 해제·삭제된 등록은 자동으로 되살리지 않습니다. 기존 닉네임, 토큰 소유자, 등록·메모리 보존과 실제 세션 답신을 확인합니다. Claude의 구형 채널 방식은 등록 이후 별도 채널 활성화가 필요할 수 있습니다.
+1. Back up all server data and client state/configuration as described under **Before updating**. Replace server and client with the same version.
+2. Start the server using the existing data directory. Previously unauthenticated projects become token-authenticated; accounts, members, registrations, tokens and shared memory are preserved. The unauthenticated-access setting is removed and cannot be restored through the old setting.
+3. Existing token-authenticated users keep valid tokens bound to the same conversation and their local registration state. Unauthenticated users must **copy the existing registration's nickname exactly** from the session list, issue a token per conversation using that name, and add `--token "token value"` to MCP settings. `--token-file` is unsupported.
+4. **Binding an existing unauthenticated conversation's stored registration to a new token requires one explicit registration.** The token nickname must match the existing registration. A differently named token cannot bind or rename it. Keep the same PC, conversation and client state, then ask `Register the current session with x-broker`. Automatic resume alone cannot bind the new token because it is not yet attached to the registration. Do not delete local state to resolve this.
+5. New conversations register automatically after their actual identity is confirmed. If Codex supplies no conversation ID at startup, automatic registration occurs at the first ordinary tool call. Within 30 minutes of token issuance, check that the management panel no longer shows registration pending.
+6. Explicitly detached or deleted registrations are not revived automatically. Check the existing nickname, token owner, preserved registration/memory and actual session replies. Claude's old channel mode may require separate channel activation after registration.
 
-아래 0.3.x 전용 절의 무인증 허용 설명은 **당시 버전의 동작**입니다. 목표가 0.4.0이면 위 토큰 전환 절차를 반드시 함께 적용합니다.
+Unauthenticated-access instructions in the 0.3.x sections below describe **behavior at that time**. For a 0.4.0 target, also apply the token transition above.
 
-### 0.3.2까지의 직접 이전 경로
+### Direct migration through 0.3.2
 
-아래 기존 경로와 지원 범위는 유지됩니다. 목표가 0.4.0이면 0.3.2 설치 단계를 생략하고 위 경로를 사용합니다.
+The earlier paths and support limits below remain valid. For a 0.4.0 target, skip the 0.3.2 installation step and use the path above.
 
-**0.2.0, 0.2.1, 0.3.0 또는 0.3.1에서 0.3.2로 올릴 때 필수 중간 버전은 없습니다.** 0.3.0에 도입된 JSON → SQLite 변환이 0.3.2에도 유지되므로 이전 관리자·프로젝트·토큰 형식도 직접 변환합니다. `0.2.0 → 0.2.1 → 0.3.0 → 0.3.1 → 0.3.2` 순서로 각각 설치할 필요는 없습니다.
+**No intermediate version is required to upgrade from 0.2.0, 0.2.1, 0.3.0 or 0.3.1 to 0.3.2.** The JSON → SQLite conversion introduced in 0.3.0 remains in 0.3.2 and directly converts the earlier administrator, project and token formats. You do not need to install `0.2.0 → 0.2.1 → 0.3.0 → 0.3.1 → 0.3.2` in sequence.
 
-| 현재 버전 / 데이터 | 0.3.2로 가는 경로 | 중간 버전과 확인 범위 |
+| Current version / data | Path to 0.3.2 | Intermediate versions and verification |
 | --- | --- | --- |
-| 새 설치, 보존할 데이터 없음 | 0.3.2 설치 후 최초 설정 | 중간 버전 없음 |
-| 0.2.0, 0.2.1의 정상 JSON 관리 상태와 영속 세션 등록 | `0.2.0 → 0.3.2` 또는 `0.2.1 → 0.3.2` | 직접 이전 지원. 관리 상태 v1과 등록 레코드 v1을 읽는 변환 코드 및 마이그레이션 테스트로 확인 |
-| 0.3.0의 정상 SQLite 데이터 | `0.3.0 → 0.3.2`로 교체하고 같은 데이터 디렉터리 사용 | JSON 재이전 없이 기존 SQLite 사용 |
-| 0.3.1, 0.3.2의 정상 SQLite 데이터 | `0.3.1 → 0.3.2` 또는 0.3.2 재설치 시 같은 데이터 디렉터리 사용 | 새 이전 없음. 이미 이전한 JSON을 다시 가져오지 않음 |
-| 0.1.x의 통합 실행파일·로컬 모드·이전 원격 모드 데이터 | 아래 이전 설치 확인 절차부터 수행 | 모든 0.1.x 배치의 전체 데이터 이전은 미검증. 특정 중간 버전을 필수 또는 충분한 해결책으로 지정할 근거 없음 |
-| 알 수 없는 개발 버전, 직접 고친 데이터, 손상된 데이터, 0.3.2보다 새로운 버전 | 원본을 보존하고 해당 버전의 안내 확인 | 이 문서의 지원 경로에 포함되지 않음 |
+| New installation, no data to preserve | Install 0.3.2 and complete initial setup | No intermediate version |
+| Normal JSON management state and persistent registrations from 0.2.0 or 0.2.1 | `0.2.0 → 0.3.2` or `0.2.1 → 0.3.2` | Direct migration supported; verified by conversion code and migration tests reading management state v1 and registration records v1 |
+| Normal SQLite data from 0.3.0 | Replace with `0.3.0 → 0.3.2` and keep the data directory | Uses existing SQLite without repeating JSON migration |
+| Normal SQLite data from 0.3.1 or 0.3.2 | Keep the data directory for `0.3.1 → 0.3.2` or a 0.3.2 reinstall | No new migration; already migrated JSON is not imported again |
+| Data from 0.1.x combined executables, local mode or earlier remote mode | Start with the older-installation checks below | Complete migration of every 0.1.x layout is unverified; no basis for declaring a particular intermediate version necessary or sufficient |
+| Unknown development versions, manually modified/damaged data, or versions newer than 0.3.2 | Preserve the original and consult the relevant version's instructions | Outside this guide's supported paths |
 
-이 표의 직접 지원은 정상 데이터 형식에 대한 코드·테스트 확인입니다. 모든 OS의 모든 과거 설치본을 실행해 비교한 결과는 아닙니다. 0.2.0 이전의 비공개 배포 파일을 중간 단계로 받도록 요구하지 않습니다. 공개 배포는 0.2.1부터 제공됩니다.
+Direct support in this table is based on code and tests for valid data formats, not execution of every historical installation on every OS. No private distribution file older than 0.2.0 is required as an intermediate step. Public distribution starts at 0.2.1.
 
-## 업데이트 전에
+## Before updating
 
-1. 서버와 각 PC의 클라이언트에서 `--version`을 확인하고 실행파일 위치, MCP 설정, 서버의 실제 데이터 디렉터리를 기록합니다.
-2. 클라이언트의 MCP 연결과 서버를 종료합니다. 같은 데이터 디렉터리를 구버전·신버전 서버가 동시에 열지 않게 합니다.
-3. 서버가 완전히 종료된 상태에서 **데이터 디렉터리 전체**와 설정을 별도 위치에 백업합니다. 네이티브 서버는 `--memory-dir`의 실제 경로, Docker는 컨테이너 `/data`에 연결한 호스트 디렉터리 또는 기존 볼륨입니다. `control`, `projects`, 메모리 문서와 DB 관련 파일을 함께 보존합니다. 클라이언트의 기존 로컬 상태도 보존합니다.
-4. 목표 버전의 서버·클라이언트를 받고 릴리스 본문의 SHA-256과 대조합니다. Docker도 `latest` 대신 목표 버전 태그로 고정하면 교체 대상을 확인하기 쉽습니다.
+1. Check `--version` on the server and each PC's client. Record executable locations, MCP settings and the server's actual data directory.
+2. Stop client MCP connections and the server. Never let old and new servers open the same data directory simultaneously.
+3. With the server fully stopped, back up the **entire data directory** and configuration to a separate location. For a native server, use the actual `--memory-dir` path; for Docker, use the host directory or existing volume mounted at container `/data`. Preserve `control`, `projects`, memory documents and DB-related files together. Keep existing local client state too.
+4. Download the target server/client versions and compare their SHA-256 values with the Release body. For Docker, pinning the target version tag instead of `latest` makes the replacement easier to verify.
 
 ## 0.3.2 → 0.3.3
 
-필수 중간 버전, DB 이전, 기존 MCP 설정 변경은 없습니다. 서버·클라이언트를 0.3.3으로 교체하고 기존 데이터 및 클라이언트 등록 상태 디렉터리를 유지합니다. `--token "토큰 값"`과 무인증 연결 방식은 그대로 사용합니다.
+No intermediate version, DB migration or existing MCP configuration change is required. Replace server and client with 0.3.3, retaining existing data and client registration state directories. Continue using `--token "token value"` and unauthenticated connections as before.
 
-관리 패널의 저장 완료 알림, 사용자 추가 모달, 프로필의 프로젝트 역할 목록, 멤버 추가 모달의 아이디 자동완성과 별도 삭제 버튼을 확인합니다. 기존 계정·프로젝트·멤버 역할·토큰은 변경하지 않습니다. 로그인, 프로젝트 목록과 실제 세션 답신도 확인합니다.
+Check saved notifications in the management panel, the add-user modal, the profile's project-role list, user-ID autocomplete in the add-member modal and the separate delete button. Existing accounts, projects, member roles and tokens are unchanged. Also check login, the project list and actual session replies.
 
 ## 0.3.1 → 0.3.2
 
-필수 중간 버전이나 DB 이전은 없습니다. 기존 서버 데이터와 클라이언트 등록 상태 디렉터리를 유지합니다.
+No intermediate version or DB migration is required. Keep existing server data and client registration state directories.
 
-**인증 클라이언트의 설정 변경이 필요합니다.** `--token-file` 옵션은 더 이상 지원하지 않습니다. MCP 설정에서 이 옵션과 파일 경로를 제거하고 `--token` 다음에 기존 파일 안의 토큰 값 자체를 입력한 뒤 연결을 다시 시작합니다. 기존 토큰이 여전히 유효하면 새로 발급할 필요는 없습니다. 무인증 연결은 `--token` 없이 그대로 사용합니다. 예제와 설정 보관 방법은 [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md)를 따르세요.
+**Authenticated clients must change their configuration.** The `--token-file` option is no longer supported. Remove the option and its file path from MCP settings, place the token value from the existing file after `--token`, then restart the connection. A still-valid token does not need to be reissued. Unauthenticated connections continue without `--token`. Follow [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md) for examples and configuration storage.
 
-서버·클라이언트를 0.3.2로 교체한 뒤 버전, 로그인, 프로젝트 목록과 실제 세션 답신을 확인합니다. 파일의 토큰은 자동으로 읽거나 삭제하지 않습니다.
+After replacing server and client with 0.3.2, check versions, login, project lists and actual session replies. Tokens in files are neither read nor deleted automatically.
 
-## 0.3.0 → 0.3.1~0.3.3
+## 0.3.0 → 0.3.1–0.3.3
 
-전체 데이터를 백업한 뒤 서버·클라이언트를 목표 버전으로 교체하고 기존 데이터 디렉터리를 그대로 사용합니다. DB를 삭제하거나 JSON을 다시 가져올 필요가 없습니다.
+Back up all data, replace server and client with the target version, and keep the existing data directory. There is no need to delete the DB or import JSON again.
 
-- 인스턴스의 무인증 허용 설정은 기존 동작을 유지하는 **허용**이 기본값입니다. 관리자가 이를 끄면 기존 무인증 프로젝트도 연결이 차단되므로 토큰 인증 전환을 먼저 준비하세요.
-- 새 토큰은 발급자 소유로 고정됩니다. 기존 토큰 소유자는 그대로 유지됩니다. Owner·시스템 관리자 외에는 본인이 발급한 토큰만 조회할 수 있습니다.
-- 프로젝트 삭제는 등록·토큰·공유 메모리를 함께 영구 삭제합니다. 업데이트 확인을 위해 기존 프로젝트를 삭제하지 마세요.
-- `/healthz`, 관리자 로그인, 프로젝트·토큰 목록과 실제 세션 답신을 확인합니다.
+- Instance-wide unauthenticated access defaults to **allowed**, retaining existing behavior. Disabling it blocks existing unauthenticated projects too; prepare token authentication first.
+- New tokens are fixed to their issuer as owner. Existing token owners are preserved. Except for Owners and system administrators, users may view only tokens they issued.
+- Deleting a project permanently deletes its registrations, tokens and shared memory. Do not delete existing projects to test an update.
+- Check `/healthz`, administrator login, project/token lists and actual session replies.
 
-## 0.2.x → 0.3.x 또는 0.4.0
+## 0.2.x → 0.3.x or 0.4.0
 
-1. 서버 실행파일 또는 이미지를 목표 버전으로 교체하고 **기존 데이터 디렉터리**를 연결합니다. 실행 폴더를 바꿨다면 `--memory-dir`을 절대경로로 지정합니다. Docker의 볼륨을 새 빈 bind 디렉터리로 바꾸면 기존 데이터가 나타나지 않습니다.
-2. 서버를 시작합니다. 관리 상태는 `control/control.json`에서 `control/control.db`로 이전합니다. 프로젝트의 등록 저장소가 열리면 `projects/p-*/registrations`의 정상 JSON 등록을 `registrations.db`로 이전합니다. 모든 프로젝트 DB가 서버 시작 직후 한꺼번에 생성된다고 가정하지 마세요.
-3. 기존 관리자 계정으로 로그인해 프로젝트와 토큰을 확인합니다. 이전 관리 상태 v1은 v2로 변환되며 `admin` 사용자와 각 프로젝트의 Owner 권한이 만들어집니다. 기존 토큰 소유자는 `admin`으로 연결됩니다. 아직 연결하지 않은 기존 토큰에는 이전 시점부터 30분의 최초 등록 기한이 적용되므로, 만료했다면 관리 패널에서 새 토큰을 발급합니다.
-4. 각 PC의 클라이언트도 같은 목표 버전으로 교체하고 MCP 연결을 다시 시작합니다. 필요한 경우 세션을 다시 등록합니다. 서버가 재시작된 뒤 디스크에 남은 등록만으로 세션이 살아 있거나 수신 준비가 끝났다고 판단하지 않습니다.
-5. `/healthz`의 `ok`, 관리자 로그인, 프로젝트·토큰 목록, 각 프로젝트의 메모리 조회와 세션 간 실제 답신을 확인합니다. 서버를 한 번 더 재시작한 뒤에도 관리 상태가 유지되는지 확인합니다.
+1. Replace the server executable or image with the target version and connect the **existing data directory**. If the working directory changed, specify an absolute `--memory-dir`. Replacing a Docker volume with a new empty bind directory hides the existing data.
+2. Start the server. Management state migrates from `control/control.json` to `control/control.db`. When a project's registration store opens, valid JSON registrations under `projects/p-*/registrations` migrate to `registrations.db`. Do not assume all project DBs are created together immediately at server startup.
+3. Log in with the existing administrator account and check projects and tokens. Management state v1 is converted to v2; an `admin` user and Owner permissions for each project are created. Existing token ownership is assigned to `admin`. Existing tokens that have never connected receive a 30-minute first-registration deadline from migration time; if expired, issue a new token in the panel.
+4. Replace each PC's client with the same target version and restart MCP. Re-register sessions if necessary. After server restart, an on-disk registration alone does not establish liveness or readiness to receive.
+5. Check `/healthz` returns `ok`, administrator login, project/token lists, memory reads in each project and actual replies between sessions. Restart once more and verify that management state remains intact.
 
-이전이 끝난 정상 JSON 원본은 남지만 **이후 변경 사항은 SQLite에만 기록됩니다.** 이전 완료 표식은 데이터와 같은 트랜잭션으로 저장됩니다. DB에서 등록을 제거한 뒤 재시작해도 오래된 JSON으로 되살리지 않습니다. JSON을 편집하거나 DB만 삭제해 재이전을 강제하지 마세요. 손상된 관리 상태는 시작을 거부할 수 있고, 유효하지 않은 등록은 격리될 수 있으므로 로그와 실제 목록을 확인해야 합니다.
+Valid migrated JSON originals remain on disk, but **subsequent changes are written only to SQLite**. Migration-complete markers are saved in the same transaction as the data. Removing a registration from the DB and restarting does not revive it from old JSON. Do not edit JSON or delete only the DB to force reimport. Damaged management state may refuse startup, and invalid registrations may be quarantined; inspect logs and actual lists.
 
-## 0.1.x 등 이전 설치 확인
+## Checking older installations, including 0.1.x
 
-0.1.11에는 통합 실행파일과 프로젝트 디렉터리를 사용하는 원격 모드가 있었으며, 0.2.x의 관리 상태·영속 등록과는 다릅니다. 0.3.0에는 기존의 정상 `projects/p-*` 디렉터리를 최초 설정 뒤 가져오는 코드가 있습니다. 그러나 이것만으로 모든 0.1.x의 로컬 메모리 배치와 등록 정보가 자동 변환된다고 보장할 수는 없습니다.
+0.1.11 had a combined executable and a remote mode using project directories; these differ from 0.2.x management state and persistent registrations. 0.3.0 includes code to import valid existing `projects/p-*` directories after initial setup. This alone does not guarantee automatic conversion of every 0.1.x local-memory layout and registration record.
 
-- 원본을 백업한 뒤 별도의 복사본을 0.3.0의 데이터 디렉터리로 사용해 확인합니다. 기존 관리 설정이 없다면 `/setup`을 완료합니다. 정상 프로젝트 디렉터리는 무인증 프로젝트로 가져오므로 프로젝트 접근 정책도 검토합니다.
-- 구버전 서버의 메모리에만 있던 등록과 미전달 메시지는 디스크 이전 대상이 아닙니다. 클라이언트를 새로 연결하고 등록합니다.
-- 예전 런처나 통합 실행파일을 사용한 MCP 설정은 새 `asb-client`의 절대경로로 변경하고, 클라이언트 옵션 앞의 예전 `client` 서브커맨드를 제거합니다. 서버는 `asb-server`로 실행합니다.
-- 프로젝트나 메모리가 빠져 있다면 원본으로 돌아가 실제 저장 경로와 형식을 먼저 확인합니다. 임의의 중간 버전을 순서대로 실행하는 방식으로 해결하지 않습니다.
+- Back up the original, then test with a separate copy as the 0.3.0 data directory. Complete `/setup` if no management configuration exists. Valid project directories are imported as unauthenticated projects, so review their access policy too.
+- Registrations and undelivered messages held only in the old server's memory are not disk-migration inputs. Reconnect and register clients.
+- Change MCP configurations that used an old launcher or combined executable to the absolute path of the new `asb-client`. Remove the old `client` subcommand before client options. Run the server as `asb-server`.
+- If projects or memory are missing, return to the original and check the actual storage path and format first. Do not try to resolve it by running arbitrary intermediate versions in sequence.
 
-## 실패했을 때와 되돌리기
+## Failure and rollback
 
-데이터가 있던 서버에서 갑자기 최초 설정 화면이 나오거나 프로젝트가 비어 있다면 새 관리자부터 만들지 말고 데이터 연결 경로와 시작 로그를 확인하세요. `/healthz`만으로 데이터 이전 성공을 판단하지 않습니다.
+If a server that had data suddenly shows initial setup or an empty project list, check data mounts and startup logs before creating a new administrator. `/healthz` alone does not prove successful migration.
 
-0.3.x/0.4.0의 SQLite를 0.2.x JSON으로 역변환하거나 0.4.0에서 이전의 무인증 정책으로 되돌리는 기능은 없습니다. 되돌릴 때는 신버전 서버를 종료하고 **업데이트 전 전체 백업과 그 백업을 만든 버전의 실행파일**을 함께 복구해야 합니다. 이전 뒤 남은 JSON만 사용하면 이후 변경 사항을 잃습니다. 백업 시점 이후의 변경은 전체 백업 복원에도 포함되지 않으므로 필요한 내용을 별도로 보존한 후 진행하세요.
+There is no reverse conversion from 0.3.x/0.4.0 SQLite to 0.2.x JSON, or a switch back from 0.4.0 to the earlier unauthenticated policy. Stop the new server and restore **the complete pre-update backup together with the executable version that made it**. Using only the JSON left after migration loses later changes. A complete backup restore also excludes changes made after the backup; preserve anything needed separately before proceeding.

@@ -99,7 +99,7 @@ func TestBugReportDeleteFailuresAndRetry(t *testing.T) {
 				}
 				next := httptest.NewRecorder()
 				c.h.ServeHTTP(next, req)
-				if next.Code != 200 || !strings.Contains(next.Body.String(), bugreport.ErrDeleteIncomplete.Error()) || !strings.Contains(next.Body.String(), `class="notice error"`) {
+				if next.Code != 200 || !strings.Contains(next.Body.String(), en("notice.bug-report-delete-incomplete")) || !strings.Contains(next.Body.String(), `class="notice error"`) {
 					t.Fatal("incomplete notice", next.Code)
 				}
 				d, err := b.reports.DeletionFor("admin", r.ID)
@@ -107,7 +107,7 @@ func TestBugReportDeleteFailuresAndRetry(t *testing.T) {
 					t.Fatal(d, err)
 				}
 				detail := c.call("GET", "/admin/bug-reports/detail?id="+r.ID, nil)
-				if detail.Code != 404 || !strings.Contains(detail.Body.String(), "완료는 확인되지 않았습니다") {
+				if detail.Code != 404 || !strings.Contains(detail.Body.String(), en("bug.not_found")) {
 					t.Fatal("false410", detail.Code)
 				}
 				return
@@ -135,7 +135,7 @@ func TestBugReportDeleteFailuresAndRetry(t *testing.T) {
 					t.Fatal(err)
 				}
 				detail := c.call("GET", "/admin/bug-reports/detail?id="+r.ID, nil)
-				if detail.Code != 404 || !strings.Contains(detail.Body.String(), "완료는 확인되지 않았습니다") {
+				if detail.Code != 404 || !strings.Contains(detail.Body.String(), en("bug.not_found")) {
 					t.Fatal("pruning became admin deletion", detail.Code)
 				}
 			} else {
@@ -158,7 +158,7 @@ func TestBugReportDeleteConflictAndFormBoundaries(t *testing.T) {
 	stale := deleteForm(r)
 	stale.Set("expectedVersion", "stale")
 	w := c.call("POST", "/admin/bug-reports/delete", stale)
-	if w.Code != 409 || !strings.Contains(w.Body.String(), "최신 내용을 확인한 뒤 다시 삭제하세요") || !strings.Contains(w.Body.String(), `aria-live="assertive"`) || strings.Contains(w.Body.String(), `value="delete" checked`) {
+	if w.Code != 409 || !strings.Contains(w.Body.String(), enHTML("bug.delete_conflict")) || !strings.Contains(w.Body.String(), `aria-live="assertive"`) || strings.Contains(w.Body.String(), `value="delete" checked`) {
 		t.Fatal("conflict not rendered", w.Code)
 	}
 	if _, err := b.reports.DeletionFor("admin", r.ID); !errors.Is(err, bugreport.ErrNotFound) {

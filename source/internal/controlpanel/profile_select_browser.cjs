@@ -1,4 +1,5 @@
 const {chromium}=require('playwright');
+const {catalog}=require('./i18n_fixture.cjs');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {Base}=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
 const out=process.env.ASB_PROFILE_SELECT_EVIDENCE,kit=process.env.ASB_PROFILE_SELECT_DRAFT;
@@ -14,8 +15,9 @@ const cases=[...['default','empty','many'].map(state=>['profile','/profile',stat
   await actual.addInitScript(t=>localStorage.setItem('asb-theme',t),theme);
   await actual.goto(`${Base}${route}?state=${state}&role=${role}`);
   if(draft)await draft.goto(`${kit}/out/${file==='bug-reports'?'kimi':'opus'}/${file}.html?state=${state==='open-select'?'default':state}&role=${role}&theme=${theme}`);
+  const text=catalog((await actual.locator('html').getAttribute('lang'))||'en');
   await actual.evaluate(()=>document.fonts.ready);if(draft)await draft.evaluate(()=>document.fonts.ready);
-  if(state==='open-select'){await actual.getByRole('combobox',{name:'유효 기간',exact:true}).click();if(draft)await draft.getByRole('combobox',{name:'유효 기간',exact:true}).click();}
+  if(state==='open-select'){await actual.getByRole('combobox',{name:text['tokens.validity'],exact:true}).click();if(draft)await draft.getByRole('combobox',{name:'유효 기간',exact:true}).click();}
   const selector=file==='bug-reports'?'.bug-list':'.profile-content';
   const metric=page=>page.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth};});
   const a=await metric(actual),d=draft?await metric(draft):null;
@@ -33,7 +35,7 @@ const cases=[...['default','empty','many'].map(state=>['profile','/profile',stat
    assert.equal(await actual.locator('[name=current_password]').count(),0);
    assert.equal(await actual.locator('[name=scope][value=admin]').count(),role==='admin'?1:0);
    if(state==='default'){
-    const trigger=actual.getByRole('combobox',{name:'유효 기간',exact:true});assert.equal(await trigger.getAttribute('aria-describedby'),'api-expiry-help');await trigger.focus();await actual.keyboard.press('End');await actual.keyboard.press('Enter');assert.equal(await actual.locator('[name=expires_days]').inputValue(),'90');
+    const trigger=actual.getByRole('combobox',{name:text['tokens.validity'],exact:true});assert.equal(await trigger.getAttribute('aria-describedby'),'api-expiry-help');await trigger.focus();await actual.keyboard.press('End');await actual.keyboard.press('Enter');assert.equal(await actual.locator('[name=expires_days]').inputValue(),'90');
    }
   }
   await context.close();
