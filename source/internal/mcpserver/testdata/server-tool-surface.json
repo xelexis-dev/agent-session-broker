@@ -2844,7 +2844,7 @@
         "message.recipient-registration": true,
         "message.sentAt": true,
         "receiver-holder-v1": true,
-        "recommendedClientVersion": "1.0.3"
+        "recommendedClientVersion": "1.0.4"
       },
       "logging": {},
       "tools": {
@@ -2857,7 +2857,7 @@
         "message.recipient-registration": true,
         "message.sentAt": true,
         "receiver-holder-v1": true,
-        "recommendedClientVersion": "1.0.3"
+        "recommendedClientVersion": "1.0.4"
       },
       "logging": {},
       "tools": {

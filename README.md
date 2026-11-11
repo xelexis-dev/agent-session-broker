@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.3
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.0.4
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.3
+npm install -g @xelexis/x-broker@1.0.4
 x-broker --version
 ```
 
@@ -78,7 +78,7 @@ The control panel is in Korean. The server binaries for macOS, Linux and Windows
 
 - Manage projects, members, tokens and connected sessions in the control panel. Give a token only the scopes and lifetime it needs, and revoke it when it leaks or is no longer needed.
 - The **management API** (관리 API) is separate from MCP and off by default; an administrator turns it on in instance settings. Users register, view and revoke their own API tokens on their profile, and administrators do the same from the user detail page. See the [management API guide](README_AGENT.md#관리-api) for scopes, re-authentication and safe call examples.
-- Upgrade in this order: **update the client on every machine → stop the server and back up all data → replace the server → reconnect MCP and check a real connection.** Clients older than 0.17.3 and legacy connections are refused. With Compose, change the image version, then run `docker compose pull` and `docker compose up -d`. Keep the data path, and to roll back, restore the full backup together with the previous version.
+- Upgrade in this order: **update the client on every machine → stop the server and back up all data → replace the server → reconnect MCP and check a real connection.** Clients older than 0.17.3 and legacy connections are refused. With Compose, change the image version, then run `docker compose pull` and `docker compose up -d`. From 1.0.4 the image is `ghcr.io/xelexis-dev/agent-session-broker`, which also has 1.0.3; the old `-deploy` image name is retired and removed, so change the name as well. Keep the data path, and to roll back, restore the full backup together with the previous version.
 - Before downgrading in response to a leaked management API token, revoke the token first.
 
 ## Documentation

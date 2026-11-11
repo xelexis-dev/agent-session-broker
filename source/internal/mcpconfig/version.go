@@ -6,7 +6,7 @@ import (
 )
 
 // RecommendedClientVersion is the published npm version required by release preparation.
-const RecommendedClientVersion = "1.0.3"
+const RecommendedClientVersion = "1.0.4"
 
 type versionKey struct{}
 

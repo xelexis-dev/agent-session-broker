@@ -2,6 +2,12 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.0.4 (2026-11-11)
+
+- 동작과 데이터 형식은 1.0.3과 같습니다.
+- 컨테이너 이미지가 `ghcr.io/xelexis-dev/agent-session-broker`로 옮겨졌습니다. Docker Compose를 쓰면 `compose.yaml`의 `image:`를 이 이름으로 바꾸세요. 이전 이미지 이름 `ghcr.io/xelexis-dev/agent-session-broker-deploy`는 폐기되어 삭제됩니다. 1.0.3은 `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`으로도 받을 수 있고, 그보다 오래된 이미지는 더 이상 제공하지 않습니다. 이전 버전의 서버 실행파일은 https://github.com/xelexis-dev/agent-session-broker-deploy 의 Release에 그대로 있습니다.
+- 클라이언트 1.0.4는 버전만 바뀐 갱신이며 동작은 같습니다.
+
 ## 1.0.3 (2026-11-11)
 
 - 동작과 데이터 형식은 1.0.2와 같습니다.

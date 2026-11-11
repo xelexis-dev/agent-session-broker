@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker-deploy:1.0.3
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.0.4
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.0.3
+npm install -g @xelexis/x-broker@1.0.4
 x-broker --version
 ```
 
@@ -78,7 +78,7 @@ macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://githu
 
 - 관리 패널에서 프로젝트·멤버·토큰과 연결된 세션을 확인합니다. 토큰에는 필요한 권한과 수명만 주고, 유출되거나 더 이상 필요하지 않으면 취소하세요.
 - **관리 API**는 MCP와 별개이며 기본은 꺼져 있습니다. 관리자가 인스턴스 설정에서 켭니다. 사용자는 내 프로필에서 자기 API 토큰을 등록·조회·취소하고, 관리자는 사용자 상세에서 같은 작업을 합니다. scope·재인증·안전한 호출 예제는 [관리 API 안내](README_AGENT.md#관리-api)를 보세요.
-- **모든 PC의 클라이언트 먼저 갱신 → 서버 중지와 전체 데이터 백업 → 서버 교체 → MCP 재연결과 실제 연결 확인** 순서로 업데이트하세요. 0.17.3 미만 클라이언트와 legacy 연결은 거부됩니다. Compose 사용자는 image 버전을 바꾼 뒤 `docker compose pull`과 `docker compose up -d`로 교체합니다. 데이터 경로를 유지하고, 롤백은 전체 백업과 이전 버전을 함께 복원하세요.
+- **모든 PC의 클라이언트 먼저 갱신 → 서버 중지와 전체 데이터 백업 → 서버 교체 → MCP 재연결과 실제 연결 확인** 순서로 업데이트하세요. 0.17.3 미만 클라이언트와 legacy 연결은 거부됩니다. Compose 사용자는 image 버전을 바꾼 뒤 `docker compose pull`과 `docker compose up -d`로 교체합니다. 1.0.4부터 image 이름은 `ghcr.io/xelexis-dev/agent-session-broker`이며 1.0.3도 이 이름으로 받을 수 있습니다. 이전 `-deploy` image 이름은 폐기되어 삭제되므로 이름도 함께 바꾸세요. 데이터 경로를 유지하고, 롤백은 전체 백업과 이전 버전을 함께 복원하세요.
 - 관리 API 토큰 유출에 대응해 다운그레이드할 때는 먼저 토큰을 취소하세요.
 
 ## 문서

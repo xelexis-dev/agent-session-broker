@@ -1,6 +1,6 @@
 services:
   broker:
-    image: ${BROKER_IMAGE:-ghcr.io/xelexis-dev/agent-session-broker-deploy:latest}
+    image: ${BROKER_IMAGE:-ghcr.io/xelexis-dev/agent-session-broker:latest}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"

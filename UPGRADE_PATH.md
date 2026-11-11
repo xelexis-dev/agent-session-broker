@@ -5,9 +5,13 @@
 새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
 
 
-이 안내는 **1.0.3까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다.
+이 안내는 **1.0.4까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
 
 0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+
+## 1.0.3 → 1.0.4
+
+동작과 데이터 형식은 1.0.3과 같습니다. 1.0.4부터 Docker 이미지 이름이 `ghcr.io/xelexis-dev/agent-session-broker`로 바뀝니다. 이전 이름 `ghcr.io/xelexis-dev/agent-session-broker-deploy`는 폐기되어 삭제됩니다. 1.0.3은 `ghcr.io/xelexis-dev/agent-session-broker:1.0.3`으로도 받을 수 있지만 그보다 오래된 이미지는 더 이상 제공하지 않습니다. 이전 버전의 서버 실행파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)의 Release에 그대로 있습니다. Docker Compose를 쓰면 `compose.yaml`의 `image:`를 `ghcr.io/xelexis-dev/agent-session-broker:1.0.4`로 직접 바꾸세요. `BROKER_IMAGE` 환경 변수로 image를 지정했다면 그 값도 바꿉니다. 1.0.3 image는 새 이름에도 같은 digest로 있으므로 이름만 먼저 바꾸고 버전은 나중에 올려도 됩니다. 실행파일로 운영하면 image 변경은 없습니다. 클라이언트 1.0.4는 버전만 바뀐 갱신이며 동작은 같습니다. 클라이언트를 `@xelexis/x-broker@1.0.4`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.0.4로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.0.3 서버를 함께 복원하는 방법만 지원합니다.
 
 ## 1.0.2 → 1.0.3
 

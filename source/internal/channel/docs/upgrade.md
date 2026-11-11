@@ -2,7 +2,7 @@
 
 **1.0 변경:** spawn 도구·발급 제거. v5 scope 원자 정리, 빈 목록은 무변경 시작 거부. 전체 응답은 2.0까지 호환용 `session:spawn` 유지(기능 없음). 롤백은 전체 백업 복원.
 
-권장 client는 1.0.3(Node.js 22 이상)입니다. 서버·client 모두 상대 버전 0.17.3 이상이 필요하며 legacy·placeholder를 거부합니다. 모든 PC의 client를 먼저 갱신하고 MCP를 재연결한 뒤 서버를 교체하세요. 첨부는 서버와 송신·수신 client 모두 0.18.0 이상이 필요합니다.
+권장 client는 1.0.4(Node.js 22 이상)입니다. 서버·client 모두 상대 버전 0.17.3 이상이 필요하며 legacy·placeholder를 거부합니다. 모든 PC의 client를 먼저 갱신하고 MCP를 재연결한 뒤 서버를 교체하세요. 첨부는 서버와 송신·수신 client 모두 0.18.0 이상이 필요합니다.
 
 `auth_status.update`는 연결한 서버가 알려 준 `recommendedClientVersion`보다 현재 `clientVersion`이 낮을 때만 표시됩니다. 서버 버전과 npm client 버전은 별개이며, 구서버가 권장값을 주지 않으면 안내를 표시하지 않습니다. 이 값은 인터넷의 latest가 아니라 서버 릴리스에서 게시 여부를 검증한 권장 버전입니다.
 

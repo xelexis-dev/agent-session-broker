@@ -4,7 +4,7 @@ Kimi는 프로젝트 루트의 `.mcp.json`을 읽습니다. 위 Claude 예제와
 
 Kimi 홈 `~/.kimi-code/config.toml`(또는 `$KIMI_CODE_HOME/config.toml`)에 아래 hook을 설정하세요. 자동으로 전역 설정을 바꾸지 않습니다. hook 명령에 broker 토큰을 넣지 마세요.
 
-MCP 설정과 같은 고정 버전을 `npm install -g @xelexis/x-broker@1.0.3`로 설치하고, `command -v x-broker`가 출력한 절대 경로를 아래 hook 명령에 사용하세요. hook의 `PATH`에서 `node`를 찾을 수 있어야 하며, 업그레이드할 때도 전역 설치 버전을 MCP 설정과 같게 유지하세요.
+MCP 설정과 같은 고정 버전을 `npm install -g @xelexis/x-broker@1.0.4`로 설치하고, `command -v x-broker`가 출력한 절대 경로를 아래 hook 명령에 사용하세요. hook의 `PATH`에서 `node`를 찾을 수 있어야 하며, 업그레이드할 때도 전역 설치 버전을 MCP 설정과 같게 유지하세요.
 
 ```toml
 [[hooks]]
