@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/pathguard"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -29,6 +30,20 @@ func releaseTree(root string) (releaseManifest, error) {
 		if err != nil {
 			return errors.New("backup-read")
 		}
+
+		rel, relativeErr := filepath.Rel(root, path)
+		if relativeErr != nil {
+			return errors.New("backup-relative")
+		}
+		if reservedLogs(rel) {
+			if !entry.IsDir() {
+				return errors.New("backup-nonregular")
+			}
+			if _, _, e := pathguard.InspectDirectory(path); e != nil {
+				return errors.New("backup-nonregular")
+			}
+			return fs.SkipDir
+		}
 		if entry.IsDir() {
 			return nil
 		}
@@ -39,7 +54,7 @@ func releaseTree(root string) (releaseManifest, error) {
 		if err != nil {
 			return errors.New("backup-read")
 		}
-		rel, err := filepath.Rel(root, path)
+		rel, err = filepath.Rel(root, path)
 		if err != nil {
 			return errors.New("backup-relative")
 		}
@@ -60,8 +75,16 @@ func releaseRestore(source, dest string, manifest releaseManifest) error {
 			return errors.New("restore-not-empty")
 		}
 		entries, err := os.ReadDir(dest)
-		if err != nil || len(entries) != 0 {
+		if err != nil {
 			return errors.New("restore-not-empty")
+		}
+		for _, entry := range entries {
+			if !reservedLogs(entry.Name()) || !entry.IsDir() {
+				return errors.New("restore-not-empty")
+			}
+			if _, _, e := pathguard.InspectDirectory(filepath.Join(dest, entry.Name())); e != nil {
+				return errors.New("restore-not-empty")
+			}
 		}
 	} else if !os.IsNotExist(err) {
 		return errors.New("restore-destination")
@@ -196,4 +219,8 @@ func TestReleaseSymlinkPrivilegeMissing(t *testing.T) {
 			t.Errorf("%s %v: skip=%v want=%v", tc.goos, tc.err, got, tc.want)
 		}
 	}
+}
+
+func reservedLogs(name string) bool {
+	return name == "logs"
 }

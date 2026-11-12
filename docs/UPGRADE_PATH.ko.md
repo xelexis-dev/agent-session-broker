@@ -7,9 +7,13 @@
 새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
 
 
-이 안내는 **1.1.1까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
+이 안내는 **1.2.0까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
 
 0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+
+## 1.1.1 → 1.2.0
+
+접근 로그는 선택 기능이며 `--access-log-file` 또는 `ASB_ACCESS_LOG_FILE`로 켜기 전에는 꺼져 있습니다. 데이터 폴더의 예약된 `logs/` 아래 파일만 지원합니다. 기본값은 10 MiB에서 회전하고 회전 파일을 최대 10개, 최대 30일 보관하며 합계는 10 GiB를 넘을 수 없습니다. 로그 줄에는 query string, header, 본문, 토큰이 없고, 전달된 클라이언트 주소는 별도의 `--access-log-forwarded-for`와 신뢰한 프록시가 있어야 씁니다. 로그 기능은 업무 데이터 형식을 바꾸지 않습니다. 예약된 루트 `logs/`는 해시를 검증하는 백업·복원에서 제외하고 기존의 정상 `logs/`는 별도로 보존하세요. 업무 디렉터리 안의 중첩 `logs`는 업무 데이터입니다. 로그에는 별도의 보관·접근 정책이 필요합니다. 제한, 계수, 프록시 조건과 파일 권한은 README_AGENT의 선택적 접근 로그 절을 확인하세요. 백그라운드 작업의 panic은 더 이상 원래 panic 문구를 출력하지 않습니다. 주기 작업은 간격을 늘려 가며 다시 시작하고, 상태를 가진 작업은 `server-failed`/`background_panic`을 남기고 서버를 멈추므로 서비스 관리자(예: Docker 재시작 정책)가 다시 시작합니다. 공개 저장소에서는 안내서, 한국어 README, 제3자 고지가 `docs/`로, 기여·보안 정책이 `.github/`로 옮겨졌습니다. 릴리스 자산 이름은 그대로입니다. 클라이언트를 `@xelexis/x-broker@1.2.0`으로 올리고, 서버를 중지해 업무 데이터를 모두 백업한 뒤 서버를 1.2.0(Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.2.0`)으로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.1.1 서버를 함께 복원하는 방법만 지원합니다. 이전 서버는 접근 로그 옵션을 거부하므로 먼저 제거하세요.
 
 ## 1.1.0 → 1.1.1
 
@@ -50,11 +54,11 @@
 이 버전부터 **0.17.3 미만 클라이언트는 사용할 수 없습니다.** 다른 프로젝트의 PC도 포함되므로 반드시 클라이언트를 먼저 올리세요.
 
 1. **남은 구 클라이언트 확인**: 모든 프로젝트 담당자에게 PC별 client 버전을 확인하고 0.17.3 미만을 업데이트하도록 알립니다. 1.0에서는 버전 현황 집계가 제거되므로 꺼져 있던 PC도 별도로 확인하세요.
-2. **클라이언트 먼저 갱신**: 모든 PC에서 `npm install -g @xelexis/x-broker@1.0.3`(npx 사용자는 MCP 설정의 고정 버전)으로 올리고 각 대화를 다시 연결합니다. 1.0 클라이언트는 0.17.3 이상 서버(지금의 0.19.x 포함)에서 동작하므로 서버보다 먼저 올려도 됩니다. 재연결 방법은 [연결된 채 업그레이드](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.ko.md#연결된-채-업그레이드)를 따릅니다.
-3. **전체 백업**: 서버를 멈추고 데이터 폴더 전체를 백업합니다. 파일 목록과 해시를 함께 기록하고, 백업 위치의 접근을 제한하세요(토큰 해시와 설정 정보가 들어 있습니다). 서버 메모리 대기열은 백업되지 않으므로 대기 메시지를 먼저 비웁니다.
+2. **클라이언트 먼저 갱신**: 모든 PC에서 `npm install -g @xelexis/x-broker@1.0.3`(npx 사용자는 MCP 설정의 고정 버전)으로 올리고 각 대화를 다시 연결합니다. 1.0 클라이언트는 0.17.3 이상 서버(지금의 0.19.x 포함)에서 동작하므로 서버보다 먼저 올려도 됩니다. 재연결 방법은 [연결된 채 업그레이드](README_AGENT.ko.md#연결된-채-업그레이드)를 따릅니다.
+3. **전체 백업**: 서버를 멈추고 데이터 폴더의 업무 데이터를 모두 백업합니다. 예약된 `logs/` 폴더는 백업과 기록할 파일 목록·해시 모두에서 제외합니다. 백업에는 토큰 해시와 설정 정보가 들어 있으므로 접근을 제한하세요. 서버 메모리 대기열은 백업되지 않으므로 대기 메시지를 먼저 비웁니다.
 4. **서버 교체**: 같은 데이터 경로로 새 서버를 시작합니다. Compose는 image 버전을 바꾸고 `docker compose pull`, `docker compose up -d`를 실행합니다.
    - 이미 최초 설정을 마친 서버는 설정 코드가 필요 없습니다.
-5. **구 클라이언트 거부 확인**: 0.17.3 미만 클라이언트는 모든 도구 호출이 거부됩니다. 표시되는 안내는 [버전 호환](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.ko.md#버전-호환)을 확인하세요.
+5. **구 클라이언트 거부 확인**: 0.17.3 미만 클라이언트는 모든 도구 호출이 거부됩니다. 표시되는 안내는 [버전 호환](README_AGENT.ko.md#버전-호환)을 확인하세요.
 6. **연결 확인**: 각 대화의 `auth_status`에서 버전과 `compatible`, 같은 등록 ID·이름을 확인하고, peer 메시지를 실제로 주고받는지 확인합니다.
 
 **되돌리기**는 전체 백업 복원만 지원합니다.
@@ -67,7 +71,7 @@
 
 ### 1.0에서 바뀌는 저장 데이터와 도구
 
-백업에는 control·registration·bugreport·memory를 포함한 전체 인스턴스 데이터와 클라이언트 상태가 들어가야 합니다. 메시지 큐는 메모리 전용입니다.
+백업에는 control·registration·bugreport·memory를 포함한 전체 인스턴스 업무 데이터와 클라이언트 상태가 들어가야 합니다. 서버 데이터 폴더의 예약된 `logs/`는 해시를 검증하는 백업·복원에서 제외하고, 로그를 별도 보관하려면 명시적인 보관 정책을 적용하세요. 메시지 큐는 메모리 전용입니다.
 
 - `spawn_session`은 제거됩니다. 캐시된 호출은 unknown tool 오류가 나므로 MCP를 재연결하세요. 하네스는 각 PC에서 직접 실행합니다.
 - 시작 시 모든 토큰·grant·기기 승인 scope에서 `session:spawn`만 한 번의 원자적 저장으로 제거합니다. control version은 5이며 다른 scope·승인 방식·만료·취소 상태와 감사 이력은 유지됩니다. 재시작은 같은 정리를 다시 저장하지 않습니다.
@@ -147,7 +151,7 @@
 
 클라이언트 0.17.2와 서버 0.17.1 조합에서는 프로젝트 종료 판단·수신 프로세스 보호를 사용할 수 없고, `expectRegistrationId`는 `unsupported`로 거부하며 기대값 없이 재전송하지 않습니다. Kimi는 서버와 클라이언트 모두 0.17.2 이상이 필요하며 이전 서버에서는 `unsupported-server`로 안내합니다.
 
-Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤** 추가하세요. 0.17.1은 알 수 없는 키를 거절합니다. Kimi는 `SessionStart`·`UserPromptSubmit`·`Stop`에 `kimi-hook`을 설정하고 MCP와 같은 상태 경로를 사용합니다. idle 대화를 깨우지 않으며 다음 프롬프트 또는 턴 종료 시 메시지를 받습니다. 설정 예시는 [README_AGENT.ko.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.ko.md)를 따르세요.
+Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤** 추가하세요. 0.17.1은 알 수 없는 키를 거절합니다. Kimi는 `SessionStart`·`UserPromptSubmit`·`Stop`에 `kimi-hook`을 설정하고 MCP와 같은 상태 경로를 사용합니다. idle 대화를 깨우지 않으며 다음 프롬프트 또는 턴 종료 시 메시지를 받습니다. 설정 예시는 [README_AGENT.ko.md](README_AGENT.ko.md)를 따르세요.
 
 버전 사이의 데이터 쓰기 호환은 보장하지 않습니다. 롤백은 서버를 중지하고 **업그레이드 전 전체 데이터 백업과 이전 실행파일을 함께 복원**합니다. `control.db`만 되돌리지 마세요. 백업 이후 변경은 전체 복원에 포함되지 않습니다. 서버 재시작 전 미전달 메시지는 보존되지 않으며 실패한 메시지를 자동으로 다시 보내지 않습니다.
 
@@ -298,7 +302,7 @@ Codex hook의 `turn_id`는 **클라이언트를 0.17.2 이상으로 올린 뒤**
 
 필수 중간 버전이나 DB 이전은 없습니다. 기존 서버 데이터와 클라이언트 등록 상태 디렉터리를 유지합니다.
 
-**인증 클라이언트의 설정 변경이 필요합니다.** `--token-file` 옵션은 더 이상 지원하지 않습니다. MCP 설정에서 이 옵션과 파일 경로를 제거하고 `--token` 다음에 기존 파일 안의 토큰 값 자체를 입력한 뒤 연결을 다시 시작합니다. 기존 토큰이 여전히 유효하면 새로 발급할 필요는 없습니다. 무인증 연결은 `--token` 없이 그대로 사용합니다. 예제와 설정 보관 방법은 [README_AGENT.ko.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.ko.md)를 따르세요.
+**인증 클라이언트의 설정 변경이 필요합니다.** `--token-file` 옵션은 더 이상 지원하지 않습니다. MCP 설정에서 이 옵션과 파일 경로를 제거하고 `--token` 다음에 기존 파일 안의 토큰 값 자체를 입력한 뒤 연결을 다시 시작합니다. 기존 토큰이 여전히 유효하면 새로 발급할 필요는 없습니다. 무인증 연결은 `--token` 없이 그대로 사용합니다. 예제와 설정 보관 방법은 [README_AGENT.ko.md](README_AGENT.ko.md)를 따르세요.
 
 서버·클라이언트를 0.3.2로 교체한 뒤 버전, 로그인, 프로젝트 목록과 실제 세션 답신을 확인합니다. 파일의 토큰은 자동으로 읽거나 삭제하지 않습니다.
 

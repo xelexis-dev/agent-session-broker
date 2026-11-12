@@ -2,7 +2,7 @@
 
 The MCP client for [Agent Session Broker](https://github.com/xelexis-dev/agent-session-broker#readme): connect Claude Code, Codex and Kimi conversations so they can message each other.
 
-English | [한국어](https://github.com/xelexis-dev/agent-session-broker/blob/main/README.ko.md)
+English | [한국어](https://github.com/xelexis-dev/agent-session-broker/blob/main/docs/README.ko.md)
 
 Requires Node.js 22 or later and npm. One package contains four clients: Windows x64, macOS arm64 and x64, and Linux x64.
 
@@ -54,9 +54,9 @@ Restart the MCP connection and ask the agent to connect this conversation to x-b
 
 Upgrading only the server does not change the tool list of a client that is already running. To use new tools, also raise the package version in the install or the MCP config and reconnect each conversation.
 
-See the [agent guide](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md) for detailed MCP setup and the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for the server.
+See the [agent guide](https://github.com/xelexis-dev/agent-session-broker/blob/main/docs/README_AGENT.md) for detailed MCP setup and the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for the server.
 
-To connect one conversation to several projects, see [multiple projects](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#connecting-to-multiple-projects). Give each project its own MCP entry, and set the Codex hooks and Kimi state paths per entry.
+To connect one conversation to several projects, see [multiple projects](https://github.com/xelexis-dev/agent-session-broker/blob/main/docs/README_AGENT.md#connecting-to-multiple-projects). Give each project its own MCP entry, and set the Codex hooks and Kimi state paths per entry.
 
 ## Upgrade
 

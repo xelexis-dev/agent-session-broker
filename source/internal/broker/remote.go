@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/attachments"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"path"
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
@@ -141,7 +142,7 @@ func newRemoteServiceWithCleanup(root string, background, sqlite bool, batch fun
 	if background {
 		s.stop = make(chan struct{})
 		s.done = make(chan struct{})
-		go s.run()
+		serverdiag.StartBackground(serverdiag.BackgroundStop, s.stop, s.run, nil)
 	}
 	return s, nil
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,6 +13,9 @@ import (
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/sqlitestore"
 )
+
+// Expiry commits state before notifying watchers, so a panic cannot safely retry.
+const expirySweepPolicy = serverdiag.BackgroundStop
 
 // OpenSQLite is the production control store. Legacy JSON is imported once
 // without rewriting it; all subsequent mutations are SQLite transactions.
@@ -107,7 +111,7 @@ func OpenSQLite(directory string) (*Store, error) {
 	if err := s.prepareSetupCode(); err != nil {
 		return fail()
 	}
-	go s.sweepLoop()
+	serverdiag.StartBackground(expirySweepPolicy, s.stop, s.sweepLoop, nil)
 	return s, nil
 }
 

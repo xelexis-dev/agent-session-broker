@@ -2,6 +2,7 @@ package serverruntime
 
 import (
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/controlpanel"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/netip"
@@ -57,13 +58,13 @@ func invalidFlag(args []string) string {
 		}
 		name, value, hasValue := strings.Cut(strings.TrimLeft(arg, "-"), "=")
 		switch name {
-		case "version":
+		case "access-log-forwarded-for", "version":
 			if hasValue {
 				if _, err := strconv.ParseBool(value); err != nil {
 					return name
 				}
 			}
-		case "listen", "memory-dir", "trusted-proxy":
+		case "access-log-file", "listen", "memory-dir", "trusted-proxy":
 			if !hasValue {
 				i++
 				if i >= len(args) {
@@ -76,9 +77,29 @@ func invalidFlag(args []string) string {
 					return name
 				}
 			}
+		case "access-log-max-size-mib", "access-log-max-files", "access-log-max-age-days":
+			if !hasValue {
+				i++
+				if i >= len(args) {
+					return name
+				}
+				value = args[i]
+			}
+			if _, err := strconv.ParseInt(value, 10, 64); err != nil {
+				return name
+			}
+
 		default:
 			return ""
 		}
 	}
 	return ""
+}
+
+func accessLogFailure(err error) *RunError {
+	var init *accesslog.InitError
+	if errors.As(err, &init) {
+		return &RunError{Reason: "access_log_init_failed", Detail: init.Reason}
+	}
+	return &RunError{Reason: "access_log_init_failed", Detail: "io"}
 }

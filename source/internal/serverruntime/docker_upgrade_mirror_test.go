@@ -73,7 +73,7 @@ func u2Case(t *testing.T, helper string, gap time.Duration) {
 	stop := func() { u2Docker(t, nil, "stop", name); u2Docker(t, nil, "rm", name) }
 	snapshot := func() []byte {
 		u2Docker(t, nil, "pause", name)
-		b := u2Docker(t, nil, "run", "--rm", "-v", volume+":/data:ro", "alpine:3.23", "tar", "-cf", "-", "-C", "/data", ".")
+		b := u2Docker(t, nil, "run", "--rm", "-v", volume+":/data:ro", "alpine:3.23", "tar", "--exclude=./logs", "-cf", "-", "-C", "/data", ".")
 		u2Docker(t, nil, "unpause", name)
 		return b
 	}
@@ -176,7 +176,7 @@ func u2Case(t *testing.T, helper string, gap time.Duration) {
 	matrixRequire(t, cmd.Run() == nil, "synthetic migrated snapshot extract")
 	matrixVerifyUpgrade(t, copyDir, before)
 	// Restore the complete frozen pre-upgrade volume, never edit a v4 payload.
-	u2Docker(t, backup, "run", "--rm", "-i", "-v", volume+":/data", "alpine:3.23", "sh", "-c", "find /data -mindepth 1 -delete && tar -xf - -C /data")
+	u2Docker(t, backup, "run", "--rm", "-i", "-v", volume+":/data", "alpine:3.23", "sh", "-c", "[ ! -L /data/logs ] && { [ ! -e /data/logs ] || [ -d /data/logs ]; } && find /data -mindepth 1 -maxdepth 1 ! -name logs -exec rm -rf {} + && tar -xf - -C /data")
 	healthy = start("0.14.0")
 	observer = matrixHTTPPeer(t, origin, observerToken)
 	defer observer.close()

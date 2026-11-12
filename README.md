@@ -6,11 +6,11 @@
 
 Let your Claude Code, Codex and Kimi conversations talk to each other, on one machine or many.
 
-English | [한국어](README.ko.md)
+English | [한국어](docs/README.ko.md)
 
 Agent Session Broker (ASB) relays messages between AI coding conversations. A self-hosted server keeps projects, access and registrations. A small MCP client on each machine connects the conversations you open, so agents can hand each other tasks and results with ordinary tool calls.
 
-**Agents: read [README_AGENT.md](README_AGENT.md)**. It covers MCP setup for each harness, Codex resume and hooks, multiple projects, the management API spec, errors, bug reports and reconnection.
+**Agents: read [README_AGENT.md](docs/README_AGENT.md)**. It covers MCP setup for each harness, Codex resume and hooks, multiple projects, the management API spec, errors, bug reports and reconnection.
 
 ## Highlights
 
@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.1.1
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.2.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.1.1
+npm install -g @xelexis/x-broker@1.2.0
 x-broker --version
 ```
 
@@ -69,7 +69,7 @@ A server-only release may skip npm, so compare the published version with the re
 **5. Connect a conversation.**
 
 1. In the control panel, create a project, grant access, and issue a token for each machine under **Project settings → Project tokens**.
-2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](README_AGENT.md#3-mcp-configuration). Never put a config that holds credentials in Git or a shared folder.
+2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](docs/README_AGENT.md#3-mcp-configuration). Never put a config that holds credentials in Git or a shared folder.
 3. Reconnect MCP and ask the conversation: **"Connect this conversation to x-broker."** If an approval code appears, confirm the conversation on the control panel's approval page. Opening a new conversation does not register it on its own.
 
 The control panel is in Korean. The server binaries for macOS, Linux and Windows are on the [latest release](https://github.com/xelexis-dev/agent-session-broker/releases/latest).
@@ -78,17 +78,19 @@ The control panel is in Korean. The server binaries for macOS, Linux and Windows
 
 - **Standalone server behind a reverse proxy:** when the proxy connects to a loopback upstream (`127.0.0.1` or `[::1]`), set the upstream `Host` for the `/mcp` route to that loopback address and port, for example `Host: 127.0.0.1:8787`. Keeping the public hostname causes MCP HTTP 403 (DNS rebinding protection). Apply this rewrite only to MCP; preserve the public Host for control-panel requests. `--trusted-proxy` and `X-Forwarded-Proto` handle the original scheme and do not bypass this Host check. Alternatively, bind **and connect** through a non-loopback interface protected by your firewall; a wildcard bind with a loopback upstream still triggers the check. Avoid `MCPGODEBUG=disablelocalhostprotection=1`: it disables DNS rebinding protection instead of fixing the proxy configuration.
 - Manage projects, members, tokens and connected sessions in the control panel. Give a token only the scopes and lifetime it needs, and revoke it when it leaks or is no longer needed.
-- The **management API** is separate from MCP and off by default; an administrator turns it on in instance settings. Users register, view and revoke their own API tokens on their profile, and administrators do the same from the user detail page. See the [management API guide](README_AGENT.md#management-api) for scopes, re-authentication and safe call examples.
+- The **management API** is separate from MCP and off by default; an administrator turns it on in instance settings. Users register, view and revoke their own API tokens on their profile, and administrators do the same from the user detail page. See the [management API guide](docs/README_AGENT.md#management-api) for scopes, re-authentication and safe call examples.
 - Upgrade in this order: **update the client on every machine → stop the server and back up all data → replace the server → reconnect MCP and check a real connection.** Clients older than 0.17.3 and legacy connections are refused. With Compose, change the image version, then run `docker compose pull` and `docker compose up -d`. From 1.0.4 the image is `ghcr.io/xelexis-dev/agent-session-broker`, which also has 1.0.3; the old `-deploy` image name is retired and removed, so change the name as well. Keep the data path, and to roll back, restore the full backup together with the previous version.
 - Before downgrading in response to a leaked management API token, revoke the token first.
 
 ## Documentation
 
-- [README_AGENT.md](README_AGENT.md): full setup and operations guide for agents
-- [UPDATE.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.md): changes and cautions by version
-- [UPGRADE_PATH.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md): supported upgrade paths and data migration
-- [Upgrading while connected](README_AGENT.md#upgrading-while-connected)
+- [README_AGENT.md](docs/README_AGENT.md): full setup and operations guide for agents
+- [UPDATE.md](docs/UPDATE.md): changes and cautions by version
+- [UPGRADE_PATH.md](docs/UPGRADE_PATH.md): supported upgrade paths and data migration
+- [Upgrading while connected](docs/README_AGENT.md#upgrading-while-connected)
 
 ## License
 
-Agent Session Broker is MIT licensed; see [LICENSE](LICENSE). Licenses and notices of third-party components are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+Agent Session Broker is MIT licensed; see [LICENSE](LICENSE). Licenses and notices of third-party components are in [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES).
+
+Optional HTTP access logging (1.2.0) is off by default: use `--access-log-file logs/access.log` (Compose: `ASB_ACCESS_LOG_FILE=/data/logs/access.log`). It rotates private files under the data directory; exclude reserved root `logs/` from business backups. Stderr is JSON Lines. See [the agent guide](docs/README_AGENT.md) for proxy opt-in, retention, counters and recovery limits.

@@ -1,8 +1,11 @@
 package controlpanel
 
 import (
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
+	"net/netip"
+	"path"
 	"strings"
 	"sync"
 )
@@ -120,12 +123,18 @@ var panelRoutes = []string{
 }
 
 var accessRoutes []apiRoute
+var panelRouteSet = map[string]string{}
+var apiRouteSet = map[string]string{}
 
 func init() {
 	accessRoutes = apiRoutes
+	for _, route := range panelRoutes {
+		panelRouteSet[route] = route
+	}
 	serverdiag.RegisterRoutes(panelRoutes...)
 	for _, route := range accessRoutes {
 		serverdiag.RegisterRoutes(route.Path, route.Method+" "+route.Path)
+		apiRouteSet[route.Path] = route.Path
 	}
 }
 
@@ -143,30 +152,33 @@ func staticAPIRoute(route string) string {
 
 // AccessRoute returns only registered templates, never the original variable path.
 func AccessRoute(r *http.Request) string {
-	for _, v := range panelRoutes {
-		if r.URL.Path == v {
-			return v
-		}
+	if canonical, ok := panelRouteSet[r.URL.Path]; ok {
+		return canonical
 	}
 	if strings.HasPrefix(r.URL.Path, "/api/") {
 		accessAPIOnce.Do(func() {
 			accessAPIMux = http.NewServeMux()
+			seen := map[string]bool{}
 			for _, v := range accessRoutes {
-				accessAPIMux.HandleFunc(v.Method+" "+v.Path, func(http.ResponseWriter, *http.Request) {})
-			}
-		})
-		for _, v := range accessRoutes {
-			trial := r.Clone(r.Context())
-			trial.Method = v.Method
-			_, pattern := accessAPIMux.Handler(trial)
-			if _, path, ok := strings.Cut(pattern, " "); ok {
-				for _, known := range accessRoutes {
-					if known.Path == path {
-						return known.Path
-					}
+				if !seen[v.Path] {
+					accessAPIMux.HandleFunc(v.Path, func(http.ResponseWriter, *http.Request) {})
+					seen[v.Path] = true
 				}
 			}
+		})
+		if path.Clean(r.URL.Path) != r.URL.Path {
+			return "/api/{unmatched}"
 		}
+		trial := *r
+		url := *r.URL
+		url.RawPath = ""
+		trial.URL = &url
+		trial.Method = "GET"
+		_, pattern := accessAPIMux.Handler(&trial)
+		if canonical, ok := apiRouteSet[pattern]; ok {
+			return canonical
+		}
+
 		return "/api/{unmatched}"
 	}
 	if strings.HasPrefix(r.URL.Path, "/attachments/") {
@@ -176,4 +188,10 @@ func AccessRoute(r *http.Request) string {
 		return "/assets/{file}"
 	}
 	return "{unmatched}"
+}
+
+// AccessMetadata reuses the scheme decision without expanding authentication trust.
+func AccessMetadata(r *http.Request, scheme, address []netip.Prefix, forwarded bool) accesslog.Metadata {
+	p := panel{trustedProxies: scheme}
+	return accesslog.Metadata{Route: AccessRoute(r), Address: accesslog.ClientAddress(r, forwarded, address), TLS: p.transport(r).secure}
 }

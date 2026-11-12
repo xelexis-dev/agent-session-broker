@@ -6,3 +6,7 @@ services:
       - "127.0.0.1:8787:8787"
     volumes:
       - ${ASB_DATA_DIR:-./data}:/data
+
+    # Optional opt-in (off by default):
+    # environment:
+    #   ASB_ACCESS_LOG_FILE: /data/logs/access.log

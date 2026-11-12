@@ -103,11 +103,10 @@ func Open(directory string) (*Store, error) {
 		}
 	}
 	s := &Store{capacity: diskCapacity, root: root, pin: pin, items: map[string]*record{}, pending: map[[2]string]bool{}, stop: make(chan struct{}), done: make(chan struct{})}
-	go s.sweep()
+	serverdiag.StartBackground(serverdiag.BackgroundRestart, s.stop, s.sweep, func() { close(s.done) })
 	return s, nil
 }
 func (s *Store) sweep() {
-	defer close(s.done)
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 	for {
@@ -115,17 +114,19 @@ func (s *Store) sweep() {
 		case <-s.stop:
 			return
 		case now := <-ticker.C:
-			s.mu.Lock()
-			for _, r := range s.items {
-				ttl := Expiry
-				if r.recipient == "" {
-					ttl = 10 * time.Minute
+			func() {
+				s.mu.Lock()
+				defer s.mu.Unlock()
+				for _, r := range s.items {
+					ttl := Expiry
+					if r.recipient == "" {
+						ttl = 10 * time.Minute
+					}
+					if r.deleted || !now.Before(r.created.Add(ttl)) {
+						s.deleteLocked(r, "expired")
+					}
 				}
-				if r.deleted || !now.Before(r.created.Add(ttl)) {
-					s.deleteLocked(r, "expired")
-				}
-			}
-			s.mu.Unlock()
+			}()
 		}
 	}
 }
@@ -242,7 +243,7 @@ func (s *Store) Upload(ctx context.Context, owner Owner, name string, size int64
 	s.reserved += size
 	s.mu.Unlock()
 	if closer, ok := body.(io.Closer); ok {
-		stop := context.AfterFunc(ctx, func() { _ = closer.Close() })
+		stop := context.AfterFunc(ctx, serverdiag.BackgroundCallback(func() { _ = closer.Close() }))
 		defer stop()
 	}
 	defer cancel()

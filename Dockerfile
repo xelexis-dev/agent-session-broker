@@ -3,7 +3,7 @@ WORKDIR /src
 COPY source/go.mod source/go.sum ./
 RUN go mod download
 COPY source/ ./
-COPY THIRD_PARTY_NOTICES LICENSE /out/legal/
+COPY docs/THIRD_PARTY_NOTICES LICENSE /out/legal/
 RUN test -s /out/legal/THIRD_PARTY_NOTICES && test -s /out/legal/LICENSE
 ARG TARGETOS
 ARG TARGETARCH

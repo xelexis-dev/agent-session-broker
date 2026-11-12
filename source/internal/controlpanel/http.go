@@ -11,6 +11,7 @@ import (
 	"github.com/xelexis-dev/agent-session-broker/source/internal/attachments"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
 	"net/netip"
 	"net/url"
@@ -1005,7 +1006,7 @@ func (p *panel) authorizedProject(w http.ResponseWriter, r *http.Request, next h
 		defer timer.Stop()
 		expiry = timer.C
 	}
-	go func() {
+	serverdiag.StartBackground(serverdiag.BackgroundStop, ctx.Done(), func() {
 		select {
 		case <-suspension:
 			cancel()
@@ -1017,7 +1018,7 @@ func (p *panel) authorizedProject(w http.ResponseWriter, r *http.Request, next h
 			cancel()
 		case <-ctx.Done():
 		}
-	}()
+	}, nil)
 	next.ServeHTTP(w, r.WithContext(ctx))
 }
 

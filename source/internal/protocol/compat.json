@@ -1,1 +1,1 @@
-{"schema":2,"servers":[{"line":"0.20","minClient":"0.17.3"},{"line":"1.0","minClient":"0.17.3"},{"line":"1.1","minClient":"0.17.3"}],"clients":[{"line":"0.20","minServer":"0.17.3"},{"line":"1.0","minServer":"0.17.3"},{"line":"1.1","minServer":"0.17.3"}]}
+{"schema":2,"servers":[{"line":"0.20","minClient":"0.17.3"},{"line":"1.0","minClient":"0.17.3"},{"line":"1.1","minClient":"0.17.3"},{"line":"1.2","minClient":"0.17.3"}],"clients":[{"line":"0.20","minServer":"0.17.3"},{"line":"1.0","minServer":"0.17.3"},{"line":"1.1","minServer":"0.17.3"},{"line":"1.2","minServer":"0.17.3"}]}

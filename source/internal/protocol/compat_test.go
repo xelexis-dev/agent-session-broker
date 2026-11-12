@@ -19,11 +19,11 @@ func TestCompatibilityManifestStrict(t *testing.T) {
 func TestCompatibilityPolicySelectionAndSemver(t *testing.T) {
 	for _, version := range []string{"dev", "dev-abcd", "not-a-version"} {
 		p, ok := ServerPolicy(version)
-		if !ok || p.Line != "1.1" {
+		if !ok || p.Line != "1.2" {
 			t.Fatal("policy selection", version)
 		}
 	}
-	for _, tc := range []struct{ version, line string }{{"0.99.0", "0.20"}, {"1.0.0", "1.0"}, {"1.1.0", "1.1"}, {"0.20.0", "0.20"}, {"0.19.0", "0.20"}, {"0.17.2", "0.20"}, {"dev", "1.1"}} {
+	for _, tc := range []struct{ version, line string }{{"0.99.0", "0.20"}, {"1.0.0", "1.0"}, {"1.1.0", "1.1"}, {"1.2.0", "1.2"}, {"0.20.0", "0.20"}, {"0.19.0", "0.20"}, {"0.17.2", "0.20"}, {"dev", "1.2"}} {
 		if p, ok := ServerPolicy(tc.version); !ok || p.Line != tc.line {
 			t.Fatal("fallback", tc)
 		}

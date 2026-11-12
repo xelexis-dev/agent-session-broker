@@ -9,6 +9,7 @@ import (
 	"github.com/xelexis-dev/agent-session-broker/source/internal/attachments"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io"
 	"net/http"
 	"regexp"
@@ -128,7 +129,7 @@ func attachmentHTTP(servers ProjectServers) http.Handler {
 				return
 			}
 			defer d.Close()
-			stop := context.AfterFunc(r.Context(), func() { _ = d.Close() })
+			stop := context.AfterFunc(r.Context(), serverdiag.BackgroundCallback(func() { _ = d.Close() }))
 			defer stop()
 			_ = controller.SetWriteDeadline(time.Now().Add(10 * time.Minute))
 			w.Header().Set("Content-Type", "application/octet-stream")

@@ -69,12 +69,12 @@ test("packs one package with the launcher and all four clients", (t) => {
   assert.deepEqual(manifest.bugs, { url: "https://github.com/xelexis-dev/agent-session-broker#readme" });
   assert.doesNotMatch(execFileSync("tar", ["-xOzf", tgz, "package/package.json"], { encoding: "utf8" }), /agent-session-broker-deploy/);
   assert.equal(manifest.license, "SEE LICENSE IN LICENSE");
-  for (const name of ["THIRD_PARTY_NOTICES", "LICENSE"]) {
-    assert.equal(execFileSync("tar", ["-xOzf", tgz, `package/${name}`], { encoding: "utf8" }), fs.readFileSync(path.resolve(__dirname, "../..", name), "utf8"));
+  for (const [name, source] of [["THIRD_PARTY_NOTICES", "docs/THIRD_PARTY_NOTICES"], ["LICENSE", "LICENSE"]]) {
+    assert.equal(execFileSync("tar", ["-xOzf", tgz, `package/${name}`], { encoding: "utf8" }), fs.readFileSync(path.resolve(__dirname, "../..", source), "utf8"));
   }
   const readme = execFileSync("tar", ["-xOzf", tgz, "package/README.md"], { encoding: "utf8" });
   assert.match(readme, /@xelexis\/x-broker@1\.2\.3/);
-  assert.match(readme, /blob\/main\/README_AGENT\.md/);
+  assert.match(readme, /blob\/main\/docs\/README_AGENT\.md/);
   for (const [key, file] of Object.entries(bundled)) {
     assert.equal(execFileSync("tar", ["-xOzf", tgz, file], { encoding: "utf8" }), `binary for ${key}\n`);
   }
@@ -225,7 +225,8 @@ test("approved LICENSE is shipped byte-for-byte and empty text is refused", (t) 
   const root = path.join(dir, "isolated"), npm = path.join(root, "source/npm");
   fs.mkdirSync(npm, { recursive: true });
   for (const name of ["pack.cjs", "x-broker.js", "README.md"]) fs.copyFileSync(path.join(__dirname, name), path.join(npm, name));
-  fs.copyFileSync(path.resolve(__dirname, "../../THIRD_PARTY_NOTICES"), path.join(root, "THIRD_PARTY_NOTICES"));
+  fs.mkdirSync(path.join(root, "docs"));
+  fs.copyFileSync(path.resolve(__dirname, "../../docs/THIRD_PARTY_NOTICES"), path.join(root, "docs/THIRD_PARTY_NOTICES"));
   fs.writeFileSync(path.join(root, "LICENSE"), "Synthetic approved license fixture\n");
   const out = path.join(dir, "out"), args = ["--version", "1.2.3", "--out", out, ...fakeBinaries(dir).flatMap(b => ["--binary", b])];
   const result = spawnSync(process.execPath, [path.join(npm, "pack.cjs"), ...args], { encoding: "utf8" });

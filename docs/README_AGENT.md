@@ -20,11 +20,11 @@ See [UPDATE.md](UPDATE.md) for changes in each version.
 | Windows | `.\asb-server.exe --memory-dir .\asb-data` |
 | macOS·Linux | Run `chmod +x asb-server`, then `./asb-server --memory-dir ./asb-data` |
 
-The default address is `127.0.0.1:8787`. **1.1.1 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
+The default address is `127.0.0.1:8787`. **1.2.0 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
 
 Open `http://127.0.0.1:8787/setup` on the server (for a remote server, create an SSH tunnel with `ssh -L 8787:127.0.0.1:8787 <server>`). Enter the setup code described below and a new administrator password. Sign in, create a project and allow connections. Issue a token under **Project settings → Project tokens**.
 
-**Setup code in 1.1.1:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
+**Setup code in 1.2.0:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
 
 Use HTTPS for client connections. When **Allow HTTP connections** is off, `/mcp` and OAuth credential routes reject plaintext requests with 403, even without a forwarding header. Localhost has no exception. Behind a TLS-terminating proxy, specify `--trusted-proxy <proxy CIDR>` on the server, even for a proxy on the same host. The proxy must **overwrite** `X-Forwarded-Proto` with a single original scheme value instead of forwarding external input. No proxy is trusted by default. Missing, duplicate, list or invalid values from a trusted proxy do not prove HTTPS. To use HTTP on a protected internal network, enable **Instance settings → Allow HTTP connections**. Direct HTTP access from another PC is only for a protected internal network, with both `--listen 0.0.0.0:8787` and Allow HTTP connections enabled.
 
@@ -41,13 +41,13 @@ When issuing a token that registers without approval on request, choose its regi
 | Control state | 8 MiB of serialized state (not a limit on the entire SQLite file) |
 | Panel sign-in sessions | 128 concurrent sessions per server process across all users, after expired sessions are removed |
 
-**Backup:** drain pending messages, stop the server completely, then back up the entire data directory specified by `--memory-dir` (the volume or bind source for Compose's default `/data`). Preserve control, per-project registration, bugreport, memory and all other data files together. Record the file list, sizes and SHA-256 hashes. Do not copy just one live SQLite file. Preserve client authentication state separately and restrict access to backups, which may contain credentials. The in-memory message queue is not backed up.
+**Backup:** drain pending messages, stop the server completely, then back up all business data in the directory specified by `--memory-dir`, excluding reserved root `logs/` from the backup, file list and hashes (the volume or bind source for Compose's default `/data`). Preserve control, per-project registration, bugreport, memory and all other data files together. Record the file list, sizes and SHA-256 hashes. Do not copy just one live SQLite file. Preserve client authentication state separately and restrict access to backups, which may contain credentials. The in-memory message queue is not backed up.
 
 **Restore:** stop the server and restore the complete backup into a **new empty directory**, without mixing it with existing data. Compare file lists, sizes and hashes. Start with the previous server binary/image and original ownership and permissions. Changes made after the backup are lost: **revoke again any tokens revoked after the backup**. Check sign-in, permissions, the same registration IDs and memory in every project, then reconnect clients. In-place downgrade is unsupported. Restarting clears the message queue and temporary server attachments.
 
-**Health and logs:** check that `http://127.0.0.1:8787/healthz` on the server host and `https://broker.example.com/healthz` through the TLS proxy return HTTP 200 and `ok`. `/healthz` only checks HTTP process liveness; it does not prove successful sign-in, registration or actual message receipt. Server diagnostics and startup/error logs go to stderr; `--help` and `--version` go to stdout. For direct execution, inspect the terminal or process manager's stderr capture; for Compose, use `docker compose logs broker`. The server does not create a separate log file automatically. Remove tokens, cookies, approval codes and private paths before sharing logs.
+**Health and logs:** check that `http://127.0.0.1:8787/healthz` on the server host and `https://broker.example.com/healthz` through the TLS proxy return HTTP 200 and `ok`. `/healthz` only checks HTTP process liveness; it does not prove successful sign-in, registration or actual message receipt. Server diagnostics and startup/error logs go to stderr; `--help` and `--version` go to stdout. For direct execution, inspect the terminal or process manager's stderr capture; for Compose, use `docker compose logs broker`. Access logging stays off unless explicitly configured below; stderr diagnostics are JSON Lines. Remove tokens, cookies, approval codes and private paths before sharing logs.
 
-**Upgrade order for 1.0:** check each PC's version in every project, including PCs that are off. First update clients to at least 0.17.3 (the npm version for the release candidate or final release) and reconnect. Then stop the server → make a full backup → replace the server binary/image → start with the same data path → verify versions, unchanged registration IDs and actual messages received in both directions. Clients below the minimum cannot be used. Follow the [upgrade guide](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md) for additional steps for each release.
+**Upgrade order for 1.0:** check each PC's version in every project, including PCs that are off. First update clients to at least 0.17.3 (the npm version for the release candidate or final release) and reconnect. Then stop the server → make a full backup → replace the server binary/image → start with the same data path → verify versions, unchanged registration IDs and actual messages received in both directions. Clients below the minimum cannot be used. Follow the [upgrade guide](UPGRADE_PATH.md) for additional steps for each release.
 
 Example inside the HTTPS `server` block of a TLS-terminating nginx proxy. Configure certificates and HTTPS listening for your domain, and trust only this proxy's actual address with the broker's `--trusted-proxy` option.
 
@@ -57,12 +57,14 @@ location = /mcp {
     proxy_pass http://127.0.0.1:8787;
     proxy_set_header Host 127.0.0.1:8787;
     proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_buffering off;
 }
 location / {
     proxy_pass http://127.0.0.1:8787;
     proxy_set_header Host $http_host;
     proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_buffering off;
 }
 ```
@@ -70,6 +72,24 @@ location / {
 For a standalone server, the `/mcp` location must send the loopback upstream Host shown above. Preserving the public Host on a loopback connection triggers MCP HTTP 403 (DNS rebinding protection), even with a trusted proxy and a valid `X-Forwarded-Proto`. Keep the public Host on control-panel routes so browser same-origin checks still match. Alternatively, bind and connect through a firewalled non-loopback interface; listening on `0.0.0.0` alone does not help if the proxy still connects to `127.0.0.1`. Do not disable the guard with `MCPGODEBUG=disablelocalhostprotection=1` to work around proxy configuration. Container backends reached through a non-loopback container address do not hit this loopback Host check.
 
 Enable HSTS only on a domain with working HTTPS. Browsers enforce HTTPS for the specified period, so switching back to HTTP cannot resolve an outage. Decide separately whether to use `includeSubDomains` or preload, and only if HTTPS is guaranteed for the subdomains; neither is included above. HSTS does not replace the broker's proxy trust or HTTP allowance policy.
+
+### Optional HTTP access log (1.2.0)
+
+Access logging is **off by default**. Enable it with `--access-log-file logs/access.log` or `ASB_ACCESS_LOG_FILE=/data/logs/access.log` in Compose; an explicit flag overrides the environment and an explicit empty flag disables logging. Relative paths are relative to `--memory-dir`, not the working directory. Only files below that server's reserved `<data-dir>/logs/` are supported; `-`, external roots, symlinks/reparse points and nonregular files are refused before listening. No access records go to stdout. Server diagnostics on stderr are JSON Lines; the old `listening on http://...` text is gone. Startup consumers read the `server-listening` event's canonical `bind` field.
+
+The server creates private directories/files (POSIX0700/0600); existing log permissions must be private too. On Windows, directories/files inherit the data directory's ACL: the operator must verify that this ACL restricts access. Do not share logs/ between servers or place business data there. In Compose, add the environment variable only when opting in; Docker logging-driver settings are unchanged.
+
+Rotation defaults: `--access-log-max-size-mib 10`, `--access-log-max-files 10`, `--access-log-max-age-days 30`. Bounds are1–1024 MiB,1–1000 rotated files and1–3650 days; active size times (rotated count +1) must be at most10 GiB. Explicit retention options require logging on. This is a configuration cap, not a disk quota or free-space reservation; logs share the business-data volume. Rotated names use `<basename>.YYYYMMDDTHHMMSS.nnnnnnnnnZ-NNNNNN.rot`. The oldest rotated files exceeding either age or count are removed. Active files are not age-pruned, so individual records can be older than30 days. Unknown files/basenames and aliases are preserved. Clock rollback preserves future-dated files subject to the count bound. Partial crash tails/blank separators are possible; the server never reads or replays log contents.
+
+Only fixed method values (`GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `CONNECT`, `TRACE`, otherwise `OTHER`) and registered route templates are recorded. Panel/OAuth routes are constants; API routes use templates such as `/api/v1/projects/{project}/tokens/{id}` even on405; assets and attachments use `/assets/{file}` and `/attachments/{id}`. Unknown routes are `{unmatched}` or `/api/{unmatched}` with decoded byte `path_len`; no raw path, first segment or hash. Route strings are an operational contract, not a resource ID: consumers dispatch on `type` and treat unknown future templates as opaque. The separate stderr audit diagnostic uses its registered `METHOD /template` action and `status=success` for a committed mutation whose audit write failed.
+
+Each access JSON line has UTC start `time`, `method`, `route`, response `status`, monotonic `duration_ms`, logical pre-compression `bytes`, canonical `peer`/`client`, `client_source` and scheme `tls`. Health requests are included; long-poll duration includes waiting and does not itself mean failure. No-output success is200; abort before a final response is0.1xx hints do not replace the first final status;101 is the upgrade boundary. Noncompressed partial writes count only accepted bytes; compressed responses count accepted gzip input, not delivery confirmation. HEAD/204/304 count no body. `Unwrap` preserves ResponseController deadlines/flush/full-duplex; direct Hijacker/Pusher assertions and tracking a controller-hijacked socket's later lifetime are unsupported.
+
+Client is the TCP peer by default. `--access-log-forwarded-for` separately opts into XFF and requires file logging plus trusted CIDRs. All trusted hops must overwrite external XFF or append their observed peer. Only a trusted TCP peer plus exactly one `X-Forwarded-Proto: http` or `https` permits XFF use. The chain is inspected right-to-left, up to32 inspected hops, stopping at the first untrusted IP; malformed/padded input to its left is ignored. Malformed trusted suffixes, all-trusted chains or a needed33rd hop fall back to peer. Bare zone-free IPs only; mapped IPv4 addresses/prefixes normalize to IPv4, and ambiguous mapped prefixes below /96 are refused for this opt-in. Broad trust such as /0 can hide clients by forcing fallback. Ignored XFF is marked `forwarded_ignored`; X-Real-IP/Forwarded never select the client. Authentication and scheme trust do not change. Verify every proxy before opting in; address validation cannot prove that a proxy followed this contract.
+
+One file worker drains a nonblocking1,024-event queue (8 KiB/event). Saturation, write/rotation/prune failures and successful reopens appear in process-lifetime counters (`dropped_total`, `write_errors_total`, `rotation_errors_total`, `prune_errors_total`, `reopens_total`) with `process_started_at`. Read `access_log_status` and sanitized stderr summaries too; restarts reset counters. File recovery uses1/2/4…30-second backoff, rotation conflicts retry after30 seconds, and the active file stops growing at twice its size bound. A one-minute identity check reopens a replaced/deleted active file; external concurrent rotation is not lossless. Shutdown allows a shared total2-second file/stderr drain after HTTP shutdown. Stuck I/O, crashes, queue overflow or the deadline can lose records/last counters; there is no durable queue or per-request fsync. Raw query/header/body/cookie/token/identity/error/panic values are excluded with logging on and off. Other background-goroutine panics remain outside this request boundary.
+
+Exclude reserved root `logs/` from business backup manifests and restores; nested project folders named logs are still business data. Existing normal root logs may be preserved during restore, but other nonempty business data and invalid logs aliases remain refused. If logs must be archived, use a separate explicit retention/access policy. Remove the new access-log flags/environment before rolling back to an older binary; restore business data using the normal verified backup contract.
 
 ### Control panel
 
@@ -84,13 +104,13 @@ Requires Node.js 22 or later and npm. Supports Windows x64, macOS ARM64·x64 and
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.1.1
+npm install -g @xelexis/x-broker@1.2.0
 x-broker --version
 ```
 
-These examples pin `1.1.1`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
+These examples pin `1.2.0`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
 
-Alternatively, use `npx -y @xelexis/x-broker@1.1.1`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.1.1"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
+Alternatively, use `npx -y @xelexis/x-broker@1.2.0`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.2.0"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
 
 On macOS·Linux, a Node global wrapper with execve support replaces itself with the client. **Windows has no execve: a node relay remains with either install method, while a global install removes the npm exec parent process.**
 
@@ -141,7 +161,7 @@ Codex reads configuration from trusted projects. When switching from the previou
 
 ### Codex resume launcher (connection without a prompt)
 
-On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.1.1` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
+On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.2.0` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
 
 - Embedded options (`-c`, `--config`, `--enable`, `--disable`, `--search`, `--no-daemon`, `--dangerously-bypass-hook-trust`) cannot be combined with explicit `--remote`. Run `codex resume <UUID> ...` directly to use the existing first-prompt path.
 - Only one `--remote` is allowed. The default daemon passes the CODEX_HOME socket alias to the TUI; the helper verifies the canonical target's inode and peer. Explicit endpoints pass through unchanged; ws/wss endpoints run without the helper. `--last`, `--all` and `--include-non-interactive` are rejected. Arguments after `--` pass through unchanged.
@@ -243,7 +263,7 @@ until canonical_socket; do
 done
 helper_socket=$socket
 case "$helper_socket" in /*) ;; *) helper_socket="$PWD/$helper_socket" ;; esac
-npx -y "@xelexis/x-broker@${XB_VERSION:-1.1.1}" codex-resume-helper \
+npx -y "@xelexis/x-broker@${XB_VERSION:-1.2.0}" codex-resume-helper \
     --thread "$t" --pid "$$" --codex-home "$home" --socket "$helper_socket" --inode "$inode" \
     </dev/null >/dev/null 2>&1 &
 # Rotate the original positional arguments; never join or eval caller input.
@@ -303,7 +323,7 @@ Kimi reads `.mcp.json` at the project root. Use the same format as the Claude ex
 
 Configure these hooks in Kimi's home at `~/.kimi-code/config.toml` (or `$KIMI_CODE_HOME/config.toml`). Global configuration is not changed automatically. Do not put the broker token in hook commands.
 
-Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.1.1`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
+Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.0`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
 
 ```toml
 [[hooks]]
@@ -336,7 +356,7 @@ In one conversation, add one MCP entry per project. Give each a distinct entry n
 
 Put each project token only in that project's entry. Do not put token-bearing configuration in Git, shared folders, messages or diagnostic logs. Replace the example token placeholders locally. The server rejects cross-project sends. However, **the same conversation's model context contains information from multiple projects, and the model can send that information to another project.** Use separate conversations for projects that must not share information.
 
-A pinned global install (`npm install -g @xelexis/x-broker@1.1.1`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
+A pinned global install (`npm install -g @xelexis/x-broker@1.2.0`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
 
 | Launch/state | 1 entry | 2 entries | Remaining processes, 1→2 entries |
 | --- | ---: | ---: | --- |
@@ -675,7 +695,7 @@ This connection-request flow applies from client 0.17.1. Starting a new conversa
 
 If connection fails, check `x-broker --version` (the pinned version's `--version` for npx), server address, project connection allowance and token state. If the initial download is slow, run the step 2 `--version` command first.
 
-Before updating, stop the server and back up the data directory. Read the [upgrade guide](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md) and keep the same data path.
+Before updating, stop the server and back up the data directory. Read the [upgrade guide](UPGRADE_PATH.md) and keep the same data path.
 
 ### Keeping the connection when resuming
 
@@ -867,7 +887,7 @@ Disk `status` remains `open/closed`; extra `resolution` distinguishes resolved/i
 
 **1.0 change:** spawn tool/issuance removed. Atomic v5 scope cleanup; empty lists refuse startup without changes. Full responses retain nonfunctional `session:spawn` until 2.0 for compatibility. Rollback requires full-backup restore.
 
-Recommended client: 1.1.1 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
+Recommended client: 1.2.0 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
 
 `auth_status.update` appears only when `clientVersion` is below the connected server's `recommendedClientVersion`. Server and npm client versions are separate. Older servers without a recommendation show none. The recommendation is a version whose publication was verified for the server release, not the internet's latest.
 
@@ -888,7 +908,7 @@ After reconnecting, check `auth_status.clientVersion`, unchanged registration ID
 
 ## Version compatibility
 
-This section defines 1.0 support and the **compatibility commitment until 2.0**. See [UPDATE.md](UPDATE.md) for version changes and the [upgrade path](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md) for data migration and update order.
+This section defines 1.0 support and the **compatibility commitment until 2.0**. See [UPDATE.md](UPDATE.md) for version changes and the [upgrade path](UPGRADE_PATH.md) for data migration and update order.
 
 ### Support scope
 
@@ -931,7 +951,7 @@ From 1.0 until 2.0, these will not change incompatibly:
 - Client/server protocol, including the minimum client/server policy above
 - Server/client configuration flags documented publicly
 - Token scope names
-- Forward data upgrades: new 1.x servers continue using earlier versions' data. Supported starting versions are listed in the [upgrade path](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md).
+- Forward data upgrades: new 1.x servers continue using earlier versions' data. Supported starting versions are listed in the [upgrade path](UPGRADE_PATH.md).
 
 ### Deprecation policy
 
@@ -960,8 +980,8 @@ Starting an older server directly on data written by a newer version (in-place d
 
 Changes after the backup are not restored. In particular, **project tokens, session credentials and user API tokens revoked after the backup become valid again after restore**. Revoke them again before reopening external connections. The in-memory queue disappears on restore. Rolling back to 0.19.x also allows clients below 0.17.3 again.
 
-Update order: **complete backup → clients first when moving to 1.0 → replace server → reconnect and verify each conversation**. Follow the [upgrade path](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.md) and [Upgrading while connected](#upgrading-while-connected).
+Update order: **complete backup → clients first when moving to 1.0 → replace server → reconnect and verify each conversation**. Follow the [upgrade path](UPGRADE_PATH.md) and [Upgrading while connected](#upgrading-while-connected).
 
 ## License
 
-This software is provided under the MIT license. See [LICENSE](LICENSE) for terms and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) for third-party licenses and notices.
+This software is provided under the MIT license. See [LICENSE](../LICENSE) for terms and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) for third-party licenses and notices.

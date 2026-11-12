@@ -3,6 +3,7 @@ package controlpanel
 import (
 	"bytes"
 	"compress/gzip"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -49,7 +50,10 @@ func writePanelText(w http.ResponseWriter, r *http.Request, status int, data []b
 	if acceptsGzip(r) {
 		var compressed bytes.Buffer
 		z := gzip.NewWriter(&compressed)
-		_, _ = z.Write(data) // bytes.Buffer cannot fail.
+		n, _ := z.Write(data) // bytes.Buffer cannot fail.
+		if r.Method != http.MethodHead && status != 204 && status != 304 {
+			accesslog.LogicalBytes(r, n)
+		}
 		_ = z.Close()
 		data = compressed.Bytes()
 		w.Header().Set("Content-Encoding", "gzip")

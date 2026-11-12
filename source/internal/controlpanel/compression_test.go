@@ -3,13 +3,18 @@ package controlpanel
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestPanelGzipAssetsAndLiveJSON(t *testing.T) {
@@ -115,5 +120,42 @@ func TestPanelTextNotModifiedHasNoBody(t *testing.T) {
 	}
 	if strings.Join(w.Header().Values("Vary"), ",") != "Origin,Accept-Encoding" {
 		t.Fatal("existing Vary lost")
+	}
+}
+
+func TestAccessLogGzipCountsLogicalBody(t *testing.T) {
+	root := t.TempDir()
+	cfg := accesslog.Defaults()
+	cfg.File = "logs/access.log"
+	l, err := accesslog.Open(root, cfg)
+	if err != nil {
+		t.Fatal("log init failed")
+	}
+	payload := []byte(strings.Repeat("compressible-text", 100))
+	h := l.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { writePanelText(w, r, 200, payload) }), func(r *http.Request) accesslog.Metadata { return accesslog.Metadata{Route: "/assets/{file}"} })
+	for _, method := range []string{"GET", "HEAD"} {
+		r := httptest.NewRequest(method, "/assets/example", nil)
+		r.Header.Set("Accept-Encoding", "gzip")
+		h.ServeHTTP(httptest.NewRecorder(), r)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	l.Close(ctx)
+	raw, err := os.ReadFile(filepath.Join(root, "logs", "access.log"))
+	if err != nil {
+		t.Fatal("log read failed")
+	}
+	var counts []int64
+	for _, line := range strings.Split(strings.TrimSpace(string(raw)), "\n") {
+		var record accesslog.Record
+		if json.Unmarshal([]byte(line), &record) != nil {
+			t.Fatal("invalid record")
+		}
+		if record.Type == "access" {
+			counts = append(counts, record.Bytes)
+		}
+	}
+	if len(counts) != 2 || counts[0] != int64(len(payload)) || counts[1] != 0 {
+		t.Fatal("gzip input was double-counted or HEAD counted")
 	}
 }

@@ -23,7 +23,7 @@ func TestScopeCatalogMatchesREADME(t *testing.T) {
 	if !ValidScopes(scopes) {
 		t.Fatal("catalog is not a canonical complete scope set")
 	}
-	raw, e := os.ReadFile("../../../README_AGENT.md")
+	raw, e := os.ReadFile("../../../docs/README_AGENT.md")
 	if e != nil {
 		t.Fatal(e)
 	}

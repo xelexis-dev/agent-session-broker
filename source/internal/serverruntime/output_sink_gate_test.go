@@ -42,6 +42,36 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 		}
 	}
 	normalized := func(n ast.Node) string { var b bytes.Buffer; _ = format.Node(&b, fs, n); return b.String() }
+	unparen := func(expr ast.Expr) ast.Expr {
+		for {
+			v, ok := expr.(*ast.ParenExpr)
+			if !ok {
+				return expr
+			}
+			expr = v.X
+		}
+	}
+	asyncArity := func(sel *ast.SelectorExpr) int {
+		if sel.Sel.Name == "Go" {
+			return 1
+		}
+		if id, ok := sel.X.(*ast.Ident); ok && sel.Sel.Name == "AfterFunc" && (imports[id.Name] == "context" || imports[id.Name] == "time") {
+			return 2
+		}
+		return 0
+	}
+	guardedCallback := func(expr ast.Expr) bool {
+		call, ok := unparen(expr).(*ast.CallExpr)
+		if !ok || len(call.Args) != 1 || call.Ellipsis.IsValid() {
+			return false
+		}
+		sel, ok := unparen(call.Fun).(*ast.SelectorExpr)
+		if !ok || (sel.Sel.Name != "BackgroundCallback" && sel.Sel.Name != "BackgroundErrorCallback") {
+			return false
+		}
+		id, ok := sel.X.(*ast.Ident)
+		return ok && id.Obj == nil && imports[id.Name] == "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
+	}
 	for _, decl := range f.Decls {
 		function := "<package>"
 		if fn, ok := decl.(*ast.FuncDecl); ok {
@@ -63,7 +93,17 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 		})
 		ast.Inspect(decl, func(n ast.Node) bool {
 			switch v := n.(type) {
+			case *ast.GoStmt:
+				add("background-goroutine", v)
 			case *ast.CallExpr:
+				if sel, ok := unparen(v.Fun).(*ast.SelectorExpr); ok {
+					if n := asyncArity(sel); n != 0 && (len(v.Args) != n || v.Ellipsis.IsValid() || !guardedCallback(v.Args[len(v.Args)-1])) {
+						add("background-callback", v)
+					}
+					if id, ok := sel.X.(*ast.Ident); ok && name == "internal/controlpanel/sqlite.go" && imports[id.Name] == "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag" && sel.Sel.Name == "StartBackground" {
+						add("expiry-background-policy", v)
+					}
+				}
 				if sel, ok := v.Fun.(*ast.SelectorExpr); ok {
 					if id, ok := sel.X.(*ast.Ident); ok && imports[id.Name] == "os" && sel.Sel.Name == "NewFile" && len(v.Args) > 0 {
 						if standardFD(v.Args[0]) {
@@ -74,7 +114,7 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 				if id, ok := v.Fun.(*ast.Ident); ok && (id.Name == "print" || id.Name == "println") {
 					add("builtin-stream", v)
 				}
-				if sel, ok := v.Fun.(*ast.SelectorExpr); ok && sel.Sel.Name == "Write" && name == "internal/serverdiag/diagnostics.go" {
+				if sel, ok := v.Fun.(*ast.SelectorExpr); ok && sel.Sel.Name == "Write" && (strings.HasPrefix(name, "internal/serverdiag/") || strings.HasPrefix(name, "internal/accesslog/")) {
 					add("sanitized-writer", v)
 				}
 				if name == "internal/serverruntime/run.go" && function == "Run" {
@@ -104,6 +144,19 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 					}
 				}
 			case *ast.SelectorExpr:
+				if asyncArity(v) != 0 {
+					parent := parents[v]
+					for {
+						if _, ok := parent.(*ast.ParenExpr); !ok {
+							break
+						}
+						parent = parents[parent]
+					}
+					call, ok := parent.(*ast.CallExpr)
+					if !ok || unparen(call.Fun) != v {
+						add("background-callback-reference", v)
+					}
+				}
 				if id, ok := v.X.(*ast.Ident); ok {
 					pkg := imports[id.Name]
 					switch {
@@ -136,6 +189,15 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 					add("standard-stream", context)
 				}
 			case *ast.KeyValueExpr:
+				if key, ok := v.Key.(*ast.Ident); ok && key.Name == "Handler" {
+					if literal, ok := parents[v].(*ast.CompositeLit); ok {
+						if selector, ok := literal.Type.(*ast.SelectorExpr); ok {
+							if pkg, ok := selector.X.(*ast.Ident); ok && imports[pkg.Name] == "net/http" && selector.Sel.Name == "Server" {
+								add("http-handler-boundary", v)
+							}
+						}
+					}
+				}
 				if key, ok := v.Key.(*ast.Ident); ok && key.Name == "ErrorLog" {
 					add("http-error-log", v)
 				}
@@ -155,6 +217,15 @@ func sinkCalls(name string, src []byte) ([]outputSink, error) {
 // These are exact reviewed calls, not file-wide or function-wide exemptions.
 func allowedOutputSinks() map[outputSink]int {
 	return map[outputSink]int{
+		{"internal/controlpanel/sqlite.go", "OpenSQLite", "expiry-background-policy", `serverdiag.StartBackground(expirySweepPolicy, s.stop, s.sweepLoop, nil)`}: 1,
+		{"internal/serverdiag/background.go", "StartBackground", "background-goroutine", `go runBackground(policy, stop, work, finished)`}:                       1,
+		{"internal/serverdiag/background.go", "<package>", "standard-stream", `os.Stderr`}:                                                                       1,
+		{"internal/serverdiag/background.go", "diagnosticPanic", "sanitized-writer", `originalStderr.Write(data)`}:                                               1,
+		{"internal/accesslog/http.go", "Write", "sanitized-writer", `w.ResponseWriter.Write(p)`}:                                                                 1,
+		{"internal/serverruntime/run.go", "Run", "http-handler-boundary", `Handler: protectRequests(handler)`}:                                                   1,
+		{"internal/accesslog/file.go", "openActive", "sanitized-writer", `w.file.Write([]byte("\n"))`}:                                                           1,
+		{"internal/accesslog/file.go", "writeData", "sanitized-writer", `w.file.Write(line)`}:                                                                    1,
+
 		{"internal/serverdiag/diagnostics.go", "ErrorLog", "logger-reference", "log.Logger"}: 1,
 		{"internal/serverdiag/diagnostics.go", "ErrorLog", "logger-reference", "log.New"}:    1,
 		{"internal/serverruntime/run.go", "Run", "formatted-reference", "fmt.Fprintln"}:      2,
@@ -272,6 +343,8 @@ func TestServerSinkGateRejectsNewAndAliasedSinks(t *testing.T) {
 		`package p;func f(){server.ErrorLog = logger}`,
 		`package p;import "log";func f(){log.New(writer,"",0)}`,
 		`package p;import "log/slog";func f(){slog.Info("input")}`,
+		`package p;func f(){go worker()}`,
+		`package p;func f(){go func(){worker()}()}`,
 	} {
 		sinks, err := sinkCalls("internal/new.go", []byte(src))
 		if err != nil || len(sinks) == 0 {
@@ -327,4 +400,50 @@ func standardFD(expr ast.Expr) bool {
 		}
 	}
 	return false
+}
+
+func TestReview980AsyncGate(t *testing.T) {
+	for _, src := range []string{
+		`package p;import "context";func f(ctx context.Context){context.AfterFunc(ctx,func(){panic("canary")})}`,
+		`package p;import "time";func init(){time.AfterFunc(0,func(){panic("canary")})}`,
+		`package p;import "sync";func f(){var wg sync.WaitGroup;wg.Go(func(){panic("canary")})}`,
+		`package p;func f(){group.Go(func()error{panic("canary")})}`,
+		`package p;import c "context";var x=c.AfterFunc(ctx,func(){})`,
+		`package p;import "time";var x=time.AfterFunc`,
+		`package p;func f(){start:=group.Go;start(callback)}`,
+		`package p;import d "example.invalid/unsafe";func f(){group.Go(d.BackgroundCallback(callback))}`,
+		`package p;import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func f(){d:=fake;group.Go(d.BackgroundCallback(callback))}`,
+	} {
+		sinks, err := sinkCalls("internal/new.go", []byte(src))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(sinks) == 0 {
+			t.Errorf("unguarded background callback accepted: %s", src)
+		}
+	}
+	for _, src := range []string{
+		`package p;import c "context";import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func f(){c.AfterFunc(ctx,d.BackgroundCallback(callback))}`,
+		`package p;import "time";import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func init(){time.AfterFunc(0,d.BackgroundCallback(callback))}`,
+		`package p;import "sync";import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func f(){var wg sync.WaitGroup;wg.Go(d.BackgroundCallback(callback))}`,
+		`package p;import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func f(){group.Go(d.BackgroundErrorCallback(callback))}`,
+		`package p;import "context";import d "github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag";func f(){((context.AfterFunc))(ctx,((d.BackgroundCallback(callback))))}`,
+	} {
+		sinks, err := sinkCalls("internal/new.go", []byte(src))
+		if err != nil || len(sinks) != 0 {
+			t.Fatal("guarded async callback rejected")
+		}
+	}
+}
+func TestReview980DirectGate(t *testing.T) {
+	for _, src := range []string{
+		`package p;func init(){go func(){panic("canary")}()}`,
+		`package p;func f(){work:=worker.Run;go work()}`,
+		`package p;func f[T any](v T){go worker(v)}`,
+	} {
+		sinks, err := sinkCalls("internal/new.go", []byte(src))
+		if err != nil || len(sinks) == 0 {
+			t.Fatal("raw go escaped", err)
+		}
+	}
 }

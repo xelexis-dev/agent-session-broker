@@ -6,11 +6,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/controlpanel"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io"
 	"net"
 	"net/http"
 	"net/netip"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -25,15 +28,23 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 	flags.SetOutput(io.Discard)
 	listen := flags.String("listen", "127.0.0.1:8787", "HTTP listen address")
 	memoryDir := flags.String("memory-dir", ".agent-memory", "project memory and server state directory")
-	var trustedProxies []netip.Prefix
+	var trustedProxies, rawProxies []netip.Prefix
 	flags.Func("trusted-proxy", "trusted TLS proxy CIDR (repeatable; default none); proxy must SET one X-Forwarded-Proto value", func(value string) error {
 		prefix, err := netip.ParsePrefix(value)
 		if err != nil {
 			return errors.New("trusted proxy must be a CIDR")
 		}
+		rawProxies = append(rawProxies, prefix)
 		trustedProxies = append(trustedProxies, prefix.Masked())
 		return nil
 	})
+	cfg := accesslog.Defaults()
+	flags.StringVar(&cfg.File, "access-log-file", "", "optional JSON Lines file below the data directory logs/ (default off; ASB_ACCESS_LOG_FILE)")
+	flags.BoolVar(&cfg.ForwardedFor, "access-log-forwarded-for", false, "use sanitized XFF only after auditing all trusted proxies (requires file logging and trusted proxies)")
+	flags.Int64Var(&cfg.MaxSizeMiB, "access-log-max-size-mib", 10, "rotate at1..1024 MiB (10 GiB total configuration cap)")
+	flags.IntVar(&cfg.MaxFiles, "access-log-max-files", 10, "retain1..1000 rotated files")
+	flags.IntVar(&cfg.MaxAgeDays, "access-log-max-age-days", 30, "retain rotated files for1..3650 days")
+
 	showVersion := flags.Bool("version", false, "print version and exit")
 	flags.Usage = func() {
 		fmt.Fprintln(output, "Usage: asb-server [--listen address] [--memory-dir path] [--trusted-proxy CIDR]...")
@@ -58,6 +69,27 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 		}
 		return nil
 	}
+	seen := map[string]bool{}
+	flags.Visit(func(f *flag.Flag) { seen[f.Name] = true })
+	if !seen["access-log-file"] {
+		cfg.File = os.Getenv("ASB_ACCESS_LOG_FILE")
+	}
+	cfg.RetentionSet = seen["access-log-max-size-mib"] || seen["access-log-max-files"] || seen["access-log-max-age-days"]
+	if err := cfg.Validate(); err != nil {
+		return accessLogFailure(err)
+	}
+	var addressProxies []netip.Prefix
+	if cfg.ForwardedFor {
+		if len(rawProxies) == 0 {
+			return accessLogFailure(&accesslog.InitError{Reason: "configuration"})
+		}
+		var err error
+		addressProxies, err = accesslog.NormalizeProxies(rawProxies)
+		if err != nil {
+			return accessLogFailure(err)
+		}
+	}
+
 	directory, err := filepath.Abs(*memoryDir)
 	if err != nil {
 		return storageFailure(err)
@@ -72,6 +104,26 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 			err = &RunError{Reason: "shutdown_failed"}
 		}
 	}()
+	accessLogger, err := accesslog.Open(directory, cfg)
+	if err != nil {
+		return accessLogFailure(err)
+	}
+	enabled := accessLogger != nil
+	serverdiag.Emit(serverdiag.Event{Type: "access_log_config", AccessLogEnabled: &enabled, MaxSizeBytes: cfg.MaxSizeMiB * accesslog.MiB, MaxFiles: cfg.MaxFiles, MaxAgeDays: cfg.MaxAgeDays})
+	if accessLogger != nil {
+		defer serverdiag.RegisterBackgroundDrain(accessLogger.Close)()
+		handler = accessLogger.Handler(handler, func(r *http.Request) accesslog.Metadata {
+			return controlpanel.AccessMetadata(r, trustedProxies, addressProxies, cfg.ForwardedFor)
+		})
+		defer func() {
+			drain, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			deadline, _ := drain.Deadline()
+			serverdiag.DrainBy(deadline)
+			accessLogger.Close(drain)
+		}()
+	}
+
 	listener, err := net.Listen("tcp", *listen)
 	if err != nil {
 		return listenFailure(err)
@@ -101,7 +153,7 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 		}
 	}
 	result := make(chan error, 1)
-	go func() { result <- server.Serve(listener) }()
+	serverdiag.StartBackground(serverdiag.BackgroundStop, nil, func() { result <- server.Serve(listener) }, nil)
 	serverdiag.Emit(serverdiag.Event{Type: "server-listening", Bind: listener.Addr().(*net.TCPAddr).AddrPort().String()})
 	select {
 	case err := <-result:

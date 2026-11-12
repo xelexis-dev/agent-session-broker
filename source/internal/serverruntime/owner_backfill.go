@@ -47,8 +47,7 @@ func (r *ownerBackfillRetries) run(service ownerBackfiller, bindings map[string]
 	}
 	r.wg.Add(1)
 	r.mu.Unlock()
-	go func() {
-		defer r.wg.Done()
+	serverdiag.StartBackground(serverdiag.BackgroundRestart, r.ctx.Done(), func() {
 		timer := time.NewTimer(ownerBackfillRetryDelay)
 		defer timer.Stop()
 		select {
@@ -60,7 +59,7 @@ func (r *ownerBackfillRetries) run(service ownerBackfiller, bindings map[string]
 			return
 		}
 		attemptOwnerBackfill(service, bindings) // Exactly one retry, even if it fails.
-	}()
+	}, r.wg.Done)
 }
 func (r *ownerBackfillRetries) close() {
 	r.mu.Lock()

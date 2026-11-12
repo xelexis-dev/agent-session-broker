@@ -21,6 +21,16 @@ import (
 // Event contains only classified fields; it never holds requests or errors.
 // Route must already be a registered constant template (controlpanel.AccessRoute).
 type Event struct {
+	RestartCount     uint64  `json:"restart_count,omitempty"`
+	AccessLogEnabled *bool   `json:"access_log_enabled,omitempty"`
+	MaxSizeBytes     int64   `json:"max_size_bytes,omitempty"`
+	MaxFiles         int     `json:"max_files,omitempty"`
+	MaxAgeDays       int     `json:"max_age_days,omitempty"`
+	AccessDropped    uint64  `json:"dropped_total,omitempty"`
+	WriteErrors      uint64  `json:"write_errors_total,omitempty"`
+	RotationErrors   uint64  `json:"rotation_errors_total,omitempty"`
+	PruneErrors      uint64  `json:"prune_errors_total,omitempty"`
+	Reopens          uint64  `json:"reopens_total,omitempty"`
 	Bind             string  `json:"bind,omitempty"`
 	Detail           string  `json:"detail,omitempty"`
 	Flag             string  `json:"flag,omitempty"`
@@ -53,18 +63,19 @@ type item struct {
 
 // Sink owns one writer and a fixed-size queue. A blocked writer never blocks Emit.
 type Sink struct {
-	queue      chan item
-	stop       chan struct{}
-	done       chan struct{}
-	stopping   atomic.Bool
-	dropped    atomic.Uint64
-	started    string
-	httpCounts [5]atomic.Uint64
+	queue         chan item
+	stop          chan struct{}
+	done          chan struct{}
+	stopping      atomic.Bool
+	dropped       atomic.Uint64
+	started       string
+	httpCounts    [5]atomic.Uint64
+	drainDeadline atomic.Pointer[time.Time]
 }
 
 func New(w io.Writer) *Sink {
 	s := &Sink{queue: make(chan item, 64), stop: make(chan struct{}), done: make(chan struct{}), started: processStartedAt}
-	go s.run(w)
+	StartBackground(backgroundDiagnostic, nil, func() { s.run(w) }, nil)
 	return s
 }
 
@@ -93,7 +104,7 @@ func (s *Sink) Emit(e Event) {
 		return
 	}
 	switch e.Type {
-	case "http-transport-denied", "admin-announcement", "admin-api-audit-failed", "attachment-removed", "attachment-stored", "project-deletion-warning", "registration-owner-backfill-failed", "server-setup-required", "server-trusted-proxies", "server-listening", "server-failed", "server_request_panic", "http_server_diagnostic":
+	case "server_background_panic", "access_log_config", "access_log_status", "http-transport-denied", "admin-announcement", "admin-api-audit-failed", "attachment-removed", "attachment-stored", "project-deletion-warning", "registration-owner-backfill-failed", "server-setup-required", "server-trusted-proxies", "server-listening", "server-failed", "server_request_panic", "http_server_diagnostic":
 	default:
 		e = Event{Type: "server_diagnostic"}
 	}
@@ -105,7 +116,7 @@ func (s *Sink) Emit(e Event) {
 			e.Route = "{unmatched}"
 		}
 	}
-	if e.Type != "server_request_panic" {
+	if e.Type != "server_request_panic" && e.Type != "server_background_panic" {
 		e.PanicType = ""
 		e.Stack = nil
 	}
@@ -118,14 +129,17 @@ func (s *Sink) Emit(e Event) {
 		}
 	}
 	switch e.Flag {
-	case "listen", "memory-dir", "trusted-proxy", "version":
+	case "listen", "memory-dir", "trusted-proxy", "version", "access-log-file", "access-log-forwarded-for", "access-log-max-size-mib", "access-log-max-files", "access-log-max-age-days":
 	default:
 		e.Flag = ""
 	}
 	switch e.Detail {
-	case "addr_in_use", "permission", "invalid_address":
+	case "addr_in_use", "permission", "invalid_address", "path_invalid", "io", "configuration":
 	default:
 		e.Detail = ""
+	}
+	if e.Type != "server_background_panic" {
+		e.RestartCount = 0
 	}
 	e.Message = ""
 	e.Status = ""
@@ -146,7 +160,7 @@ func (s *Sink) Emit(e Event) {
 	}
 
 	switch e.Reason {
-	case "marked", "untrusted-forwarded", "unproven", "startup", "expired", "discard", "disabled", "send-failed", "downloaded", "ack", "project-deleted", "unavailable-bugreport", "unavailable-journal", "unreadable-journal", "undecodable-row", "journal-cleanup", "startup_failed", "shutdown_failed", "flags_invalid", "listen_failed", "data_dir_locked", "data_dir_permission", "storage_failed":
+	case "background_panic", "marked", "untrusted-forwarded", "unproven", "startup", "expired", "discard", "disabled", "send-failed", "downloaded", "ack", "project-deleted", "unavailable-bugreport", "unavailable-journal", "unreadable-journal", "undecodable-row", "journal-cleanup", "startup_failed", "shutdown_failed", "flags_invalid", "listen_failed", "data_dir_locked", "data_dir_permission", "storage_failed", "access_log_init_failed":
 	default:
 		e.Reason = ""
 	}
@@ -243,7 +257,26 @@ func (s *Sink) Close(ctx context.Context) {
 	case <-ctx.Done():
 	}
 }
-func Shutdown(ctx context.Context) { current.Load().Close(ctx) }
+func ProcessStartedAt() string   { return processStartedAt }
+func DrainBy(deadline time.Time) { current.Load().drainDeadline.Store(&deadline) }
+func Shutdown(ctx context.Context) {
+	sink := current.Load()
+	if d := sink.drainDeadline.Load(); d != nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithDeadline(ctx, *d)
+		defer cancel()
+	}
+	sink.Close(ctx)
+}
+func CanonicalRoute(route string) string {
+	routeMu.RLock()
+	known := registeredRoutes[route]
+	routeMu.RUnlock()
+	if known {
+		return route
+	}
+	return "{unmatched}"
+}
 
 // ErrorLog discards net/http's raw text, including unknown formats.
 func ErrorLog() *log.Logger { return log.New(httpDiagnosticWriter{}, "", 0) }
@@ -274,6 +307,9 @@ func Panic(v any) Event {
 			e.PanicType = filepath.Base(t.PkgPath()) + "." + t.Name()
 		}
 	}
+	if len(e.PanicType) > 80 {
+		e.PanicType = e.PanicType[:80]
+	}
 	var pcs [16]uintptr
 	n := runtime.Callers(2, pcs[:])
 	frames := runtime.CallersFrames(pcs[:n])
@@ -283,7 +319,14 @@ func Panic(v any) Event {
 		if i := strings.Index(function, "/source/"); i >= 0 {
 			function = function[i+8:]
 		}
-		e.Stack = append(e.Stack, Frame{Function: function, File: filepath.Base(f.File), Line: f.Line})
+		file := filepath.Base(f.File)
+		if len(function) > 128 {
+			function = function[:128]
+		}
+		if len(file) > 80 {
+			file = file[:80]
+		}
+		e.Stack = append(e.Stack, Frame{Function: function, File: file, Line: f.Line})
 		if !more {
 			break
 		}

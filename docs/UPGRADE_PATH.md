@@ -6,9 +6,13 @@ English | [한국어](UPGRADE_PATH.ko.md)
 
 New GitHub Releases provide four server executables plus LICENSE and THIRD_PARTY_NOTICES (six assets). On Windows, macOS and Linux, check the published client version with `npm view @xelexis/x-broker version`, prepare it with `npx -y @xelexis/x-broker@<version> --version`, then reconnect MCP. Keep existing client state and credentials. Server-only releases may skip npm publication. Existing Releases and client downloads through 0.14.0 remain available; executable instructions below describe the distribution method used at the time.
 
-This guide covers updates and data migration **through 1.1.1**. See the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for replacing executables and [public releases](https://github.com/xelexis-dev/agent-session-broker/releases) for files and changes. Files for 1.0.2 and earlier remain in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). Docker images older than 1.0.3 are no longer available; use server executables when upgrading through or restoring those versions.
+This guide covers updates and data migration **through 1.2.0**. See the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for replacing executables and [public releases](https://github.com/xelexis-dev/agent-session-broker/releases) for files and changes. Files for 1.0.2 and earlier remain in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). Docker images older than 1.0.3 are no longer available; use server executables when upgrading through or restoring those versions.
 
 0.20.0 published only an npm client, with no server Release. Release candidates containing both server and client start at 0.20.1.
+
+## 1.1.1 → 1.2.0
+
+Access logging is optional and stays off unless you enable it with `--access-log-file` or `ASB_ACCESS_LOG_FILE`; only files under the data directory's reserved `logs/` are supported. Defaults rotate at 10 MiB and keep 10 rotated files for at most 30 days; the total may not exceed 10 GiB. Log lines contain no query strings, headers, bodies or tokens, and the forwarded client address needs the separate `--access-log-forwarded-for` opt-in with trusted proxies. Business data formats are unchanged by logging; exclude the reserved root `logs/` directory from hash-verified backups and restores, and preserve an existing normal `logs/` directory separately. Nested business directories named `logs` remain business data. Logs need their own retention and access policy. See README_AGENT's optional access-log section for limits, counters, proxy requirements and file permissions. A panic in a background task no longer prints raw panic text: periodic tasks restart with backoff, and a task that holds state stops the server with `server-failed`/`background_panic` so a supervisor (for example Docker's restart policy) restarts it. In the public repository the guides, Korean README and third-party notices moved to `docs/` and the contribution and security policies to `.github/`; release asset names are unchanged. Upgrade the client to `@xelexis/x-broker@1.2.0`, stop the server and back up all business data, replace the server with 1.2.0 (Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.2.0`), then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.1.1 server; remove the access-log options first, because older servers reject them.
 
 ## 1.1.0 → 1.1.1
 
@@ -49,11 +53,11 @@ Follow these steps when upgrading from 0.19.x or earlier to 1.0. The 0.20.x rele
 **Clients older than 0.17.3 can no longer connect.** This includes PCs belonging to other projects, so upgrade clients first.
 
 1. **Find remaining old clients:** ask the people responsible for each project to check client versions on each PC and update anything older than 0.17.3. The version summary is removed in 1.0, so check powered-off PCs separately too.
-2. **Upgrade clients first:** on every PC, run `npm install -g @xelexis/x-broker@1.0.3` (or update the pinned version in the MCP config for npx), then reconnect each conversation. The 1.0 client works with servers 0.17.3 and later, including the current 0.19.x server, so clients may be updated first. Follow [upgrading while connected](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#upgrading-while-connected) to reconnect.
-3. **Make a complete backup:** stop the server and back up the entire data directory. Record the file list and hashes, and restrict access to the backup: it contains token hashes and configuration. Drain pending messages first; the server's in-memory queue is not backed up.
+2. **Upgrade clients first:** on every PC, run `npm install -g @xelexis/x-broker@1.0.3` (or update the pinned version in the MCP config for npx), then reconnect each conversation. The 1.0 client works with servers 0.17.3 and later, including the current 0.19.x server, so clients may be updated first. Follow [upgrading while connected](README_AGENT.md#upgrading-while-connected) to reconnect.
+3. **Make a complete backup:** Stop the server and back up all business data in the data directory, excluding its reserved `logs/` directory from both the backup and the recorded file list and hashes. Restrict access to the backup: it contains token hashes and configuration. Drain pending messages first; the server's in-memory queue is not backed up.
 4. **Replace the server:** start the new server with the same data path. For Compose, change the image version and run `docker compose pull` and `docker compose up -d`.
    - A server that has completed initial setup does not need a setup code.
-5. **Check old-client refusal:** every tool call from clients older than 0.17.3 is refused. See [version compatibility](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md#version-compatibility) for the guidance shown.
+5. **Check old-client refusal:** every tool call from clients older than 0.17.3 is refused. See [version compatibility](README_AGENT.md#version-compatibility) for the guidance shown.
 6. **Check connections:** in each conversation's `auth_status`, check the versions, `compatible`, and unchanged registration ID and name. Verify actual peer message exchange.
 
 **Rollback** supports only a complete backup restore.
@@ -66,7 +70,7 @@ Follow these steps when upgrading from 0.19.x or earlier to 1.0. The 0.20.x rele
 
 ### Stored data and tools changed in 1.0
 
-Backups must include all instance data, including control, registration, bugreport and memory, plus client state. Message queues exist only in memory.
+Backups must include all instance business data, including control, registration, bugreport and memory, plus client state. Exclude the server data directory's reserved `logs/` from hash-verified backups and restores; archive logs separately only under an explicit retention policy. Message queues exist only in memory.
 
 - `spawn_session` is removed. Cached calls return an unknown-tool error; reconnect MCP. Start harnesses directly on each PC.
 - At startup, one atomic save removes only `session:spawn` from every token, grant and device-approval scope set. The control version remains 5; other scopes, admission modes, expiry, revocation state and audit history are preserved. Restarting does not save the same cleanup again.
@@ -145,7 +149,7 @@ Server 0.17.2 works with client 0.17.1. Project-history isolation and the contro
 
 Client 0.17.2 with server 0.17.1 cannot determine project termination or protect receiver processes. It refuses `expectRegistrationId` with `unsupported` and never resends without the expectation. Kimi requires both server and client 0.17.2 or later; older servers return `unsupported-server` guidance.
 
-Add `turn_id` to Codex hooks **only after upgrading the client to 0.17.2 or later**; 0.17.1 rejects unknown keys. For Kimi, configure `kimi-hook` for `SessionStart`, `UserPromptSubmit` and `Stop`, using the same state path as MCP. It does not wake idle conversations; messages arrive at the next prompt or turn end. Follow the examples in [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md).
+Add `turn_id` to Codex hooks **only after upgrading the client to 0.17.2 or later**; 0.17.1 rejects unknown keys. For Kimi, configure `kimi-hook` for `SessionStart`, `UserPromptSubmit` and `Stop`, using the same state path as MCP. It does not wake idle conversations; messages arrive at the next prompt or turn end. Follow the examples in [README_AGENT.md](README_AGENT.md).
 
 Data-write compatibility between versions is not guaranteed. For rollback, stop the server and **restore the complete pre-upgrade data backup together with the previous executable**. Do not restore only `control.db`. Changes after the backup are not included in a complete restore. Undelivered messages do not survive server restart, and failed messages are not resent automatically.
 
@@ -296,7 +300,7 @@ Check saved notifications in the management panel, the add-user modal, the profi
 
 No intermediate version or DB migration is required. Keep existing server data and client registration state directories.
 
-**Authenticated clients must change their configuration.** The `--token-file` option is no longer supported. Remove the option and its file path from MCP settings, place the token value from the existing file after `--token`, then restart the connection. A still-valid token does not need to be reissued. Unauthenticated connections continue without `--token`. Follow [README_AGENT.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/README_AGENT.md) for examples and configuration storage.
+**Authenticated clients must change their configuration.** The `--token-file` option is no longer supported. Remove the option and its file path from MCP settings, place the token value from the existing file after `--token`, then restart the connection. A still-valid token does not need to be reissued. Unauthenticated connections continue without `--token`. Follow [README_AGENT.md](README_AGENT.md) for examples and configuration storage.
 
 After replacing server and client with 0.3.2, check versions, login, project lists and actual session replies. Tokens in files are neither read nor deleted automatically.
 

@@ -1,10 +1,12 @@
 package attachments
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -322,5 +324,37 @@ func TestAttachmentDownloadExistencePrivacy(t *testing.T) {
 func TestAttachment100MiBLimit(t *testing.T) {
 	if MaxFileBytes != 100<<20 {
 		t.Fatal("per-file limit is not 100MiB")
+	}
+}
+
+type review980PanicBody struct{ cancel context.CancelFunc }
+
+func (b review980PanicBody) Read(p []byte) (int, error) { b.cancel(); select {} }
+func (b review980PanicBody) Close() error               { panic("review980-callback-secret") }
+func TestReview980AttachmentCallback(t *testing.T) {
+	if os.Getenv("REVIEW980_CHILD") == "attachment" {
+		s, _ := fixture(t)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		_, _ = s.Upload(ctx, owner, "fixture.bin", 1, review980PanicBody{cancel})
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestReview980AttachmentCallback$", "-test.count=1")
+	cmd.Env = append(os.Environ(), "REVIEW980_CHILD=attachment")
+	raw, err := cmd.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatal("child hung")
+	}
+	if bytes.Contains(raw, []byte("review980-callback-secret")) {
+		t.Fatal("callback leaked raw panic")
+	}
+	var e *exec.ExitError
+	if !errors.As(err, &e) || e.ExitCode() != 1 {
+		t.Fatal("not classified stop")
+	}
+	if bytes.Contains(raw, []byte("--- FAIL:")) || !bytes.Contains(raw, []byte(`"reason":"background_panic"`)) {
+		t.Fatal("callback did not report fixed fatal reason")
 	}
 }

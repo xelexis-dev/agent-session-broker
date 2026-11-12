@@ -1,11 +1,15 @@
 package controlpanel
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -230,4 +234,72 @@ func TestExpiryGenerationFailedReservationSweepPublishesNoSignals(t *testing.T) 
 		t.Error("successful retry did not revoke issued reservation")
 	}
 	assertChurnGrantHealthy(t, a)
+}
+
+func TestReview980ExpiryRestartLostNotification(t *testing.T) {
+	if os.Getenv("ASB_EXPIRY_PANIC_CHILD") == "1" {
+		s, advance := churnStore(t)
+		parent := directParent(t, s, 8)
+		a := churnCredentialFor(t, s, parent, 1, true)
+		entered, httpDone := make(chan struct{}), make(chan struct{})
+		h := New(s, &panelBackend{}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { close(entered); <-r.Context().Done() }))
+		ctx, cancel := context.WithCancel(context.Background())
+		req := httptest.NewRequest("GET", "https://broker/mcp?project=demo", nil).WithContext(ctx)
+		req.Header.Set("Authorization", "Bearer "+a.raw)
+		go func() { defer close(httpDone); h.ServeHTTP(httptest.NewRecorder(), req) }()
+		defer func() {
+			cancel()
+			select {
+			case <-httpDone:
+			case <-time.After(time.Second):
+				t.Error("HTTP fixture cleanup hung")
+			}
+		}()
+		select {
+		case <-entered:
+		case <-time.After(time.Second):
+			t.Fatal("request not admitted")
+		}
+		advance(sessionIdleLifetime + time.Second)
+		clock := s.now
+		var injected atomic.Bool
+		if !clock().Before(a.grant.ExpiresAt) {
+			t.Fatal("must expire by idle limit before absolute expiry")
+		}
+		s.mu.Lock()
+		s.now = func() time.Time {
+			for _, tok := range s.data.Projects["demo"].Tokens {
+				if tok.ID == a.grant.TokenID && !tok.ExpiredAt.IsZero() && injected.CompareAndSwap(false, true) {
+					panic("review980-expiry-secret")
+				}
+			}
+			return clock()
+		}
+		s.mu.Unlock()
+		done := make(chan struct{})
+		serverdiag.StartBackground(expirySweepPolicy, nil, func() {
+			if err := s.SweepExpired(); err != nil {
+				panic(err)
+			}
+		}, func() { close(done) })
+		select {
+		case <-done:
+			t.Fatal("unsafe expiry restart survived after committed state lost notification")
+		case <-time.After(5 * time.Second):
+			t.Fatal("expiry panic did not terminate")
+		}
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestReview980ExpiryRestartLostNotification$", "-test.count=1")
+	cmd.Env = append(os.Environ(), "ASB_EXPIRY_PANIC_CHILD=1")
+	raw, err := cmd.CombinedOutput()
+	var exit *exec.ExitError
+	if ctx.Err() != nil || !errors.As(err, &exit) || exit.ExitCode() != 1 || bytes.Contains(raw, []byte("--- FAIL:")) {
+		t.Fatal("expiry panic did not fail closed with classified exit")
+	}
+	if bytes.Contains(raw, []byte("review980-expiry-secret")) || !bytes.Contains(raw, []byte(`"reason":"background_panic"`)) {
+		t.Fatal("expiry panic exposed value or fixed reason missing")
+	}
 }

@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 )
 
 func TestServerFlagErrorsDoNotExposeInput(t *testing.T) {
@@ -72,17 +74,19 @@ func TestServerWholeProcessOutputCanary(t *testing.T) {
 		runOutputCanaryChild(t)
 		return
 	}
-	cmd := exec.Command(os.Args[0], "-test.run=^TestServerWholeProcessOutputCanary$", "-test.count=1")
-	cmd.Env = append(os.Environ(), "ASB_OUTPUT_CANARY_PROCESS=1")
-	raw, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatal("whole-output child failed")
-	}
-	if bytes.Contains(raw, []byte("fixture-request-secret")) || bytes.Contains(raw, []byte("asb_s_")) {
-		t.Fatal("request secret reached stdout/stderr/ErrorLog")
-	}
-	if !bytes.Contains(raw, []byte("http-transport-denied")) || !bytes.Contains(raw, []byte("server_request_panic")) {
-		t.Fatal("whole-output canary did not exercise diagnostic sinks")
+	for _, mode := range []string{"off", "on"} {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestServerWholeProcessOutputCanary$", "-test.count=1")
+		cmd.Env = append(os.Environ(), "ASB_OUTPUT_CANARY_PROCESS=1", "ASB_ACCESS_CANARY_LOG="+mode)
+		raw, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatal("whole-output child failed")
+		}
+		if bytes.Contains(raw, []byte("fixture-request-secret")) || bytes.Contains(raw, []byte("asb_s_")) {
+			t.Fatal("request secret reached stdout/stderr/ErrorLog")
+		}
+		if !bytes.Contains(raw, []byte("http-transport-denied")) || !bytes.Contains(raw, []byte("server_request_panic")) {
+			t.Fatal("whole-output canary did not exercise diagnostic sinks")
+		}
 	}
 }
 func runOutputCanaryChild(t *testing.T) {
@@ -107,12 +111,31 @@ func runOutputCanaryChild(t *testing.T) {
 		t.Fatal("handler init failed")
 	}
 	defer closeHandler()
-	server := httptest.NewUnstartedServer(protectRequests(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var accessLogger *accesslog.Logger
+	if os.Getenv("ASB_ACCESS_CANARY_LOG") == "on" {
+		cfg := accesslog.Defaults()
+		cfg.File = "logs/access.log"
+		cfg.MaxSizeMiB = 1
+		logDir := filepath.Join(directory, "logs")
+		if os.Mkdir(logDir, 0700) != nil || os.WriteFile(filepath.Join(logDir, "access.log"), bytes.Repeat([]byte(" "), int(accesslog.MiB)-1024), 0600) != nil {
+			t.Fatal("rotation canary fixture failed")
+		}
+		var err error
+		accessLogger, err = accesslog.Open(directory, cfg)
+		if err != nil {
+			t.Fatal("canary access logger failed")
+		}
+	}
+	requestHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/panic" {
 			panic(secret)
 		}
 		h.ServeHTTP(w, r)
-	})))
+	}))
+	if accessLogger != nil {
+		requestHandler = accessLogger.Handler(requestHandler, func(r *http.Request) accesslog.Metadata { return controlpanel.AccessMetadata(r, nil, nil, false) })
+	}
+	server := httptest.NewUnstartedServer(protectRequests(requestHandler))
 	server.Config.ErrorLog = serverdiag.ErrorLog()
 	server.Start()
 	defer server.Close()
@@ -160,6 +183,37 @@ func runOutputCanaryChild(t *testing.T) {
 			t.Fatal("invalid config accepted")
 		}
 	}
+	if accessLogger != nil {
+		drain, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		accessLogger.Close(drain)
+		cancel()
+		active, rotated := false, false
+		err := filepath.WalkDir(filepath.Join(directory, "logs"), func(path string, entry os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if entry.IsDir() {
+				return nil
+			}
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			if bytes.Contains(raw, []byte("fixture-request-secret")) || bytes.Contains(raw, []byte("asb_s_")) {
+				t.Error("canary reached active/rotated access file")
+			}
+			if strings.HasSuffix(path, ".rot") {
+				rotated = true
+			} else if entry.Name() == "access.log" {
+				active = true
+			}
+			return nil
+		})
+		if err != nil || !active || !rotated {
+			t.Fatal("active/rotated canary projection not exercised")
+		}
+	}
+
 	server.Config.ErrorLog.Print(secret)
 	drain, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

@@ -9,11 +9,11 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/accesslog"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/mcpconfig"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/memory"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
-	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 )
 
 type Backend interface {
@@ -365,7 +365,7 @@ func panicBoundary(next mcp.MethodHandler) mcp.MethodHandler {
 	return func(ctx context.Context, method string, req mcp.Request) (result mcp.Result, err error) {
 		defer func() {
 			if v := recover(); v != nil {
-				serverdiag.Emit(serverdiag.Panic(v))
+				accesslog.RequestPanic(ctx, v)
 				result = nil
 				err = &jsonrpc.Error{Code: jsonrpc.CodeInternalError, Message: "Internal error"}
 			}

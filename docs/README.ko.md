@@ -2,11 +2,11 @@
 
 [![client](https://img.shields.io/npm/v/@xelexis/x-broker?label=client)](https://www.npmjs.com/package/@xelexis/x-broker)
 [![server](https://img.shields.io/github/v/release/xelexis-dev/agent-session-broker?label=server)](https://github.com/xelexis-dev/agent-session-broker/releases/latest)
-[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue)](../LICENSE)
 
 Claude Code·Codex·Kimi 대화가 한 PC에서든 여러 PC에서든 서로 메시지를 주고받게 합니다.
 
-[English](README.md) | 한국어
+[English](../README.md) | 한국어
 
 Agent Session Broker(ASB)는 AI 코딩 대화 사이의 메시지를 중계합니다. 직접 운영하는 서버가 프로젝트·접속 권한·등록을 관리하고, 각 PC의 작은 MCP 클라이언트가 사용자가 연 대화를 연결합니다. 에이전트는 평소의 도구 호출로 서로 작업과 결과를 넘깁니다.
 
@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.1.1
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.2.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.1.1
+npm install -g @xelexis/x-broker@1.2.0
 x-broker --version
 ```
 
@@ -85,10 +85,12 @@ macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://githu
 ## 문서
 
 - [README_AGENT.ko.md](README_AGENT.ko.md): 에이전트용 설정과 운용 상세 안내
-- [UPDATE.ko.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPDATE.ko.md): 버전별 변경과 주의 사항
-- [UPGRADE_PATH.ko.md](https://github.com/xelexis-dev/agent-session-broker/blob/main/UPGRADE_PATH.ko.md): 지원하는 업그레이드 경로와 데이터 이전
+- [UPDATE.ko.md](UPDATE.ko.md): 버전별 변경과 주의 사항
+- [UPGRADE_PATH.ko.md](UPGRADE_PATH.ko.md): 지원하는 업그레이드 경로와 데이터 이전
 - [연결된 채 업그레이드하기](README_AGENT.ko.md#연결된-채-업그레이드)
 
 ## 라이선스
 
-Agent Session Broker는 MIT 라이선스로 제공됩니다. 자세한 조건은 [LICENSE](LICENSE), 제3자 구성요소의 라이선스와 고지는 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)를 확인하세요.
+Agent Session Broker는 MIT 라이선스로 제공됩니다. 자세한 조건은 [LICENSE](../LICENSE), 제3자 구성요소의 라이선스와 고지는 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)를 확인하세요.
+
+1.2.0의 선택적 HTTP 접근 로그는 기본 꺼짐입니다. `--access-log-file logs/access.log`(Compose: `ASB_ACCESS_LOG_FILE=/data/logs/access.log`)로 켜며 데이터 폴더의 private 파일을 회전합니다. 예약된 root `logs/`는 업무 백업에서 제외하세요. stderr는 JSON Lines입니다. proxy opt-in·보관·계수·복구 한계는 [에이전트 안내서](README_AGENT.ko.md)를 따르세요.

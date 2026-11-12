@@ -8,5 +8,5 @@
 !source/go.sum
 source/**/*_test.go
 
-!THIRD_PARTY_NOTICES
+!docs/THIRD_PARTY_NOTICES
 !LICENSE

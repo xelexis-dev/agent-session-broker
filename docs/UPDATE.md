@@ -4,6 +4,17 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.2.0 (2026-11-12)
+
+- Optional HTTP access log, off by default. Turn it on with `--access-log-file logs/access.log` or `ASB_ACCESS_LOG_FILE`; only files under the server data directory's reserved `logs/` are supported. The server rotates the file at 10 MiB, keeps 10 rotated files for at most 30 days, and refuses settings above a 10 GiB total.
+- Log lines hold only a fixed route template, the method, the status, a canonical IP address and timings. Query strings, headers, bodies and tokens are never logged. The forwarded client address is used only with the separate `--access-log-forwarded-for` opt-in and a trusted proxy.
+- Under load a bounded queue may drop log lines; the server reports loss counters instead of slowing requests.
+- Exclude the reserved root `logs/` from business-data backups and restores. Archive logs separately only with an explicit retention policy.
+- A panic in a background task no longer prints raw panic text or stops the broker silently. Periodic tasks restart with backoff; a task that holds state stops the server with a fixed `server-failed` diagnostic (`background_panic`) so your supervisor can restart it.
+- Public repository layout: the agent guide, upgrade path, update history, Korean README and third-party notices are now under `docs/`, and the contribution and security policies under `.github/`. Release asset names are unchanged.
+- Client 1.2.0 points to the new document locations. Clients 0.17.3 and later keep working with this server.
+- Data: unchanged, apart from the optional log files. Rollback is unchanged: restore the complete backup together with the 1.1.1 server and remove the access-log options.
+
 ## 1.1.1 (2026-11-12)
 
 - Security hardening: server diagnostics on stderr no longer contain request paths, tokens, IDs, file paths or raw error text. They are now JSON lines. The old `listening on http://…` text is gone; scripts that read it must use the `bind` field of the `server-listening` event.

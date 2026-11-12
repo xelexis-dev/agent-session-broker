@@ -4,13 +4,13 @@ Requires Node.js 22 or later and npm. Supports Windows x64, macOS ARM64·x64 and
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.1.1
+npm install -g @xelexis/x-broker@1.2.0
 x-broker --version
 ```
 
-These examples pin `1.1.1`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
+These examples pin `1.2.0`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
 
-Alternatively, use `npx -y @xelexis/x-broker@1.1.1`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.1.1"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
+Alternatively, use `npx -y @xelexis/x-broker@1.2.0`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.2.0"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
 
 On macOS·Linux, a Node global wrapper with execve support replaces itself with the client. **Windows has no execve: a node relay remains with either install method, while a global install removes the npm exec parent process.**
 

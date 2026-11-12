@@ -156,8 +156,9 @@ function main() {
     "README.md": { text: readme, mode: 0o644 },
   };
   const root = path.resolve(__dirname, "../..");
-  for (const name of ["THIRD_PARTY_NOTICES", "LICENSE"]) {
-    const from = path.join(root, name);
+  // Published names stay; the notices live in docs/ (QA82 A).
+  for (const [name, source] of [["THIRD_PARTY_NOTICES", "docs/THIRD_PARTY_NOTICES"], ["LICENSE", "LICENSE"]]) {
+    const from = path.join(root, source);
     const stat = fs.lstatSync(from, { throwIfNoEntry: false });
     if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) fail(`missing or unsafe ${name}`);
     files[name] = { from, mode: 0o644 };
