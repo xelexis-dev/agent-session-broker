@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.1.0
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.1.1
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.1.0
+npm install -g @xelexis/x-broker@1.1.1
 x-broker --version
 ```
 
@@ -76,6 +76,7 @@ macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://githu
 
 ## 운용과 업데이트
 
+- **단독 서버를 reverse proxy 뒤에 둘 때:** 프록시가 loopback upstream(`127.0.0.1` 또는 `[::1]`)으로 연결하면 `/mcp` 경로의 upstream `Host`를 해당 loopback 주소와 포트로 설정하세요. 예: `Host: 127.0.0.1:8787`. 공개 호스트 이름을 유지하면 DNS rebinding 방어로 MCP HTTP 403이 발생합니다. 이 변경은 MCP에만 적용하고 제어판 요청의 공개 Host는 유지하세요. `--trusted-proxy`와 `X-Forwarded-Proto`는 원래 scheme을 처리하며 이 Host 검사를 우회하지 않습니다. 대안으로 방화벽으로 보호한 non-loopback 인터페이스에 서버를 바인딩하고 프록시도 그 주소로 연결할 수 있습니다. wildcard 바인딩이어도 upstream 연결이 loopback이면 검사가 적용됩니다. `MCPGODEBUG=disablelocalhostprotection=1`은 프록시 설정을 고치는 대신 DNS rebinding 방어를 끄므로 사용하지 마세요.
 - 관리 패널에서 프로젝트·멤버·토큰과 연결된 세션을 확인합니다. 토큰에는 필요한 권한과 수명만 주고, 유출되거나 더 이상 필요하지 않으면 취소하세요.
 - **관리 API**는 MCP와 별개이며 기본은 꺼져 있습니다. 관리자가 인스턴스 설정에서 켭니다. 사용자는 내 프로필에서 자기 API 토큰을 등록·조회·취소하고, 관리자는 사용자 상세에서 같은 작업을 합니다. scope·재인증·안전한 호출 예제는 [관리 API 안내](README_AGENT.ko.md#관리-api)를 보세요.
 - **모든 PC의 클라이언트 먼저 갱신 → 서버 중지와 전체 데이터 백업 → 서버 교체 → MCP 재연결과 실제 연결 확인** 순서로 업데이트하세요. 0.17.3 미만 클라이언트와 legacy 연결은 거부됩니다. Compose 사용자는 image 버전을 바꾼 뒤 `docker compose pull`과 `docker compose up -d`로 교체합니다. 1.0.4부터 image 이름은 `ghcr.io/xelexis-dev/agent-session-broker`이며 1.0.3도 이 이름으로 받을 수 있습니다. 이전 `-deploy` image 이름은 폐기되어 삭제되므로 이름도 함께 바꾸세요. 데이터 경로를 유지하고, 롤백은 전체 백업과 이전 버전을 함께 복원하세요.

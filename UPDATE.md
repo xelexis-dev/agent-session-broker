@@ -4,6 +4,17 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.1.1 (2026-11-12)
+
+- Security hardening: server diagnostics on stderr no longer contain request paths, tokens, IDs, file paths or raw error text. They are now JSON lines. The old `listening on http://…` text is gone; scripts that read it must use the `bind` field of the `server-listening` event.
+- A panic inside an MCP tool no longer stops the whole broker. The caller receives a fixed JSON-RPC internal error.
+- `auth_status` refreshes `serverVersion` after an in-place server upgrade. After a rollback to a server that does not report its version, it shows unknown until you reconnect MCP.
+- The container image uses Alpine 3.23.8 and no longer contains the package manager. This removes zlib (CVE-2026-4738), which only the package manager used; the server never used it.
+- The runtime image no longer contains apk, CA certificates or OpenSSL. The server does not need them; to run HTTPS tools next to the container, use a separate debug image.
+- The agent guide explains the Host header a reverse proxy must send for MCP.
+- Client 1.1.1 carries the `serverVersion` refresh. Clients 0.17.3 and later keep working with this server.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.1.0 server.
+
 ## 1.1.0 (2026-11-11)
 
 - The control panel is available in English and Korean. Each account chooses its language in My profile. English is the default, so existing accounts start in English.

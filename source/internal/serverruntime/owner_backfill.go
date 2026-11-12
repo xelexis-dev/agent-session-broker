@@ -2,7 +2,7 @@ package serverruntime
 
 import (
 	"context"
-	"log"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"sync"
 	"time"
 )
@@ -31,7 +31,7 @@ func attemptOwnerBackfill(service ownerBackfiller, bindings map[string]string) b
 		if pending, ok := service.(interface{ PendingRegistrationOwnerBackfills(map[string]string) int }); ok {
 			count = pending.PendingRegistrationOwnerBackfills(bindings)
 		}
-		log.Printf("reason=registration-owner-backfill-failed count=%d", count)
+		serverdiag.Emit(serverdiag.Event{Type: "registration-owner-backfill-failed", Count: uint64(count)})
 		return false
 	}
 	return true

@@ -1,9 +1,7 @@
 package serverruntime
 
 import (
-	"bytes"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -79,10 +77,7 @@ func backfillFailureFixture(t *testing.T, failUntil int32) (string, *failingOwne
 }
 
 func TestOwnerBackfillFailureKeepsStartupListAndDetachAvailable(t *testing.T) {
-	var output bytes.Buffer
-	originalWriter := log.Writer()
-	log.SetOutput(&output)
-	t.Cleanup(func() { log.SetOutput(originalWriter) })
+	output := captureDiagnostics(t)
 	root, failed := backfillFailureFixture(t, 2)
 	h, closeHandler, err := newManagedHandler(root, func(dir groups.ProjectDirectory) (mcpserver.Backend, error) {
 		backend, err := persistentBackend(dir)
@@ -101,7 +96,7 @@ func TestOwnerBackfillFailureKeepsStartupListAndDetachAvailable(t *testing.T) {
 		t.Fatal("list unavailable", err)
 	}
 	id := rows[0].RegistrationID
-	if !strings.Contains(output.String(), "reason=registration-owner-backfill-failed count=1") || strings.Contains(output.String(), "fixture identity/path") {
+	if !strings.Contains(output.String(), `"type":"registration-owner-backfill-failed"`) || !strings.Contains(output.String(), `"count":1`) || strings.Contains(output.String(), "fixture identity/path") {
 		t.Fatal("migration log must contain only fixed reason and count")
 	}
 	if failed.RegistrationOwners()[id] != "" {

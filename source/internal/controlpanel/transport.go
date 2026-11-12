@@ -2,7 +2,7 @@ package controlpanel
 
 import (
 	"errors"
-	"log"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
 	"net/netip"
 	"time"
@@ -23,7 +23,7 @@ func (p *panel) transport(r *http.Request) requestTransport {
 	ip := peer.Addr().Unmap()
 	out := requestTransport{secure: r.TLS != nil, peer: "unknown"}
 	trusted := false
-	if err == nil {
+	if err == nil && ip.Zone() == "" {
 		out.peer = ip.String()
 		for _, prefix := range p.trustedProxies {
 			if prefix.Contains(ip) {
@@ -65,11 +65,7 @@ func (p *panel) denyTransport(w http.ResponseWriter, r *http.Request, project st
 	}
 	p.mu.Unlock()
 	if report {
-		hint := ""
-		if verdict.forwardedHint {
-			hint = " configure --trusted-proxy and have the proxy SET X-Forwarded-Proto"
-		}
-		log.Printf("http-transport-denied reason=%s path=%s project=%s peer=%s%s", verdict.reason, r.URL.Path, project, verdict.peer, hint)
+		serverdiag.Emit(serverdiag.Event{Type: "http-transport-denied", Reason: verdict.reason, Route: AccessRoute(r), Peer: verdict.peer, ForwardedHint: verdict.forwardedHint})
 	}
 	writeTransportDenied(w)
 }

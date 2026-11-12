@@ -6,12 +6,14 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/mcpconfig"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/memory"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 )
 
 type Backend interface {
@@ -72,7 +74,8 @@ func newWithCompatibility(backend Backend, memories MemoryBackend, policy *serve
 	if a, ok := backend.(interface{ AttachmentsAvailable() bool }); ok && a.AttachmentsAvailable() {
 		options.Capabilities.Experimental[protocol.AttachmentCapability] = true
 	}
-	s := mcp.NewServer(&mcp.Implementation{Name: "agent-session-broker", Version: mcpconfig.Version(version...)}, options)
+	serverVersion := mcpconfig.Version(version...)
+	s := mcp.NewServer(&mcp.Implementation{Name: "agent-session-broker", Version: serverVersion}, options)
 	s.AddReceivingMiddleware(scopeMiddleware)
 	s.AddReceivingMiddleware(projectCapabilityMiddleware)
 
@@ -192,15 +195,15 @@ func newWithCompatibility(backend Backend, memories MemoryBackend, policy *serve
 	if durable, ok := backend.(broker.DurableRegistrar); ok {
 		mcp.AddTool(s, describe(&mcp.Tool{Name: "register_session", Description: "Internal explicit registration used by the local MCP client for attach_session. Creates, revives or renames the durable registration owned by (harness, session UUID, client id) after verifying the client-held resume secret. A requested name held by another session yields a UUID nickname and a warning. The result code, not a tool error, reports owned, invalid-token, storage or invalid. Not a model messaging tool."}), func(ctx context.Context, _ *mcp.CallToolRequest, in broker.RegisterRequest) (*mcp.CallToolResult, broker.RegisterResult, error) {
 			v, e := durable.RegisterSession(ctx, in)
-			return nil, credentialScopesResult(ctx, v, e), e
+			return nil, registrationResult(ctx, v, e, serverVersion), e
 		})
 		mcp.AddTool(s, describe(&mcp.Tool{Name: "resume_session", Description: "Internal automatic recovery used by the local MCP client after a network or server restart. Restores an existing durable registration with a fresh lease when the resume secret matches; it never creates a registration and is rejected with code detached after stop_session. Not a model messaging tool."}), func(ctx context.Context, _ *mcp.CallToolRequest, in broker.ResumeRequest) (*mcp.CallToolResult, broker.RegisterResult, error) {
 			v, e := durable.ResumeSession(ctx, in)
-			return nil, credentialScopesResult(ctx, v, e), e
+			return nil, registrationResult(ctx, v, e, serverVersion), e
 		})
 		mcp.AddTool(s, describe(&mcp.Tool{Name: "renew_lease", InputSchema: renewInputSchema(), Description: "Internal heartbeat used by the local MCP client. Renews the current ingress lease and returns any pending identity probe. Not a model messaging tool."}), func(ctx context.Context, _ *mcp.CallToolRequest, in broker.RenewRequest) (*mcp.CallToolResult, broker.RegisterResult, error) {
 			v, e := durable.RenewLease(ctx, in)
-			v = credentialScopesResult(ctx, v, e)
+			v = registrationResult(ctx, v, e, serverVersion)
 			if e == nil && v.Code == "" {
 				return &mcp.CallToolResult{Content: []mcp.Content{}}, v, nil
 			}
@@ -340,6 +343,7 @@ func newWithCompatibility(backend Backend, memories MemoryBackend, policy *serve
 		v, e := memories.Search(ctx, in)
 		return nil, v, e
 	})
+	s.AddReceivingMiddleware(panicBoundary)
 	return s
 }
 
@@ -354,4 +358,18 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("ok\n"))
+}
+
+// Added last so this boundary wraps all receiving middleware and tool execution.
+func panicBoundary(next mcp.MethodHandler) mcp.MethodHandler {
+	return func(ctx context.Context, method string, req mcp.Request) (result mcp.Result, err error) {
+		defer func() {
+			if v := recover(); v != nil {
+				serverdiag.Emit(serverdiag.Panic(v))
+				result = nil
+				err = &jsonrpc.Error{Code: jsonrpc.CodeInternalError, Message: "Internal error"}
+			}
+		}()
+		return next(ctx, method, req)
+	}
 }

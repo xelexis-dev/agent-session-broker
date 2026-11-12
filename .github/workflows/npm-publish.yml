@@ -139,8 +139,10 @@ jobs:
               dist = metadata['dist']
               url = REGISTRY + '/@xelexis/x-broker/-/x-broker-' + receipt['version'] + '.tgz'
               require(dist.get('integrity') == receipt['integrity'] and dist.get('tarball') == url)
-              require(get(url, LIMIT) == data)
-              return isinstance(dist.get('attestations'), dict) and bool(dist['attestations'].get('url'))
+              # 1.1.0: metadata can list the version before the tarball serves; a 404 retries until the deadline.
+              tarball = get(url, LIMIT, missing=True)
+              require(tarball is None or tarball == data)
+              return tarball is not None and isinstance(dist.get('attestations'), dict) and bool(dist['attestations'].get('url'))
 
           def root(): return Path(os.environ['RUNNER_TEMP']) / 'asb-npm-input'
 

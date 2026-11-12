@@ -1,8 +1,10 @@
 ## Upgrading while connected
 
+`auth_status.serverVersion` can be `unknown` with `serverVersionKnown: false` even while connected: a successful reply stopped reporting version metadata after previously reporting it. Reconnect MCP to refresh the handshake version.
+
 **1.0 change:** spawn tool/issuance removed. Atomic v5 scope cleanup; empty lists refuse startup without changes. Full responses retain nonfunctional `session:spawn` until 2.0 for compatibility. Rollback requires full-backup restore.
 
-Recommended client: 1.1.0 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
+Recommended client: 1.1.1 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
 
 `auth_status.update` appears only when `clientVersion` is below the connected server's `recommendedClientVersion`. Server and npm client versions are separate. Older servers without a recommendation show none. The recommendation is a version whose publication was verified for the server release, not the internet's latest.
 

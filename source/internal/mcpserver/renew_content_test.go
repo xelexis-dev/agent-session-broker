@@ -30,7 +30,7 @@ func TestRenewContentSuccessOnly(t *testing.T) {
 			if err != nil || got.IsError {
 				t.Fatal("renew result")
 			}
-			want := credentialScopesResult(t.Context(), backend.result(), nil)
+			want := registrationResult(t.Context(), backend.result(), nil, "dev")
 			raw, _ := json.Marshal(got.StructuredContent)
 
 			var decoded broker.RegisterResult

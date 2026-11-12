@@ -24,26 +24,28 @@ import (
 // brokerUpstream replaces failed HTTP MCP connections on subsequent calls.
 // It never replays a call: losing a response does not prove a mutation failed.
 type brokerUpstream struct {
-	credentialScopes             credentialScopeTracker
-	projectState                 *projectTracker
-	projectSource, projectParent string
-	expectedProjectGeneration    string
-	projectFailure               atomic.Pointer[projectRefusalError]
-	ctx                          context.Context
-	serverVersion                string
-	compatibility                compatibilityState
-	cancel                       context.CancelFunc
-	endpoint                     string
-	header                       http.Header
-	policy                       *httpPolicyGuard
-	mu                           sync.Mutex
-	current                      *mcp.ClientSession
-	activitySession              *mcp.ClientSession
-	activitySchema               bool
-	runtimeInfoSchema            bool
-	startupTransient             atomic.Bool
-	suspended                    atomic.Bool
-	rejected                     atomic.Bool
+	credentialScopes               credentialScopeTracker
+	projectState                   *projectTracker
+	projectSource, projectParent   string
+	expectedProjectGeneration      string
+	projectFailure                 atomic.Pointer[projectRefusalError]
+	ctx                            context.Context
+	serverVersion                  string
+	versionIssued, versionAccepted uint64
+	versionMetadataSeen            bool
+	compatibility                  compatibilityState
+	cancel                         context.CancelFunc
+	endpoint                       string
+	header                         http.Header
+	policy                         *httpPolicyGuard
+	mu                             sync.Mutex
+	current                        *mcp.ClientSession
+	activitySession                *mcp.ClientSession
+	activitySchema                 bool
+	runtimeInfoSchema              bool
+	startupTransient               atomic.Bool
+	suspended                      atomic.Bool
+	rejected                       atomic.Bool
 	// transport overrides http.DefaultTransport (tests with private TLS roots).
 	transport http.RoundTripper
 }
@@ -252,6 +254,7 @@ func (u *brokerUpstream) session(ctx context.Context) (*mcp.ClientSession, error
 	u.projectFailure.Store(nil)
 	u.projectState.initialized(u.projectSource, u.projectParent, s.InitializeResult(), sourceRevision, parentRevision)
 	u.serverVersion = ""
+	u.versionMetadataSeen = false
 	if initialized := s.InitializeResult(); initialized != nil && initialized.ServerInfo != nil {
 		u.serverVersion = initialized.ServerInfo.Version
 	}
@@ -444,7 +447,14 @@ func (u *brokerUpstream) CallTool(ctx context.Context, p *mcp.CallToolParams) (*
 		}
 	}
 	sourceRevision, parentRevision := u.projectState.versions(u.projectSource, u.projectParent)
+	versionBearing := p.Name == "register_session" || p.Name == "resume_session" || p.Name == "renew_lease"
+	var versionRequest uint64
 	u.mu.Lock()
+	// Version freshness is independent of optional project-scope observations.
+	if versionBearing {
+		u.versionIssued++
+		versionRequest = u.versionIssued
+	}
 	scopeStamp := u.credentialScopes.issue(s, u.projectSource, u.projectState.generation(u.projectSource))
 	u.mu.Unlock()
 	result, err := s.CallTool(ctx, p)
@@ -461,10 +471,20 @@ func (u *brokerUpstream) CallTool(ctx context.Context, p *mcp.CallToolParams) (*
 			return nil, errStaleScopeObservation
 		}
 	}
-	if err == nil && (p.Name == "register_session" || p.Name == "resume_session" || p.Name == "renew_lease") {
+	if err == nil && versionBearing {
+		version, successful := replyServerVersion(result)
 		u.mu.Lock()
 		if u.current == s && u.projectState.terminal(u.projectSource) == nil {
 			u.credentialScopes.result(s, scopeStamp, result, u.projectSource, u.projectState.generation(u.projectSource))
+			if successful && versionRequest > u.versionAccepted {
+				u.versionAccepted = versionRequest
+				if version != "" {
+					u.serverVersion = version
+					u.versionMetadataSeen = true
+				} else if u.versionMetadataSeen {
+					u.serverVersion = ""
+				}
+			}
 		}
 		u.mu.Unlock()
 	}

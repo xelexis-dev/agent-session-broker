@@ -63,3 +63,13 @@ func credentialScopesResult(ctx context.Context, v protocol.RegisterResult, err 
 	}
 	return v
 }
+
+// Registration metadata comes from this server, never from backend-supplied snapshots or refusals.
+func registrationResult(ctx context.Context, v protocol.RegisterResult, err error, serverVersion string) protocol.RegisterResult {
+	v = credentialScopesResult(ctx, v, err)
+	v.ServerVersion = ""
+	if err == nil && v.Code == "" {
+		v.ServerVersion = serverVersion
+	}
+	return v
+}

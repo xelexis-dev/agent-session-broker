@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/access"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/attachments"
-	"log"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
 	"net/netip"
 	"os"
@@ -54,7 +54,7 @@ func (b panelBackend) deleteProjectGeneration(ctx context.Context, project, gene
 	}
 	if b.bugreports != nil {
 		if b.bugreports.IsUnavailable() {
-			log.Print("warning: project deletion skipped unavailable bug report storage")
+			serverdiag.Emit(serverdiag.Event{Type: "project-deletion-warning", Reason: "unavailable-bugreport"})
 		} else if err := b.bugreports.DeleteProject(project, generation); err != nil {
 			return err
 		}
@@ -269,8 +269,7 @@ func newManagedHandlerWithTrustedProxies(directory string, newRemote func(groups
 		return nil, nil, err
 	}
 	if !store.Ready() {
-		absolute, _ := filepath.Abs(filepath.Join(directory, "control", "setup-code"))
-		log.Printf("asb-server setup required: enter the one-time code stored in %s at /setup (code not logged)", absolute)
+		serverdiag.Emit(serverdiag.Event{Type: "server-setup-required"})
 	}
 	if newRemote == nil {
 		newRemote = func(directory groups.ProjectDirectory) (mcpserver.Backend, error) {

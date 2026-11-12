@@ -3,7 +3,6 @@ package serverruntime
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -65,11 +64,8 @@ func TestBugReportCorruptStoreDegradesAndRecoversAfterRestore(t *testing.T) {
 	if out.Code != 503 || !strings.Contains(out.Body.String(), "bug report storage is unavailable") {
 		t.Fatal("admin status unavailable state missing")
 	}
-	var warning bytes.Buffer
-	previous := log.Writer()
-	log.SetOutput(&warning)
+	warning := captureDiagnostics(t)
 	out = r.browser(http.MethodPost, "/projects/delete", url.Values{"project": {"test"}, "confirmName": {"test"}})
-	log.SetOutput(previous)
 	if out.Code != 303 {
 		t.Fatal("project deletion blocked by unavailable report store")
 	}

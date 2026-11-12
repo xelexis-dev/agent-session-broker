@@ -6,8 +6,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"net/netip"
@@ -22,7 +22,7 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 		output = io.Discard
 	}
 	flags := flag.NewFlagSet("asb-server", flag.ContinueOnError)
-	flags.SetOutput(output)
+	flags.SetOutput(io.Discard)
 	listen := flags.String("listen", "127.0.0.1:8787", "HTTP listen address")
 	memoryDir := flags.String("memory-dir", ".agent-memory", "project memory and server state directory")
 	var trustedProxies []netip.Prefix
@@ -37,40 +37,49 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 	showVersion := flags.Bool("version", false, "print version and exit")
 	flags.Usage = func() {
 		fmt.Fprintln(output, "Usage: asb-server [--listen address] [--memory-dir path] [--trusted-proxy CIDR]...")
+		flags.SetOutput(output)
 		flags.PrintDefaults()
+		flags.SetOutput(io.Discard)
 		fmt.Fprintln(output, "AllowHTTP OFF behind any TLS proxy requires --trusted-proxy and a proxy that SETS X-Forwarded-Proto.")
 	}
 	if err := flags.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
-		return err
+		return &RunError{Reason: "flags_invalid", Flag: invalidFlag(args)}
 	}
 	if flags.NArg() != 0 {
-		return errors.New("unexpected positional argument")
+		return &RunError{Reason: "flags_invalid"}
 	}
 	if *showVersion {
 		_, err := fmt.Fprintf(output, "asb-server %s\n", version)
-		return err
+		if err != nil {
+			return storageFailure(err)
+		}
+		return nil
 	}
 	directory, err := filepath.Abs(*memoryDir)
 	if err != nil {
-		return err
+		return storageFailure(err)
 	}
-	log.Printf("asb-server trusted proxies=%v (default none)", trustedProxies)
+	serverdiag.Emit(serverdiag.Event{Type: "server-trusted-proxies", Count: uint64(len(trustedProxies))})
 	handler, close, err := newManagedHandlerWithTrustedProxies(directory, nil, trustedProxies, version)
 	if err != nil {
-		return err
+		return storageFailure(err)
 	}
-	defer func() { err = errors.Join(err, close()) }()
+	defer func() {
+		if closeErr := close(); closeErr != nil && err == nil {
+			err = &RunError{Reason: "shutdown_failed"}
+		}
+	}()
 	listener, err := net.Listen("tcp", *listen)
 	if err != nil {
-		return err
+		return listenFailure(err)
 	}
 	defer listener.Close()
 	serveCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	server := &http.Server{Handler: handler, ReadHeaderTimeout: 10 * time.Second, BaseContext: func(net.Listener) context.Context { return serveCtx }}
+	server := &http.Server{Handler: protectRequests(handler), ErrorLog: serverdiag.ErrorLog(), ReadHeaderTimeout: 10 * time.Second, BaseContext: func(net.Listener) context.Context { return serveCtx }}
 	var connectionsMu sync.Mutex
 	connections := make(map[net.Conn]http.ConnState)
 	stopping := false
@@ -93,13 +102,13 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 	}
 	result := make(chan error, 1)
 	go func() { result <- server.Serve(listener) }()
-	log.Printf("asb-server control panel listening on http://%s/", listener.Addr())
+	serverdiag.Emit(serverdiag.Event{Type: "server-listening", Bind: listener.Addr().(*net.TCPAddr).AddrPort().String()})
 	select {
 	case err := <-result:
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
-		return err
+		return &RunError{Reason: "shutdown_failed"}
 	case <-ctx.Done():
 		cancel()
 		// Cancellation does not unblock sockets reading headers or request bodies.
@@ -123,6 +132,9 @@ func Run(ctx context.Context, args []string, version string, output io.Writer) (
 		if errors.Is(serveErr, http.ErrServerClosed) {
 			serveErr = nil
 		}
-		return errors.Join(shutdownErr, serveErr)
+		if shutdownErr != nil || serveErr != nil {
+			return &RunError{Reason: "shutdown_failed"}
+		}
+		return nil
 	}
 }

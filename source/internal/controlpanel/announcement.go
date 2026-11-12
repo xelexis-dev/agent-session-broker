@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/i18n"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
-	"log"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"net/http"
 	"net/url"
 	"time"
@@ -109,7 +109,7 @@ func (p *panel) announcementMutate(w http.ResponseWriter, r *http.Request, sessi
 		}
 	}
 	// No body, session names, credentials, URLs or downstream errors in this log.
-	log.Printf("admin announcement actor=%q targets=%d accepted=%d failed=%d", user.ID, len(results), accepted, len(results)-accepted)
+	serverdiag.Emit(serverdiag.Event{Type: "admin-announcement", Targets: len(results), Accepted: accepted, Failed: len(results) - accepted})
 	p.mu.Lock()
 	submission.results = append([]AnnouncementResult(nil), results...)
 	submission.complete = true

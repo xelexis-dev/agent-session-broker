@@ -29,6 +29,7 @@ var (
 	ErrForbidden         = errors.New("permission denied")
 	ErrInvalid           = errors.New("invalid configuration")
 	ErrStorage           = errors.New("control panel storage unavailable")
+	ErrDataDirLocked     = errors.Join(ErrStorage, errors.New("data directory locked"))
 	registrationNickname = regexp.MustCompile(`^[A-Z2-7]{26}$`)
 	projectName          = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
 )
@@ -136,11 +137,11 @@ type Store struct {
 
 func openControlRoot(directory string) (*Store, error) {
 	if err := os.MkdirAll(directory, 0700); err != nil {
-		return nil, ErrStorage
+		return nil, controlOpenFailure(err)
 	}
 	root, err := os.OpenRoot(directory)
 	if err != nil {
-		return nil, ErrStorage
+		return nil, controlOpenFailure(err)
 	}
 	s := &Store{now: time.Now, stop: make(chan struct{}), changes: map[string]chan struct{}{}, root: root, hashSlot: make(chan struct{}, 1), data: state{DisableUnauthenticated: true, Version: controlVersion, Users: map[string]userRecord{}, Projects: map[string]Project{}}}
 	fail := func() (*Store, error) { s.Close(); return nil, ErrStorage }
@@ -150,10 +151,12 @@ func openControlRoot(directory string) (*Store, error) {
 	}
 	s.lock, err = root.OpenFile("control.lock", os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
-		return fail()
+		s.Close()
+		return nil, controlOpenFailure(err)
 	}
 	if err = lockFile(s.lock); err != nil {
-		return fail()
+		s.Close()
+		return nil, controlOpenFailure(err)
 	}
 	return s, nil
 }
@@ -711,4 +714,14 @@ func (s *Store) ImportProjects(names []string) error {
 		return nil
 	}
 	return s.commit(candidate)
+}
+
+func controlOpenFailure(err error) error {
+	if errors.Is(err, ErrDataDirLocked) {
+		return ErrDataDirLocked
+	}
+	if errors.Is(err, os.ErrPermission) {
+		return errors.Join(ErrStorage, os.ErrPermission)
+	}
+	return ErrStorage
 }

@@ -10,7 +10,10 @@ ARG TARGETARCH
 ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -buildvcs=false -ldflags "-s -w -X main.version=$VERSION" -o /out/asb-server ./cmd/asb-server
 
-FROM alpine:3.23.7@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63
+FROM alpine:3.23.8@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2
+# The static server needs no package manager; removing apk-tools also drops its zlib, libapk,
+# CA bundle and OpenSSL dependencies. busybox (wget for HEALTHCHECK) stays. No network.
+RUN apk --no-network del apk-tools
 ARG VERSION=dev
 ARG REVISION=unknown
 LABEL org.opencontainers.image.licenses="MIT" \

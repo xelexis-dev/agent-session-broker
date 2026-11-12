@@ -2,6 +2,7 @@ package channel
 
 import (
 	"context"
+	"encoding/json"
 	"runtime"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 )
 
-const versionInstructions = " Inspect clientVersion/serverVersion with auth_status; unknown means no upstream connection."
+const versionInstructions = " Inspect clientVersion/serverVersion with auth_status; unknown means no connection or missing version metadata after a server change; reconnect MCP to refresh it."
 
 func (u *brokerUpstream) versionInfo() string {
 	u.mu.Lock()
@@ -112,4 +113,38 @@ func updateSteps(host, platform string) string {
 		steps += " Windows: launcher 0.17.3+ supports npm upgrade while sessions stay connected; older launchers require stopping asb-client before upgrading."
 	}
 	return steps
+}
+
+// A successful omission is an observation too; malformed/error results provide no evidence.
+func replyServerVersion(result *mcp.CallToolResult) (string, bool) {
+	if result == nil || result.IsError {
+		return "", false
+	}
+	var raw []byte
+	var err error
+	if result.StructuredContent != nil {
+		raw, err = json.Marshal(result.StructuredContent)
+	} else if len(result.Content) > 0 {
+		if text, ok := result.Content[0].(*mcp.TextContent); ok {
+			raw = []byte(text.Text)
+		}
+	}
+	if err != nil || len(raw) == 0 {
+		return "", false
+	}
+	var payload *struct {
+		Code          string          `json:"code"`
+		ServerVersion json.RawMessage `json:"serverVersion"`
+	}
+	if json.Unmarshal(raw, &payload) != nil || payload == nil || payload.Code != "" {
+		return "", false
+	}
+	if len(payload.ServerVersion) == 0 {
+		return "", true
+	}
+	var version string
+	if json.Unmarshal(payload.ServerVersion, &version) != nil || strings.TrimSpace(version) == "" {
+		return "", false
+	}
+	return strings.TrimSpace(version), true
 }

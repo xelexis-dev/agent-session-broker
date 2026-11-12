@@ -32,6 +32,7 @@ func TestMisuseRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	routeValues := panelRouteValues(t)
 	seen := map[string]bool{directPath: true, capabilityPath: true, deviceAuthorizationPath: true, deviceTokenPath: true, deviceVerificationPath: true}
 	for _, d := range f.Decls {
 		fn, ok := d.(*ast.FuncDecl)
@@ -39,6 +40,11 @@ func TestMisuseRouteInventory(t *testing.T) {
 			continue
 		}
 		ast.Inspect(fn.Body, func(n ast.Node) bool {
+			if id, ok := n.(*ast.Ident); ok {
+				if value, found := routeValues[id.Name]; found {
+					seen[value] = true
+				}
+			}
 			lit, ok := n.(*ast.BasicLit)
 			if ok && lit.Kind == token.STRING {
 				s, _ := strconv.Unquote(lit.Value)

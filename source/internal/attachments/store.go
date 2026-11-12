@@ -9,8 +9,8 @@ import (
 	"errors"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/pathguard"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -99,7 +99,7 @@ func Open(directory string) (*Store, error) {
 			if root.Remove(name) != nil {
 				return fail()
 			}
-			log.Printf("attachment removed reason=startup")
+			serverdiag.Emit(serverdiag.Event{Type: "attachment-removed", Reason: "startup"})
 		}
 	}
 	s := &Store{capacity: diskCapacity, root: root, pin: pin, items: map[string]*record{}, pending: map[[2]string]bool{}, stop: make(chan struct{}), done: make(chan struct{})}
@@ -175,7 +175,7 @@ func (s *Store) deleteLocked(r *record, reason string) {
 	if err == nil || errors.Is(err, os.ErrNotExist) {
 		if s.items[r.ref.ID] == r {
 			delete(s.items, r.ref.ID)
-			log.Printf("attachment removed reason=%s", r.reason)
+			serverdiag.Emit(serverdiag.Event{Type: "attachment-removed", Reason: r.reason})
 		}
 	}
 }
@@ -288,7 +288,7 @@ func (s *Store) Upload(ctx context.Context, owner Owner, name string, size int64
 	}
 	r.active = false
 	r.created = time.Now()
-	log.Printf("attachment stored bytes=%d", size)
+	serverdiag.Emit(serverdiag.Event{Type: "attachment-stored", Bytes: size})
 	r.ref.SHA256 = hex.EncodeToString(hash.Sum(nil))
 	success = true
 	return r.ref, nil

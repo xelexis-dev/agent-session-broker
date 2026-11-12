@@ -1337,6 +1337,9 @@
           "runtimeInfoVersion": {
             "type": "integer"
           },
+          "serverVersion": {
+            "type": "string"
+          },
           "session": {
             "additionalProperties": false,
             "properties": {
@@ -1663,6 +1666,9 @@
           },
           "runtimeInfoVersion": {
             "type": "integer"
+          },
+          "serverVersion": {
+            "type": "string"
           },
           "session": {
             "additionalProperties": false,
@@ -2239,6 +2245,9 @@
           },
           "runtimeInfoVersion": {
             "type": "integer"
+          },
+          "serverVersion": {
+            "type": "string"
           },
           "session": {
             "additionalProperties": false,
@@ -2844,7 +2853,7 @@
         "message.recipient-registration": true,
         "message.sentAt": true,
         "receiver-holder-v1": true,
-        "recommendedClientVersion": "1.1.0"
+        "recommendedClientVersion": "1.1.1"
       },
       "logging": {},
       "tools": {
@@ -2857,7 +2866,7 @@
         "message.recipient-registration": true,
         "message.sentAt": true,
         "receiver-holder-v1": true,
-        "recommendedClientVersion": "1.1.0"
+        "recommendedClientVersion": "1.1.1"
       },
       "logging": {},
       "tools": {

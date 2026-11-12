@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"log"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -887,10 +886,7 @@ func TestAPIValidPanelCookieIsIgnored(t *testing.T) {
 }
 func TestAPISecretsNeverReachLogs(t *testing.T) {
 	s, h := apiFixture(t)
-	var logs bytes.Buffer
-	old := log.Writer()
-	log.SetOutput(&logs)
-	defer log.SetOutput(old)
+	logs := captureDiagnostics(t)
 	raw, _ := apiIssue(t, s)
 	_ = apiRequest(h, "GET", "/api/v1/me", "", raw)
 	if strings.Contains(logs.String(), raw) || strings.Contains(logs.String(), testPassword) {

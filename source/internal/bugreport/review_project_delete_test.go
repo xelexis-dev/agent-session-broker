@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,10 +23,7 @@ func TestReviewProjectDeletionKeepsUndecodableJournalRows(t *testing.T) {
 	if _, err := s.Delete("admin", r.ID, r.ExpectedVersion); !errors.Is(err, ErrUnavailable) {
 		t.Fatal("report deletion must remain strict", err)
 	}
-	var warnings bytes.Buffer
-	previous := log.Writer()
-	log.SetOutput(&warnings)
-	defer log.SetOutput(previous)
+	warnings := captureDiagnostics(t)
 	if err := s.DeleteProject("project", r.Reporter.ProjectGenerationID); err != nil {
 		t.Fatal("corrupt metadata blocked project deletion", err)
 	}
@@ -60,10 +56,7 @@ func TestReviewProjectDeletionContinuesWithUnavailableJournal(t *testing.T) {
 	if _, err := s.Delete("admin", r.ID, r.ExpectedVersion); !errors.Is(err, ErrUnavailable) {
 		t.Fatal("report deletion unexpectedly accepted broken journal", err)
 	}
-	var warnings bytes.Buffer
-	previous := log.Writer()
-	log.SetOutput(&warnings)
-	defer log.SetOutput(previous)
+	warnings := captureDiagnostics(t)
 	if err := s.DeleteProject("project", r.Reporter.ProjectGenerationID); err != nil {
 		t.Fatal("unavailable journal blocked project deletion", err)
 	}

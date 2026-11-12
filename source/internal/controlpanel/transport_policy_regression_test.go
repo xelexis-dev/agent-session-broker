@@ -1,10 +1,8 @@
 package controlpanel
 
 import (
-	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -287,10 +285,7 @@ func TestTransportAdminCookiesSecureBehindTrustedProxy(t *testing.T) {
 }
 
 func TestTransportDenialLogIsBoundedAndExcludesRawHeaders(t *testing.T) {
-	var output bytes.Buffer
-	prior := log.Writer()
-	log.SetOutput(&output)
-	defer log.SetOutput(prior)
+	output := captureDiagnostics(t)
 	p := &panel{}
 	for range 2 {
 		r := httptest.NewRequest("POST", "/mcp?project=demo&secret=NEVER_LOG_QUERY", nil)

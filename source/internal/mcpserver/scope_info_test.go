@@ -32,7 +32,7 @@ func TestScopeInfoPreservesRemoteCatalog(t *testing.T) {
 			t.Fatal("dump failed")
 		}
 	}
-	if hash != "5aaac0e80d5f9d1140d27ba7b4c41e58d43a92dd4200aa835f7c45b6e77a09fb" {
+	if hash != "c0d7acfbb043004524f019c7996834b29f5d75c11ef284d64d96512f31a2ed54" {
 		t.Fatal("public remote catalog changed")
 	}
 	t.Logf("catalogSHA256=%s", hash)

@@ -102,6 +102,7 @@ type PendingProbe struct {
 const CredentialScopesCapability = "credential-scopes-v1"
 
 type RegisterResult struct {
+	ServerVersion      string           `json:"serverVersion,omitempty"`
 	MessageAckVersion  int              `json:"messageAckVersion,omitempty"`
 	CredentialScopes   []string         `json:"credentialScopes,omitempty"`
 	HolderChallenge    *HolderChallenge `json:"holderChallenge,omitempty"`

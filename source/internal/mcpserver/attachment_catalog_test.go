@@ -22,7 +22,8 @@ func TestAttachmentLegacyCatalog(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("legacy tools/list bytes=%d sha256=%x", len(data), sha256.Sum256(data))
-	const baseline = "5aaac0e80d5f9d1140d27ba7b4c41e58d43a92dd4200aa835f7c45b6e77a09fb"
+	// The three registration replies now advertise optional serverVersion; tool names and inputs are unchanged.
+	const baseline = "c0d7acfbb043004524f019c7996834b29f5d75c11ef284d64d96512f31a2ed54"
 	if fmt.Sprintf("%x", sha256.Sum256(data)) != baseline {
 		t.Fatal("legacy tools/list bytes changed")
 	}

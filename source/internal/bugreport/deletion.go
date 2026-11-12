@@ -3,8 +3,8 @@ package bugreport
 import (
 	"encoding/json"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/serverdiag"
 	"io/fs"
-	"log"
 	"sort"
 	"strings"
 	"time"
@@ -187,12 +187,12 @@ func (s *Store) DeletionFor(actor, id string) (Deletion, error) {
 func (s *Store) deleteProjectDeletionsLocked(generation string) error {
 	db, err := s.deletionDBLocked()
 	if err != nil {
-		log.Print("warning: project deletion skipped unavailable deletion journal")
+		serverdiag.Emit(serverdiag.Event{Type: "project-deletion-warning", Reason: "unavailable-journal"})
 		return nil
 	}
 	rows, err := db.List()
 	if err != nil {
-		log.Print("warning: project deletion skipped unreadable deletion journal")
+		serverdiag.Emit(serverdiag.Event{Type: "project-deletion-warning", Reason: "unreadable-journal"})
 		return nil
 	}
 	var deletes []string
@@ -201,7 +201,7 @@ func (s *Store) deleteProjectDeletionsLocked(generation string) error {
 			ProjectGenerationID string `json:"projectGenerationId"`
 		}
 		if json.Unmarshal(raw, &record) != nil || record.ProjectGenerationID == "" {
-			log.Print("warning: project deletion retained undecodable deletion journal row")
+			serverdiag.Emit(serverdiag.Event{Type: "project-deletion-warning", Reason: "undecodable-row"})
 			continue
 		}
 		if record.ProjectGenerationID == generation {
@@ -209,7 +209,7 @@ func (s *Store) deleteProjectDeletionsLocked(generation string) error {
 		}
 	}
 	if len(deletes) != 0 && db.Batch(nil, deletes) != nil {
-		log.Print("warning: project deletion could not clean deletion journal")
+		serverdiag.Emit(serverdiag.Event{Type: "project-deletion-warning", Reason: "journal-cleanup"})
 	}
 	return nil
 }

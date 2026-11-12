@@ -212,15 +212,15 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 		p.serveAPI(w, r)
 		return
 	}
-	if r.URL.Path == "/healthz" {
+	if r.URL.Path == panelRouteHealthz {
 		p.next.ServeHTTP(w, r)
 		return
 	}
-	if r.URL.Path == "/oauth/transport-policy" {
+	if r.URL.Path == panelRouteOauthTransportPolicy {
 		p.transportPolicy(w, r)
 		return
 	}
-	if r.URL.Path == "/mcp" || r.URL.Path == "/attachments" || strings.HasPrefix(r.URL.Path, "/attachments/") {
+	if r.URL.Path == panelRouteMcp || r.URL.Path == panelRouteAttachments || strings.HasPrefix(r.URL.Path, "/attachments/") {
 		p.mcp(w, r)
 		return
 	}
@@ -243,7 +243,7 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 	}
 	// Browsers fetch /favicon.ico on their own. Redirecting it to /setup or
 	// /login would issue a new form cookie and break the open form's CSRF value.
-	if r.URL.Path == "/favicon.ico" && (r.Method == http.MethodGet || r.Method == http.MethodHead) {
+	if r.URL.Path == panelRouteFaviconIco && (r.Method == http.MethodGet || r.Method == http.MethodHead) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -254,7 +254,7 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		formLimit := int64(16 << 10)
-		if r.URL.Path == "/admin/announcement" {
+		if r.URL.Path == panelRouteAdminAnnouncement {
 			formLimit = 3*12000 + 4096
 		} // URL-encoded UTF-8 expands to three bytes per input byte.
 		r.Body = http.MaxBytesReader(w, r.Body, formLimit)
@@ -263,16 +263,16 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if r.URL.Path == "/projects/sessions/live" {
+	if r.URL.Path == panelRouteProjectsSessionsLive {
 		p.liveSessions(w, r)
 		return
 	}
-	if r.URL.Path == "/setup" || r.URL.Path == "/login" {
+	if r.URL.Path == panelRouteSetup || r.URL.Path == panelRouteLogin {
 		p.access(w, r)
 		return
 	}
 	if !p.store.Ready() {
-		http.Redirect(w, r, "/setup", http.StatusSeeOther)
+		http.Redirect(w, r, panelRouteSetup, http.StatusSeeOther)
 		return
 	}
 	session, ok := p.session(r)
@@ -285,13 +285,13 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch r.URL.Path {
-	case "/tokens/scopes":
+	case panelRouteTokensScopes:
 		p.tokenScopesMutate(w, r, session)
-	case "/admin/bug-reports", "/admin/bug-reports/detail", "/admin/bug-reports/status", "/admin/bug-reports/delete":
+	case panelRouteAdminBugReports, panelRouteAdminBugReportsDetail, panelRouteAdminBugReportsStatus, panelRouteAdminBugReportsDelete:
 		p.bugReportsHTTP(w, r, session)
-	case "/projects/audit":
+	case panelRouteProjectsAudit:
 		p.directAudit(w, r, session)
-	case "/projects/members/suggestions":
+	case panelRouteProjectsMembersSuggestions:
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -299,72 +299,72 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 		p.memberSuggestions(w, r, session)
 	case deviceVerificationPath:
 		p.authCode(w, r, session)
-	case "/", "/projects/settings", "/projects/sessions", "/admin/users", "/admin/users/detail", "/admin/settings", "/profile":
+	case panelRouteRoot, panelRouteProjectsSettings, panelRouteProjectsSessions, panelRouteAdminUsers, panelRouteAdminUsersDetail, panelRouteAdminSettings, panelRouteProfile:
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		if r.URL.Path == "/" && r.URL.Query().Get("project") != "" {
+		if r.URL.Path == panelRouteRoot && r.URL.Query().Get("project") != "" {
 			http.Redirect(w, r, projectURL("sessions", r.URL.Query().Get("project")), http.StatusSeeOther)
 			return
 		}
 		view := "projects"
-		if r.URL.Path == "/projects/settings" {
+		if r.URL.Path == panelRouteProjectsSettings {
 			view = "settings"
 		}
-		if r.URL.Path == "/projects/sessions" {
+		if r.URL.Path == panelRouteProjectsSessions {
 			view = "sessions"
 		}
-		if r.URL.Path == "/admin/users" {
+		if r.URL.Path == panelRouteAdminUsers {
 			view = "users"
 		}
-		if r.URL.Path == "/admin/users/detail" {
+		if r.URL.Path == panelRouteAdminUsersDetail {
 			view = "user-detail"
 		}
-		if r.URL.Path == "/admin/settings" {
+		if r.URL.Path == panelRouteAdminSettings {
 			view = "admin-settings"
 		}
-		if r.URL.Path == "/profile" {
+		if r.URL.Path == panelRouteProfile {
 			view = "profile"
 		}
 		p.show(w, r, session, view, r.URL.Query().Get("project"), 200, "", "")
-	case "/projects/delete":
+	case panelRouteProjectsDelete:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.deleteProject(w, r, session)
-	case "/admin/announcement":
+	case panelRouteAdminAnnouncement:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.announcementMutate(w, r, session)
-	case "/admin/announcement/result":
+	case panelRouteAdminAnnouncementResult:
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.announcementResult(w, r, session)
-	case "/admin/attachments":
+	case panelRouteAdminAttachments:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", 405)
 			return
 		}
 		p.attachmentPolicyMutate(w, r, session)
-	case "/admin/settings/save":
+	case panelRouteAdminSettingsSave:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.instanceSettingsMutate(w, r, session)
-	case "/admin/admin-api":
+	case panelRouteAdminAdminApi:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", 405)
 			return
 		}
 		p.adminAPIPolicyMutate(w, r, session)
-	case "/profile/api-tokens":
+	case panelRouteProfileApiTokens:
 		if r.Method == http.MethodGet {
 			p.show(w, r, session, "api-tokens", "", 200, "", "")
 			return
@@ -374,43 +374,43 @@ func (p *panel) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p.profileAPITokensMutate(w, r, session)
-	case "/profile/api-tokens/new":
+	case panelRouteProfileApiTokensNew:
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", 405)
 			return
 		}
 		p.show(w, r, session, "api-token-new", "", 200, "", "")
-	case "/profile/api-tokens/revoke", "/profile/api-tokens/revoke-all":
+	case panelRouteProfileApiTokensRevoke, panelRouteProfileApiTokensRevokeAll:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", 405)
 			return
 		}
 		p.profileAPITokensMutate(w, r, session)
-	case "/admin/users/api-tokens/revoke", "/admin/users/api-tokens/revoke-all":
+	case panelRouteAdminUsersApiTokensRevoke, panelRouteAdminUsersApiTokensRevokeAll:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", 405)
 			return
 		}
 		p.adminUserAPITokensMutate(w, r, session)
-	case "/profile/save", "/profile/password", "/profile/language":
+	case panelRouteProfileSave, panelRouteProfilePassword, panelRouteProfileLanguage:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.profileMutate(w, r, session)
-	case "/admin/scope-issuance":
+	case panelRouteAdminScopeIssuance:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.scopeIssuanceMutate(w, r, session)
-	case "/admin/http-policy":
+	case panelRouteAdminHttpPolicy:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		p.instanceHTTPPolicyMutate(w, r, session)
-	case "/projects/create", "/projects/save", "/projects/members", "/tokens/project", "/tokens/revoke", "/sessions/detach", "/sessions/suspend", "/sessions/unsuspend", "/admin/users/create", "/admin/users/update", "/logout":
+	case panelRouteProjectsCreate, panelRouteProjectsSave, panelRouteProjectsMembers, panelRouteTokensProject, panelRouteTokensRevoke, panelRouteSessionsDetach, panelRouteSessionsSuspend, panelRouteSessionsUnsuspend, panelRouteAdminUsersCreate, panelRouteAdminUsersUpdate, panelRouteLogout:
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return

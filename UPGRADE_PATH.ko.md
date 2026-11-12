@@ -7,9 +7,13 @@
 새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
 
 
-이 안내는 **1.1.0까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
+이 안내는 **1.1.1까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
 
 0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+
+## 1.1.0 → 1.1.1
+
+동작과 데이터 형식은 1.1.0과 같은 보안 패치입니다. 서버가 stderr에 쓰는 진단은 이제 JSON 줄이며 요청 경로, 토큰, ID, 파일 경로, 원래 오류 문구가 들어가지 않습니다. 예전 `listening on http://…` 줄은 없어졌습니다. 서버 출력을 읽는 스크립트는 `server-listening` 이벤트의 `bind` 필드를 읽어야 하고, 시작 실패는 `listen_failed`·`data_dir_locked` 같은 고정 `reason`으로 알립니다. MCP 도구 안의 panic은 broker를 멈추지 않고 고정된 JSON-RPC 내부 오류를 돌려줍니다. 클라이언트 1.1.1에서는 서버를 같은 자리에서 업그레이드하면 `auth_status`의 `serverVersion`이 새 값으로 바뀝니다. Docker 이미지는 패키지 관리자 없이 Alpine 3.23.8을 쓰며 zlib(CVE-2026-4738)도 함께 빠졌습니다. 실행 이미지에는 apk, CA 인증서, OpenSSL이 더 이상 없습니다. 서버에는 필요 없으며, 컨테이너 옆에서 HTTPS 도구가 필요한 운영자는 별도의 디버그 이미지를 사용해야 합니다. 클라이언트를 `@xelexis/x-broker@1.1.1`로 올리고, 서버를 중지해 전체 데이터를 백업한 뒤 서버를 1.1.1(Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.1.1`)로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.1.0 서버를 함께 복원하는 방법만 지원합니다. 되돌린 뒤에는 MCP를 다시 연결해야 `auth_status`가 서버 버전을 다시 보여 줍니다.
 
 ## 1.0.4 → 1.1.0
 
