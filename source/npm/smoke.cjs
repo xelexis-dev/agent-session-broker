@@ -108,7 +108,7 @@ async function main() {
   const version = spawnSync(bin, ["--version"], { env, encoding: "utf8", shell: process.platform === "win32" });
   check(version.status === 0 && version.stdout === `asb-client ${args.version}\n` && version.stderr === "", `x-broker --version prints asb-client ${args.version}`);
   const help = spawnSync(bin, ["--help"], { env, encoding: "utf8", shell: process.platform === "win32" });
-  check(help.status === 0 && help.stdout.startsWith("Usage: asb-client --broker-url URL --token value"), "x-broker --help prints the client usage");
+  check(help.status === 0 && help.stdout.startsWith("Usage: asb-client --broker-url URL (--token value | --token-file path)"), "x-broker --help prints the client usage");
   const npx = npmRun("npx", ["--yes", "--offline", "--package", tarball, "x-broker", "--version"]);
   check(npx.status === 0 && npx.stdout === `asb-client ${args.version}\n`, "npx runs the packed launcher offline");
 

@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.2.1
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.3.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.2.1
+npm install -g @xelexis/x-broker@1.3.0
 x-broker --version
 ```
 
@@ -69,7 +69,7 @@ x-broker --version
 **5. 대화 연결.**
 
 1. 관리 패널에서 프로젝트를 만들고 접속을 허용한 뒤 **프로젝트 설정 → 프로젝트 토큰**에서 PC별 토큰을 발급합니다.
-2. Claude Code·Codex·Kimi의 MCP 설정에 `x-broker`를 추가하고 서버 주소·프로젝트·토큰을 지정합니다. [하네스별 설정 예제](README_AGENT.ko.md#3-mcp-설정)를 따르세요. 자격증명이 들어 있는 설정은 Git이나 공유 폴더에 올리지 마세요.
+2. Claude Code·Codex·Kimi의 MCP 설정에 `x-broker`를 추가하고 서버 주소·프로젝트·토큰을 지정합니다. [하네스별 설정 예제](README_AGENT.ko.md#3-mcp-설정)를 따르세요. 자격증명이 들어 있는 설정은 Git이나 공유 폴더에 올리지 마세요. Claude Code·Codex는 대신 이 저장소의 `x-broker` 플러그인을 설치할 수 있습니다. [플러그인 마켓플레이스에서 설치](README_AGENT.ko.md#플러그인-마켓플레이스에서-설치)를 보세요.
 3. MCP를 재연결하고 대화에서 **"이 대화를 x-broker에 연결해 줘"**라고 요청합니다. 승인 코드가 나오면 관리 패널의 승인 화면에서 대화를 확인합니다. 새 대화를 여는 것만으로는 등록되지 않습니다.
 
 macOS·Linux·Windows용 서버 실행파일은 [최신 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases/latest)에 있습니다.

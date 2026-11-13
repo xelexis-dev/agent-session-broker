@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -27,6 +28,14 @@ func TestClientConfigurationFlags(t *testing.T) {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	const token = "synthetic-admission-token_217"
+	tokenFile := filepath.Join(t.TempDir(), "token")
+	if err := os.WriteFile(tokenFile, []byte(token+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	sharedFile := filepath.Join(t.TempDir(), "shared-token")
+	if err := os.WriteFile(sharedFile, []byte(token+"\n"), 0o600); err != nil || os.Chmod(sharedFile, 0o644) != nil {
+		t.Fatal("shared token fixture")
+	}
 	for _, tc := range []struct {
 		name    string
 		args    []string
@@ -42,9 +51,15 @@ func TestClientConfigurationFlags(t *testing.T) {
 		{"tab", []string{"--token", token + "\t"}, "", true},
 		{"too-long", []string{"--token", strings.Repeat("x", 4097)}, "", true},
 		{"missing-value", []string{"--token"}, "", true},
-		{"legacy-file", []string{"--token-file", filepath.Join(t.TempDir(), "missing-token")}, "", true},
+		{"file", []string{"--token-file", tokenFile}, "Bearer " + token, false},
+		{"missing-file", []string{"--token-file", filepath.Join(t.TempDir(), "missing-token")}, "", true},
+		{"relative-file", []string{"--token-file", token}, "", true},
 		{"unknown-option", []string{"--" + token}, "", true},
+		{"shared-file", []string{"--token-file", sharedFile}, "", true},
 	} {
+		if tc.name == "shared-file" && runtime.GOOS == "windows" {
+			continue
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			var mu sync.Mutex
 			var headers, bodies []string
@@ -107,11 +122,11 @@ func TestClientConfigurationFlags(t *testing.T) {
 				if len(headers) != 0 {
 					t.Fatal("invalid options reached broker")
 				}
-				if tc.name == "omitted" && !strings.Contains(string(out), "--token is required") {
+				if tc.name == "omitted" && !strings.Contains(string(out), "--token, --token-file") {
 					t.Fatal("missing required-token hint")
 				}
-				if tc.name == "legacy-file" && !strings.Contains(string(out), "--token") {
-					t.Fatal("missing migration hint")
+				if tc.name == "missing-file" && !strings.Contains(string(out), "could not be read") {
+					t.Fatal("missing token-file hint")
 				}
 				return
 			}
@@ -132,12 +147,9 @@ func TestClientConfigurationFlags(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, option := range []string{"--broker-url", "--token ", "--state-dir"} {
+	for _, option := range []string{"--broker-url", "--token ", "--token-file", "AGENT_SESSION_BROKER_URL", "AGENT_SESSION_BROKER_TOKEN_FILE", "--state-dir"} {
 		if !strings.Contains(string(help), option) {
 			t.Errorf("help missing %s", option)
 		}
-	}
-	if strings.Contains(string(help), "--token-file") {
-		t.Fatal("help still advertises token files")
 	}
 }

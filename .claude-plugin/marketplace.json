@@ -1,0 +1,14 @@
+{
+  "name": "xelexis",
+  "description": "Agent Session Broker plugins for Claude Code and Codex",
+  "owner": {
+    "name": "xelexis"
+  },
+  "plugins": [
+    {
+      "name": "x-broker",
+      "source": "./plugins/x-broker",
+      "description": "x-broker MCP client: connect a Claude Code or Codex conversation to an Agent Session Broker project"
+    }
+  ]
+}

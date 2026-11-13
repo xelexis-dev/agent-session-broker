@@ -4,6 +4,17 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.0 (2026-11-14)
+
+- MCP 설정을 직접 고치는 대신 이 저장소의 플러그인 마켓플레이스에서 x-broker를 설치할 수 있습니다. Claude Code: `claude plugin marketplace add xelexis-dev/agent-session-broker` 다음에 `claude plugin install x-broker@xelexis`를 실행하고, 묻는 대로 broker URL과 토큰을 입력합니다. 토큰은 시스템 자격증명 저장소에 두는 민감한 플러그인 설정입니다. Codex: `codex plugin marketplace add xelexis-dev/agent-session-broker` 다음에 `codex plugin add x-broker@xelexis`를 실행합니다. Codex는 `AGENT_SESSION_BROKER_URL`과 `AGENT_SESSION_BROKER_TOKEN_FILE`로 broker URL과 본인 전용 토큰 파일의 경로만 받고 토큰은 받지 않습니다. 토큰을 셸 프로필이나 실행 환경에 넣지 마세요. 자세한 내용은 에이전트 안내의 「플러그인 마켓플레이스에서 설치」를 보세요.
+- Codex는 플러그인의 수명 주기 hook 다섯 개를 신뢰하라고 묻고, 플러그인을 업데이트할 때마다 다시 묻습니다. 플러그인을 설치한 뒤 직접 쓴 x-broker MCP 항목과 hook을 지우세요. Codex가 더 큰 값을 3초로 줄이므로 Codex Interrupt hook timeout은 이제 3초입니다.
+- 새 클라이언트 입력: `--token-file`과 변수 `AGENT_SESSION_BROKER_URL`·`AGENT_SESSION_BROKER_TOKEN`·`AGENT_SESSION_BROKER_TOKEN_FILE`. 플래그가 변수보다, 토큰 값이 토큰 파일보다 우선하며, 클라이언트는 시작할 때 변수를 지웁니다. macOS·Linux에서 토큰 파일은 본인 소유이고 그룹·기타 권한이 없는 정규 파일이어야 합니다. Windows는 파일 권한을 검사하지 않습니다. 기본 방법은 여전히 값을 주는 `--token`이며, 기존 수동 MCP 설정은 그대로 동작합니다.
+- Windows에서의 플러그인 사용은 확인하지 않았습니다.
+- 공개 저장소 루트에 마켓플레이스용 `.claude-plugin/`과 `plugins/`가 추가됩니다. 릴리스 자산 이름은 바뀌지 않습니다.
+- 새 입력은 클라이언트 1.3.0에 들어 있습니다. 0.17.3 이상 클라이언트는 이 서버에서 계속 동작합니다.
+- 서버: 권장 클라이언트 버전이 1.3.0으로 바뀐 것 말고는 동작 변경이 없습니다.
+- 데이터: 변경 없음. 되돌리기는 이전과 같습니다: 전체 백업과 1.2.1 서버를 함께 복원합니다.
+
 ## 1.2.1 (2026-11-13)
 
 - 사용자 지정 `CODEX_HOME`을 쓰는 Codex 세션의 활동 상태가 `~/.codex` 대신 그 폴더를 읽습니다. 이전에는 이런 세션이 항상 활동 확인 불가로 표시됐습니다.

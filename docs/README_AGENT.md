@@ -20,11 +20,11 @@ See [UPDATE.md](UPDATE.md) for changes in each version.
 | Windows | `.\asb-server.exe --memory-dir .\asb-data` |
 | macOS·Linux | Run `chmod +x asb-server`, then `./asb-server --memory-dir ./asb-data` |
 
-The default address is `127.0.0.1:8787`. **1.2.1 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
+The default address is `127.0.0.1:8787`. **1.3.0 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
 
 Open `http://127.0.0.1:8787/setup` on the server (for a remote server, create an SSH tunnel with `ssh -L 8787:127.0.0.1:8787 <server>`). Enter the setup code described below and a new administrator password. Sign in, create a project and allow connections. Issue a token under **Project settings → Project tokens**.
 
-**Setup code in 1.2.1:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
+**Setup code in 1.3.0:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
 
 Use HTTPS for client connections. When **Allow HTTP connections** is off, `/mcp` and OAuth credential routes reject plaintext requests with 403, even without a forwarding header. Localhost has no exception. Behind a TLS-terminating proxy, specify `--trusted-proxy <proxy CIDR>` on the server, even for a proxy on the same host. The proxy must **overwrite** `X-Forwarded-Proto` with a single original scheme value instead of forwarding external input. No proxy is trusted by default. Missing, duplicate, list or invalid values from a trusted proxy do not prove HTTPS. To use HTTP on a protected internal network, enable **Instance settings → Allow HTTP connections**. Direct HTTP access from another PC is only for a protected internal network, with both `--listen 0.0.0.0:8787` and Allow HTTP connections enabled.
 
@@ -104,13 +104,13 @@ Requires Node.js 22 or later and npm. Supports Windows x64, macOS ARM64·x64 and
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.2.1
+npm install -g @xelexis/x-broker@1.3.0
 x-broker --version
 ```
 
-These examples pin `1.2.1`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
+These examples pin `1.3.0`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
 
-Alternatively, use `npx -y @xelexis/x-broker@1.2.1`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.2.1"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
+Alternatively, use `npx -y @xelexis/x-broker@1.3.0`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.3.0"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
 
 On macOS·Linux, a Node global wrapper with execve support replaces itself with the client. **Windows has no execve: a node relay remains with either install method, while a global install removes the npm exec parent process.**
 
@@ -159,9 +159,53 @@ Client 0.17.1 supports `--nickname name` to request a communication name when co
 
 Codex reads configuration from trusted projects. When switching from the previous executable setup, keep the server address, token and any specified `--auth-dir`. Use the same OS user and authentication state directory.
 
+### Install from a plugin marketplace
+
+Claude Code and Codex can install the client as the `x-broker` plugin from this repository instead of a hand-written MCP entry. The plugin runs `npx -y @xelexis/x-broker@<version>` with the client version of its release (client 1.3.0 or later, Node.js 22 or later). It was verified on macOS; Windows is not verified. One plugin connects one project; add other projects with manual entries as in [Connecting to multiple projects](#connecting-to-multiple-projects).
+
+Before installing, remove a hand-written `x-broker` MCP entry and the x-broker hooks in `.codex/hooks.json`. In Claude Code an old entry runs a second client next to the plugin's `plugin:x-broker:x-broker`. In Codex a `[mcp_servers.x-broker]` entry silently replaces the plugin's server, and kept hooks make Codex call every hook twice. Plugin tool names are `mcp__plugin_x-broker_x-broker__*`, so update permission rules written for `mcp__x-broker__*`.
+
+**Claude Code**
+
+```sh
+claude plugin marketplace add xelexis-dev/agent-session-broker
+claude plugin install x-broker@xelexis
+```
+
+Enter the broker URL and token when Claude Code asks, in `/plugin`, or with `claude plugin configure x-broker@xelexis --values-stdin` (one JSON object on stdin). Do not pass the token with `install --config`, which puts it on the command line. Claude Code keeps the token in the system credential store and passes it only to the plugin's MCP entry as `AGENT_SESSION_BROKER_TOKEN`. The optional tool profile is `full` (default) or `worker`. The MCP entry starts once the URL and token are set; run `/reload-plugins` or start a new session.
+
+**Codex**
+
+```sh
+codex plugin marketplace add xelexis-dev/agent-session-broker
+codex plugin add x-broker@xelexis
+```
+
+Codex has no settings dialog for plugins and passes its environment to the commands it runs, so the token never goes into Codex's environment. Keep it in a private file and give Codex only the file path and the broker URL:
+
+```sh
+mkdir -p ~/.config/x-broker && chmod 700 ~/.config/x-broker
+(umask 077; set -C; cat > ~/.config/x-broker/brk.token)  # paste the token, press Enter, then Ctrl-D
+export AGENT_SESSION_BROKER_URL="https://broker.example/mcp?project=brk"
+export AGENT_SESSION_BROKER_TOKEN_FILE="$HOME/.config/x-broker/brk.token"
+```
+
+The two `export` lines hold no secret and may go in your shell profile. **Never put the token itself in a shell profile, the launch environment or an `.env`/`.envrc` file.** `set -C` makes the shell refuse a file that already exists: `umask` only sets the mode of a new file and never fixes an existing one, so the token is never written into a file that others can read. To replace the token, delete the file (`rm ~/.config/x-broker/brk.token`), run the same `(umask 077; set -C; …)` line again, then restart the MCP server. The client accepts only an absolute path to a regular file; on macOS and Linux the file must be yours, with no group or other permissions. It reads the file once at start and ignores one trailing newline. Windows does not check the file's permissions. In daemon mode the variables come from the daemon's environment. The plugin also forwards `CODEX_HOME`, so a custom Codex home needs no extra setting.
+
+At the next start Codex asks you to review the plugin's five lifecycle hooks: trust them, or use `/hooks`. Hooks that are not trusted do not run, and messages to a busy conversation then wait for the next boundary. **Codex 0.167.2 marks the plugin's hooks as modified after every plugin update, so trust them again after each update.**
+
+**Updates and removal**
+
+- Claude Code: `claude plugin marketplace update xelexis`, then `claude plugin update x-broker@xelexis` and `/reload-plugins`. Third-party marketplaces do not update automatically unless you turn it on under `/plugin` → Marketplaces. Remove with `claude plugin uninstall x-broker@xelexis`.
+- Codex: `codex plugin marketplace upgrade xelexis`, then `codex plugin add x-broker@xelexis` again, and trust the hooks again. Remove with `codex plugin remove x-broker@xelexis`, then delete the token file and the two variables.
+
+A new client version runs from the next MCP start, and existing registrations recover as described in [Upgrading while connected](#upgrading-while-connected). Removing the plugin keeps the client state and registrations.
+
+Manual entries can use the same inputs: `--token-file` with an absolute path, or `AGENT_SESSION_BROKER_URL`, `AGENT_SESSION_BROKER_TOKEN` or `AGENT_SESSION_BROKER_TOKEN_FILE` in the entry's `env`. Flags win over variables, a token value wins over a token file, and the client clears the variables at start. `--token` with the value remains the default.
+
 ### Codex resume launcher (connection without a prompt)
 
-On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.2.1` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
+On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.3.0` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
 
 - Embedded options (`-c`, `--config`, `--enable`, `--disable`, `--search`, `--no-daemon`, `--dangerously-bypass-hook-trust`) cannot be combined with explicit `--remote`. Run `codex resume <UUID> ...` directly to use the existing first-prompt path.
 - Only one `--remote` is allowed. The default daemon passes the CODEX_HOME socket alias to the TUI; the helper verifies the canonical target's inode and peer. Explicit endpoints pass through unchanged; ws/wss endpoints run without the helper. `--last`, `--all` and `--include-non-interactive` are rejected. Arguments after `--` pass through unchanged.
@@ -263,7 +307,7 @@ until canonical_socket; do
 done
 helper_socket=$socket
 case "$helper_socket" in /*) ;; *) helper_socket="$PWD/$helper_socket" ;; esac
-npx -y "@xelexis/x-broker@${XB_VERSION:-1.2.1}" codex-resume-helper \
+npx -y "@xelexis/x-broker@${XB_VERSION:-1.3.0}" codex-resume-helper \
     --thread "$t" --pid "$$" --codex-home "$home" --socket "$helper_socket" --inode "$inode" \
     </dev/null >/dev/null 2>&1 &
 # Rotate the original positional arguments; never join or eval caller input.
@@ -309,12 +353,14 @@ Pass `turn_id` in the `.codex/hooks.json` example below **only with client 0.17.
     "PreToolUse": [{"matcher": "*", "hooks": [{"type": "mcp_tool", "server": "x-broker", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}", "turn_id": "${turn_id}"}, "timeout": 10}]}],
     "PostToolUse": [{"matcher": "*", "hooks": [{"type": "mcp_tool", "server": "x-broker", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}", "turn_id": "${turn_id}"}, "timeout": 10}]}],
     "Stop": [{"hooks": [{"type": "mcp_tool", "server": "x-broker", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}", "turn_id": "${turn_id}"}, "timeout": 10}]}],
-    "Interrupt": [{"hooks": [{"type": "mcp_tool", "server": "x-broker", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 10}]}]
+    "Interrupt": [{"hooks": [{"type": "mcp_tool", "server": "x-broker", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 3}]}]
   }
 }
 ```
 
 Matching turn IDs were verified in actual Codex 0.164.0 hooks and rollouts. New clients also accept old configurations without `turn_id`, preserving delivery at tool boundaries and Stop. However, without an ID, or if the latest start/end pair for that turn cannot be verified in the bounded rollout tail, the client keeps messages pending until the next hook instead of draining automatically after a missing Stop. Elapsed time or an idle screen alone does not establish that a turn ended.
+
+Codex 0.167.2 clamps the Interrupt hook timeout to 3 seconds and warns about larger values, so the examples use 3.
 
 <!-- xbroker-docs:kimi -->
 ### Kimi Code (macOS·Linux, turn-boundary delivery)
@@ -323,7 +369,7 @@ Kimi reads `.mcp.json` at the project root. Use the same format as the Claude ex
 
 Configure these hooks in Kimi's home at `~/.kimi-code/config.toml` (or `$KIMI_CODE_HOME/config.toml`). Global configuration is not changed automatically. Do not put the broker token in hook commands.
 
-Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.1`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
+Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.3.0`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
 
 ```toml
 [[hooks]]
@@ -356,7 +402,7 @@ In one conversation, add one MCP entry per project. Give each a distinct entry n
 
 Put each project token only in that project's entry. Do not put token-bearing configuration in Git, shared folders, messages or diagnostic logs. Replace the example token placeholders locally. The server rejects cross-project sends. However, **the same conversation's model context contains information from multiple projects, and the model can send that information to another project.** Use separate conversations for projects that must not share information.
 
-A pinned global install (`npm install -g @xelexis/x-broker@1.2.1`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
+A pinned global install (`npm install -g @xelexis/x-broker@1.3.0`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
 
 | Launch/state | 1 entry | 2 entries | Remaining processes, 1→2 entries |
 | --- | ---: | ---: | --- |
@@ -422,8 +468,8 @@ Include **every entry's handler** in all five Codex lifecycle hooks. One entry's
       {"type": "mcp_tool", "server": "x-broker-p2", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}", "turn_id": "${turn_id}"}, "timeout": 10}
     ]}],
     "Interrupt": [{"hooks": [
-      {"type": "mcp_tool", "server": "x-broker-p1", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 10},
-      {"type": "mcp_tool", "server": "x-broker-p2", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 10}
+      {"type": "mcp_tool", "server": "x-broker-p1", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 3},
+      {"type": "mcp_tool", "server": "x-broker-p2", "tool": "ingress_hook", "input": {"session_id": "${session_id}", "hook_event_name": "${hook_event_name}"}, "timeout": 3}
     ]}]
   }
 }
@@ -887,7 +933,7 @@ Disk `status` remains `open/closed`; extra `resolution` distinguishes resolved/i
 
 **1.0 change:** spawn tool/issuance removed. Atomic v5 scope cleanup; empty lists refuse startup without changes. Full responses retain nonfunctional `session:spawn` until 2.0 for compatibility. Rollback requires full-backup restore.
 
-Recommended client: 1.2.1 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
+Recommended client: 1.3.0 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
 
 `auth_status.update` appears only when `clientVersion` is below the connected server's `recommendedClientVersion`. Server and npm client versions are separate. Older servers without a recommendation show none. The recommendation is a version whose publication was verified for the server release, not the internet's latest.
 

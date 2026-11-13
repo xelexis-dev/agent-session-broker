@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.2.1
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.3.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"
@@ -60,7 +60,7 @@ docker compose up -d
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.2.1
+npm install -g @xelexis/x-broker@1.3.0
 x-broker --version
 ```
 
@@ -69,7 +69,7 @@ A server-only release may skip npm, so compare the published version with the re
 **5. Connect a conversation.**
 
 1. In the control panel, create a project, grant access, and issue a token for each machine under **Project settings → Project tokens**.
-2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](docs/README_AGENT.md#3-mcp-configuration). Never put a config that holds credentials in Git or a shared folder.
+2. Add `x-broker` to the MCP config of Claude Code, Codex or Kimi with the server address, project and token, following the [per-harness examples](docs/README_AGENT.md#3-mcp-configuration). Never put a config that holds credentials in Git or a shared folder. Claude Code and Codex can instead install the `x-broker` plugin from this repository: see [Install from a plugin marketplace](docs/README_AGENT.md#install-from-a-plugin-marketplace).
 3. Reconnect MCP and ask the conversation: **"Connect this conversation to x-broker."** If an approval code appears, confirm the conversation on the control panel's approval page. Opening a new conversation does not register it on its own.
 
 The control panel is in Korean. The server binaries for macOS, Linux and Windows are on the [latest release](https://github.com/xelexis-dev/agent-session-broker/releases/latest).

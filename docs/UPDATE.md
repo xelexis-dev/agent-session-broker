@@ -4,6 +4,17 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.0 (2026-11-14)
+
+- Install x-broker from the plugin marketplace in this repository instead of editing MCP configuration by hand. Claude Code: `claude plugin marketplace add xelexis-dev/agent-session-broker`, then `claude plugin install x-broker@xelexis`, and enter the broker URL and token when asked; the token is a sensitive plugin setting kept in the system credential store. Codex: `codex plugin marketplace add xelexis-dev/agent-session-broker`, then `codex plugin add x-broker@xelexis`; Codex receives only the broker URL and the path of an owner-only token file through `AGENT_SESSION_BROKER_URL` and `AGENT_SESSION_BROKER_TOKEN_FILE`, never the token. Never put the token in a shell profile or launch environment. See "Install from a plugin marketplace" in the agent guide.
+- Codex asks you to trust the plugin's five lifecycle hooks, and again after every plugin update. After installing the plugin, remove hand-written x-broker MCP entries and hooks. The Codex Interrupt hook timeout is now 3 seconds, because Codex clamps larger values.
+- New client inputs: `--token-file` and the variables `AGENT_SESSION_BROKER_URL`, `AGENT_SESSION_BROKER_TOKEN` and `AGENT_SESSION_BROKER_TOKEN_FILE`. Flags win over variables and a token value over a token file, and the client clears the variables at start. On macOS and Linux a token file must be a regular file owned by you with no group or other permissions; Windows does not check the file's permissions. `--token` with the value stays the default, and existing manual MCP configuration keeps working unchanged.
+- Plugin use on Windows has not been verified.
+- The public repository root gains `.claude-plugin/` and `plugins/` for the marketplace. Release asset names are unchanged.
+- Client 1.3.0 carries the new inputs. Clients 0.17.3 and later keep working with this server.
+- Server: no behaviour change besides the recommended client version 1.3.0.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.2.1 server.
+
 ## 1.2.1 (2026-11-13)
 
 - Activity status for Codex sessions that set a custom `CODEX_HOME` now reads that folder instead of `~/.codex`. Before, these sessions always showed Activity unknown.

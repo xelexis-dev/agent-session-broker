@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
@@ -30,10 +31,15 @@ type interruptUpstream struct {
 	inner        Upstream
 	calls        *interruptCalls
 	rejectReport bool
+	beforeRenew  func(context.Context)
 }
 
 func (u *interruptUpstream) CallTool(ctx context.Context, p *mcp.CallToolParams) (*mcp.CallToolResult, error) {
 	switch p.Name {
+	case "renew_lease":
+		if u.beforeRenew != nil {
+			u.beforeRenew(ctx)
+		}
 	case "register_session", "attach_session":
 		raw, err := json.Marshal(p.Arguments)
 		if err != nil {
@@ -81,6 +87,12 @@ func TestInterruptReportsOnlyBoundUpstream(t *testing.T) {
 			brokerUpstream := newSwitchableUpstream(t)
 			callsA, callsB, sharedCalls := &interruptCalls{}, &interruptCalls{}, &interruptCalls{}
 			var pushes atomic.Int32
+			var armed atomic.Bool
+			renewEntered, releaseRenew := make(chan struct{}), make(chan struct{})
+
+			var renewOnce, releaseOnce sync.Once
+			release := func() { releaseOnce.Do(func() { close(releaseRenew) }) }
+			t.Cleanup(release)
 			routerA := newCodexIngress(func(context.Context, broker.Message) error {
 				pushes.Add(1)
 				if failPush {
@@ -94,13 +106,26 @@ func TestInterruptReportsOnlyBoundUpstream(t *testing.T) {
 				sessionB: {Harness: "codex", SessionID: sessionB, PID: 7, CWD: t.TempDir()},
 			}
 			f := newDeviceModeFixture(t, auth, brokerUpstream, t.TempDir(), identities, func(f *deviceModeFixture) {
+				f.configureDurable = func(o *durableOptions) { o.timeout = 30 * time.Second }
 				f.sharedUpstream = &interruptUpstream{inner: unavailableUpstream{}, calls: sharedCalls, rejectReport: true}
 				f.wrapUpstream = func(credential string, inner Upstream) Upstream {
 					calls := callsA
 					if credential == "asb_s_b" {
 						calls = callsB
 					}
-					return &interruptUpstream{inner: inner, calls: calls}
+					up := &interruptUpstream{inner: inner, calls: calls}
+					if calls == callsA {
+						up.beforeRenew = func(ctx context.Context) {
+							if armed.Load() {
+								renewOnce.Do(func() { close(renewEntered) })
+								select {
+								case <-releaseRenew:
+								case <-ctx.Done():
+								}
+							}
+						}
+					}
+					return up
 				}
 				f.sinkFactory = func(id broker.AttachRequest) (func(context.Context, broker.Message) error, *codexIngress, error) {
 					router := routerA
@@ -131,6 +156,15 @@ func TestInterruptReportsOnlyBoundUpstream(t *testing.T) {
 			if err := routerA.deliver(context.Background(), broker.Message{From: "agent-b", To: "agent-a", Body: "pending"}); err != nil {
 				t.Fatal(err)
 			}
+			// This fixture swallows lease retirement. Park its next renewal so
+			// receiver retries/exit reports cannot contaminate hook-only counts.
+			armed.Store(true)
+			select {
+			case <-renewEntered:
+			case <-time.After(5 * time.Second):
+				t.Fatal("renewal did not reach barrier")
+			}
+			defer release()
 			result := f.call(sessionA, "ingress_hook", map[string]string{"session_id": sessionA, "hook_event_name": "Interrupt"})
 			if result.IsError != failPush || pushes.Load() != 1 {
 				t.Fatalf("interrupt: error=%v pushes=%d", result.IsError, pushes.Load())

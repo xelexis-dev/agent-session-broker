@@ -175,6 +175,10 @@ func TestScopedTokenAutoBoundsAndPersistence(t *testing.T) {
 		t.Fatal("issued scoped metadata could not reload")
 	}
 	defer reopened.Close()
+	// Restart must retain the issuance clock, including token expiry checks.
+	reopened.mu.Lock()
+	reopened.now = func() time.Time { return now }
+	reopened.mu.Unlock()
 	if !reopened.data.ScopeIssuanceReady {
 		t.Fatal("issuance setting lost on restart")
 	}
