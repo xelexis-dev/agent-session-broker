@@ -91,7 +91,21 @@ const (
 	stale          evidenceError = "stale-evidence"
 )
 
+// HomeRoot rejects traversal before lexical normalization can hide a symlink parent.
+func HomeRoot(root string) string {
+	if !filepath.IsAbs(root) || strings.ContainsRune(root, 0) {
+		return ""
+	}
+	for _, component := range strings.FieldsFunc(root, func(r rune) bool { return r == '/' || r == '\\' }) {
+		if component == ".." {
+			return ""
+		}
+	}
+	return filepath.Clean(root)
+}
+
 func New(config Config) *Observer {
+	config.Home = HomeRoot(config.Home)
 	if config.Now == nil {
 		config.Now = time.Now
 	}

@@ -15,13 +15,9 @@ const claudeSessionFileLimit = 64 * 1024
 // readClaudeSessionFile reads only Claude's small process roster entry, never
 // transcripts or broker state. Missing/invalid entries fall back to observation.
 func readClaudeSessionFile(pid int) ([]byte, error) {
-	root := os.Getenv("CLAUDE_CONFIG_DIR")
+	root := localHarnessHome("claude")
 	if root == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return nil, err
-		}
-		root = filepath.Join(home, ".claude")
+		return nil, os.ErrInvalid
 	}
 	file, err := os.Open(filepath.Join(root, "sessions", fmt.Sprintf("%d.json", pid)))
 	if err != nil {

@@ -122,3 +122,20 @@ func TestLocateRolloutNonRegularTarget(t *testing.T) {
 		})
 	}
 }
+
+func TestObserverAndTerminalRejectParentHome(t *testing.T) {
+	f := newFixture(t, "codex")
+	f.write(f.meta(sessionA) + f.event("task_started", "a") + f.event("task_complete", "a"))
+	if os.Mkdir(filepath.Join(f.config.Home, "child"), 0700) != nil {
+		t.Fatal("parent fixture failed")
+	}
+	cfg := f.config
+	cfg.Home = f.config.Home + "/child/.."
+	observer := New(cfg)
+	if got := observer.Observe(context.Background(), cfg.Binding); got.State != Unknown {
+		t.Error("observer accepted parent root")
+	}
+	if CodexTurnEnded(context.Background(), cfg, "a") {
+		t.Error("terminal observer accepted parent root")
+	}
+}

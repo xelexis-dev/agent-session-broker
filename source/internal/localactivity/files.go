@@ -63,13 +63,14 @@ func (f *evidenceFile) validate() error {
 }
 
 func (o *Observer) openEvidence(relative string) (*evidenceFile, error) {
-	if !filepath.IsLocal(relative) {
+	home := o.config.Home
+	if home == "" || !filepath.IsLocal(relative) {
 		return nil, mismatch
 	}
-	if _, _, err := pathguard.ValidateDirectoryPath(filepath.Dir(filepath.Join(o.config.Home, relative))); err != nil {
+	if _, _, err := pathguard.ValidateDirectoryPath(filepath.Dir(filepath.Join(home, relative))); err != nil {
 		return nil, missing
 	}
-	root, err := os.OpenRoot(o.config.Home)
+	root, err := os.OpenRoot(home)
 	if err != nil {
 		return nil, missing
 	}
@@ -84,7 +85,7 @@ func (o *Observer) openEvidence(relative string) (*evidenceFile, error) {
 		return nil, missing
 	}
 	info, err := file.Stat()
-	f := &evidenceFile{root: root, file: file, info: info, home: o.config.Home, path: relative}
+	f := &evidenceFile{root: root, file: file, info: info, home: home, path: relative}
 	if err != nil || !info.Mode().IsRegular() || aliasFile(info) || !os.SameFile(info, link) {
 		f.close()
 		return nil, malformed

@@ -4,6 +4,15 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.2.1 (2026-11-13)
+
+- Activity status for Codex sessions that set a custom `CODEX_HOME` now reads that folder instead of `~/.codex`. Before, these sessions always showed Activity unknown.
+- `CODEX_HOME` and `CLAUDE_CONFIG_DIR` must be absolute paths without `..` components. Other values are refused instead of falling back to another folder: activity stays unknown, and the backup turn-end check for queued messages and the check that follows a resumed Claude conversation read nothing. When a variable is empty or unset, the client uses `~/.codex` or `~/.claude` as before.
+- Claude activity is still not reported.
+- Client 1.2.1 carries these changes. Clients 0.17.3 and later keep working with this server.
+- Server: no behaviour change besides the recommended client version 1.2.1.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.2.0 server.
+
 ## 1.2.0 (2026-11-12)
 
 - Optional HTTP access log, off by default. Turn it on with `--access-log-file logs/access.log` or `ASB_ACCESS_LOG_FILE`; only files under the server data directory's reserved `logs/` are supported. The server rotates the file at 10 MiB, keeps 10 rotated files for at most 30 days, and refuses settings above a 10 GiB total.

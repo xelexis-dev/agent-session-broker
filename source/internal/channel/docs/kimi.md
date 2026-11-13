@@ -4,7 +4,7 @@ Kimi reads `.mcp.json` at the project root. Use the same format as the Claude ex
 
 Configure these hooks in Kimi's home at `~/.kimi-code/config.toml` (or `$KIMI_CODE_HOME/config.toml`). Global configuration is not changed automatically. Do not put the broker token in hook commands.
 
-Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.0`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
+Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.1`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
 
 ```toml
 [[hooks]]

@@ -3,8 +3,6 @@ package channel
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -162,12 +160,7 @@ func (o durableOptions) newActivityStream(b *ingressBinding) *activityStream {
 	runtimeEnabled := b.runtimeInfoEnabled
 	b.mu.Unlock()
 	bound := localactivity.Binding{Harness: id.Harness, SessionID: id.SessionID, ClientID: d.clientID, RegistrationID: d.registrationID, LeaseID: id.ChannelID, Generation: generation}
-	home, _ := os.UserHomeDir()
-	if id.Harness == "claude" {
-		home = filepath.Join(home, ".claude")
-	} else {
-		home = filepath.Join(home, ".codex")
-	}
+	home := localHarnessHome(id.Harness)
 	config := localactivity.Config{Binding: bound, PID: id.PID, CWD: id.CWD, Home: home, RuntimeInfo: runtimeEnabled}
 	// Display-only, schema-based Codex support. Claude lacks proven host binding
 	// and stays unsupported. No MCP argument/environment override selects formats.

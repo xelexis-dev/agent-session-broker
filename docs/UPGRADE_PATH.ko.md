@@ -7,9 +7,13 @@
 새 릴리스의 GitHub Release는 서버 실행파일 4개와 LICENSE·THIRD_PARTY_NOTICES 2개(총 6개 자산)를 제공합니다. Windows·macOS·Linux 클라이언트는 `npm view @xelexis/x-broker version`으로 게시된 버전을 확인하고 `npx -y @xelexis/x-broker@<버전> --version`으로 준비한 뒤 MCP를 재연결합니다. 기존 클라이언트 상태와 자격증명은 유지합니다. 서버만 바뀐 릴리스는 npm 게시를 생략할 수 있습니다. 0.14.0 이하의 기존 Release와 클라이언트 다운로드 이력은 유지되며 아래 버전별 실행파일 안내는 당시 배포 방식의 역사 기록입니다.
 
 
-이 안내는 **1.2.0까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
+이 안내는 **1.2.1까지**의 업데이트와 데이터 이전 경로를 다룹니다. 실행파일 교체 방법은 [설치 안내](https://github.com/xelexis-dev/agent-session-broker#readme), 버전별 파일과 변경 사항은 [공개 릴리스](https://github.com/xelexis-dev/agent-session-broker/releases)에서 확인하세요. 1.0.2 이하의 파일은 [이전 배포 저장소](https://github.com/xelexis-dev/agent-session-broker-deploy/releases)에 그대로 있습니다. 1.0.3보다 오래된 버전의 Docker 이미지는 더 이상 제공하지 않으므로, 그 버전을 거치거나 되돌릴 때는 서버 실행파일을 사용하세요.
 
 0.20.0은 npm 클라이언트만 게시됐고 서버 Release는 없습니다. 서버와 클라이언트를 함께 제공하는 릴리스 후보는 0.20.1부터입니다.
+
+## 1.2.0 → 1.2.1
+
+서버 동작과 데이터 형식은 1.2.0과 같고, 서버는 권장 클라이언트만 1.2.1로 바꿉니다. 클라이언트 1.2.1에서는 사용자 지정 `CODEX_HOME`을 쓰는 Codex 세션의 활동 상태가 `~/.codex` 대신 그 폴더를 읽습니다. 이전에는 이런 세션이 항상 활동 확인 불가로 표시됐습니다. `CODEX_HOME`과 `CLAUDE_CONFIG_DIR`은 `..` 구성 요소가 없는 절대 경로여야 합니다. 다른 값은 다른 폴더로 대신하지 않고 거부합니다: 활동은 확인 불가로 남고, 대기 중인 메시지를 위한 보조 턴 종료 확인과 resume한 Claude 대화를 따라가는 확인은 아무것도 읽지 않습니다. 변수가 비어 있거나 없으면 기본값 `~/.codex`·`~/.claude`를 그대로 씁니다. Claude 활동은 여전히 보고하지 않습니다. 0.17.3 이상 클라이언트는 1.2.1 서버에서 계속 동작합니다. 클라이언트를 `@xelexis/x-broker@1.2.1`로 올리고, 서버를 중지해 업무 데이터를 모두 백업한 뒤 서버를 1.2.1(Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.2.1`)로 교체하고, 각 대화를 다시 연결하세요. 되돌리기는 전체 백업과 1.2.0 서버를 함께 복원하는 방법만 지원합니다.
 
 ## 1.1.1 → 1.2.0
 

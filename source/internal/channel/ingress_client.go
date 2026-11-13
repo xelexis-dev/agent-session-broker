@@ -3,8 +3,6 @@ package channel
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -110,11 +108,7 @@ func localIngressSink(identity broker.AttachRequest) (func(context.Context, brok
 		target.Name = m.To
 		return adapter.PushExternal(ctx, target, key, m)
 	})
-	home := os.Getenv("CODEX_HOME")
-	if home == "" {
-		home, _ = os.UserHomeDir()
-		home = filepath.Join(home, ".codex")
-	}
+	home := localHarnessHome("codex")
 	config := localactivity.Config{Binding: localactivity.Binding{Harness: "codex", SessionID: identity.SessionID}, Home: home, CWD: identity.CWD, PID: identity.PID}
 	r.probe = func(ctx context.Context, turn string) bool { return localactivity.CodexTurnEnded(ctx, config, turn) }
 	r.steer = &codexSteerer{dial: bindCodexControl(identity.PID), thread: identity.SessionID, delay: 10 * time.Second, gate: func() string { return "ack-required" }}

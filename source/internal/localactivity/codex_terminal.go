@@ -15,6 +15,9 @@ func CodexTurnEnded(ctx context.Context, config Config, turnID string) bool {
 		return false
 	}
 	o := New(config)
+	if o.config.Home == "" {
+		return false
+	}
 	process, err := o.config.Probe(ctx, config.PID)
 	if err != nil || process.Key == "" || ctx.Err() != nil {
 		return false

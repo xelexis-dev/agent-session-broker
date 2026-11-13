@@ -520,13 +520,9 @@ func (f *claudeFollow) interval(now time.Time, id broker.AttachRequest) time.Dur
 	return 30 * time.Second
 }
 func claudeRecordExists(id broker.AttachRequest) bool {
-	root := os.Getenv("CLAUDE_CONFIG_DIR")
+	root := localHarnessHome("claude")
 	if root == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return false
-		}
-		root = filepath.Join(home, ".claude")
+		return false
 	}
 	// Only stat the filename. No transcript contents are read.
 	project := strings.Map(func(r rune) rune {

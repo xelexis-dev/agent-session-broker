@@ -20,11 +20,11 @@ See [UPDATE.md](UPDATE.md) for changes in each version.
 | Windows | `.\asb-server.exe --memory-dir .\asb-data` |
 | macOS·Linux | Run `chmod +x asb-server`, then `./asb-server --memory-dir ./asb-data` |
 
-The default address is `127.0.0.1:8787`. **1.2.0 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
+The default address is `127.0.0.1:8787`. **1.2.1 requires the one-time setup code in the data directory to create the first administrator.** Do not expose the port externally before initial setup.
 
 Open `http://127.0.0.1:8787/setup` on the server (for a remote server, create an SSH tunnel with `ssh -L 8787:127.0.0.1:8787 <server>`). Enter the setup code described below and a new administrator password. Sign in, create a project and allow connections. Issue a token under **Project settings → Project tokens**.
 
-**Setup code in 1.2.0:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
+**Setup code in 1.2.1:** enter both the setup code and a new administrator password. Read the code with `cat` or `Get-Content` from `asb-data/control/setup-code` (`asb-data\control\setup-code` on Windows). For Docker, use `docker compose exec broker cat /data/control/setup-code`. If the file is missing or unreadable, check server startup and the data path; do not omit the code. The code changes on restart and is deleted after successful setup. Logs show only its file path. Keep the code and any pre-setup backups secret. On Windows, set a private ACL on the data directory: file mode 0600 does not guarantee an owner-only Windows ACL.
 
 Use HTTPS for client connections. When **Allow HTTP connections** is off, `/mcp` and OAuth credential routes reject plaintext requests with 403, even without a forwarding header. Localhost has no exception. Behind a TLS-terminating proxy, specify `--trusted-proxy <proxy CIDR>` on the server, even for a proxy on the same host. The proxy must **overwrite** `X-Forwarded-Proto` with a single original scheme value instead of forwarding external input. No proxy is trusted by default. Missing, duplicate, list or invalid values from a trusted proxy do not prove HTTPS. To use HTTP on a protected internal network, enable **Instance settings → Allow HTTP connections**. Direct HTTP access from another PC is only for a protected internal network, with both `--listen 0.0.0.0:8787` and Allow HTTP connections enabled.
 
@@ -104,13 +104,13 @@ Requires Node.js 22 or later and npm. Supports Windows x64, macOS ARM64·x64 and
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.2.0
+npm install -g @xelexis/x-broker@1.2.1
 x-broker --version
 ```
 
-These examples pin `1.2.0`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
+These examples pin `1.2.1`. Server-only releases skip npm publication, so server and client versions may differ. For another version, check that it is published and change the install version. `--version` checks the version, not the conversation connection.
 
-Alternatively, use `npx -y @xelexis/x-broker@1.2.0`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.2.0"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
+Alternatively, use `npx -y @xelexis/x-broker@1.2.1`; an npm process of roughly 100 MB remains for each session. Change `command` below to `npx` and prepend `"-y", "@xelexis/x-broker@1.2.1"` to `args`. Pin a version: `@latest` may delay startup with registry checks and downloads.
 
 On macOS·Linux, a Node global wrapper with execve support replaces itself with the client. **Windows has no execve: a node relay remains with either install method, while a global install removes the npm exec parent process.**
 
@@ -161,7 +161,7 @@ Codex reads configuration from trusted projects. When switching from the previou
 
 ### Codex resume launcher (connection without a prompt)
 
-On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.2.0` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
+On macOS·Linux, the launcher supports both daemon and embedded modes for an exact resume UUID. Save the following as `codex-resume.sh` and run `sh codex-resume.sh <conversation UUID>`. Embedded options such as `-c model_reasoning_effort=medium` use the existing PID claim path. Use the same npm client version as the MCP configuration; set the default `XB_VERSION=1.2.1` to your pinned MCP version. If you specified `--auth-dir`, set `AGENT_SESSION_BROKER_STATE_DIR` to that same absolute path. The launcher does not change user or project configuration.
 
 - Embedded options (`-c`, `--config`, `--enable`, `--disable`, `--search`, `--no-daemon`, `--dangerously-bypass-hook-trust`) cannot be combined with explicit `--remote`. Run `codex resume <UUID> ...` directly to use the existing first-prompt path.
 - Only one `--remote` is allowed. The default daemon passes the CODEX_HOME socket alias to the TUI; the helper verifies the canonical target's inode and peer. Explicit endpoints pass through unchanged; ws/wss endpoints run without the helper. `--last`, `--all` and `--include-non-interactive` are rejected. Arguments after `--` pass through unchanged.
@@ -263,7 +263,7 @@ until canonical_socket; do
 done
 helper_socket=$socket
 case "$helper_socket" in /*) ;; *) helper_socket="$PWD/$helper_socket" ;; esac
-npx -y "@xelexis/x-broker@${XB_VERSION:-1.2.0}" codex-resume-helper \
+npx -y "@xelexis/x-broker@${XB_VERSION:-1.2.1}" codex-resume-helper \
     --thread "$t" --pid "$$" --codex-home "$home" --socket "$helper_socket" --inode "$inode" \
     </dev/null >/dev/null 2>&1 &
 # Rotate the original positional arguments; never join or eval caller input.
@@ -323,7 +323,7 @@ Kimi reads `.mcp.json` at the project root. Use the same format as the Claude ex
 
 Configure these hooks in Kimi's home at `~/.kimi-code/config.toml` (or `$KIMI_CODE_HOME/config.toml`). Global configuration is not changed automatically. Do not put the broker token in hook commands.
 
-Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.0`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
+Install the same pinned version as your MCP configuration with `npm install -g @xelexis/x-broker@1.2.1`. Use the absolute path printed by `command -v x-broker` in the hook commands below. The hook's `PATH` must resolve `node`. Keep the global install and MCP versions aligned when upgrading.
 
 ```toml
 [[hooks]]
@@ -356,7 +356,7 @@ In one conversation, add one MCP entry per project. Give each a distinct entry n
 
 Put each project token only in that project's entry. Do not put token-bearing configuration in Git, shared folders, messages or diagnostic logs. Replace the example token placeholders locally. The server rejects cross-project sends. However, **the same conversation's model context contains information from multiple projects, and the model can send that information to another project.** Use separate conversations for projects that must not share information.
 
-A pinned global install (`npm install -g @xelexis/x-broker@1.2.0`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
+A pinned global install (`npm install -g @xelexis/x-broker@1.2.1`) is recommended. Each entry creates one client process; npx also retains an npm parent. The table shows total RSS on macOS ARM64 with Node 24.21.0/npm 11.19.0 and client 0.18.0: the median of 10 samples after 3 seconds of settling, excluding harness, model and server memory.
 
 | Launch/state | 1 entry | 2 entries | Remaining processes, 1→2 entries |
 | --- | ---: | ---: | --- |
@@ -887,7 +887,7 @@ Disk `status` remains `open/closed`; extra `resolution` distinguishes resolved/i
 
 **1.0 change:** spawn tool/issuance removed. Atomic v5 scope cleanup; empty lists refuse startup without changes. Full responses retain nonfunctional `session:spawn` until 2.0 for compatibility. Rollback requires full-backup restore.
 
-Recommended client: 1.2.0 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
+Recommended client: 1.2.1 (Node.js 22 or later). Server and client both require peer version 0.17.3 or later and reject legacy/placeholder versions. Update clients on all PCs and reconnect MCP before replacing the server. Attachments require server, sender and recipient clients 0.18.0 or later.
 
 `auth_status.update` appears only when `clientVersion` is below the connected server's `recommendedClientVersion`. Server and npm client versions are separate. Older servers without a recommendation show none. The recommendation is a version whose publication was verified for the server release, not the internet's latest.
 
