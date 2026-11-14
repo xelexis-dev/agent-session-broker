@@ -4,6 +4,14 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.1 (2026-11-14)
+
+- Documentation patch: the agent guide now records the Windows check of 2026-11-14. On Windows, client 1.3.0 reads the token file and the variables `AGENT_SESSION_BROKER_URL`, `AGENT_SESSION_BROKER_TOKEN` and `AGENT_SESSION_BROKER_TOKEN_FILE` with the documented precedence, and the Codex plugin works: marketplace add, plugin add, the hooks once you trust them, and the MCP connection. The Claude Code plugin on Windows is not verified.
+- The client stays `@xelexis/x-broker@1.3.0`: no new npm version is published, and the plugin keeps running `npx -y @xelexis/x-broker@1.3.0`. Clients 0.17.3 and later keep working with this server.
+- The plugin version becomes 1.3.1. Its hooks did not change, but Codex marks all five hooks as modified after any plugin update, so trust them again after updating to 1.3.1.
+- Server: no behaviour change.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.3.0 or 1.2.1 server.
+
 ## 1.3.0 (2026-11-14)
 
 - Install x-broker from the plugin marketplace in this repository instead of editing MCP configuration by hand. Claude Code: `claude plugin marketplace add xelexis-dev/agent-session-broker`, then `claude plugin install x-broker@xelexis`, and enter the broker URL and token when asked; the token is a sensitive plugin setting kept in the system credential store. Codex: `codex plugin marketplace add xelexis-dev/agent-session-broker`, then `codex plugin add x-broker@xelexis`; Codex receives only the broker URL and the path of an owner-only token file through `AGENT_SESSION_BROKER_URL` and `AGENT_SESSION_BROKER_TOKEN_FILE`, never the token. Never put the token in a shell profile or launch environment. See "Install from a plugin marketplace" in the agent guide.

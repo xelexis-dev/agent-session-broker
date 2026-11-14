@@ -4,6 +4,14 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.1 (2026-11-14)
+
+- 문서 패치입니다. 에이전트 안내에 2026-11-14 Windows 확인 결과를 적었습니다. Windows에서 클라이언트 1.3.0은 토큰 파일과 변수 `AGENT_SESSION_BROKER_URL`·`AGENT_SESSION_BROKER_TOKEN`·`AGENT_SESSION_BROKER_TOKEN_FILE`을 문서의 우선순위대로 읽습니다. Codex 플러그인은 마켓플레이스 추가, 플러그인 추가, 신뢰한 뒤의 hook, MCP 연결까지 동작합니다. Windows의 Claude Code 플러그인은 확인하지 않았습니다.
+- 클라이언트는 `@xelexis/x-broker@1.3.0` 그대로입니다. 새 npm 버전은 게시하지 않으며, 플러그인도 계속 `npx -y @xelexis/x-broker@1.3.0`을 실행합니다. 0.17.3 이상 클라이언트는 이 서버에서 계속 동작합니다.
+- 플러그인 버전이 1.3.1이 됩니다. hook은 바뀌지 않았지만 Codex는 플러그인을 업데이트할 때마다 hook 다섯 개를 모두 modified로 표시하므로, 1.3.1로 업데이트한 뒤 다시 신뢰하세요.
+- 서버: 동작 변경이 없습니다.
+- 데이터: 변경 없음. 되돌리기는 이전과 같습니다: 전체 백업과 1.3.0 또는 1.2.1 서버를 함께 복원합니다.
+
 ## 1.3.0 (2026-11-14)
 
 - MCP 설정을 직접 고치는 대신 이 저장소의 플러그인 마켓플레이스에서 x-broker를 설치할 수 있습니다. Claude Code: `claude plugin marketplace add xelexis-dev/agent-session-broker` 다음에 `claude plugin install x-broker@xelexis`를 실행하고, 묻는 대로 broker URL과 토큰을 입력합니다. 토큰은 시스템 자격증명 저장소에 두는 민감한 플러그인 설정입니다. Codex: `codex plugin marketplace add xelexis-dev/agent-session-broker` 다음에 `codex plugin add x-broker@xelexis`를 실행합니다. Codex는 `AGENT_SESSION_BROKER_URL`과 `AGENT_SESSION_BROKER_TOKEN_FILE`로 broker URL과 본인 전용 토큰 파일의 경로만 받고 토큰은 받지 않습니다. 토큰을 셸 프로필이나 실행 환경에 넣지 마세요. 자세한 내용은 에이전트 안내의 「플러그인 마켓플레이스에서 설치」를 보세요.
