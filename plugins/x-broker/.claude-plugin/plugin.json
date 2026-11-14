@@ -1,6 +1,6 @@
 {
   "name": "x-broker",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Connect this Claude Code conversation to an Agent Session Broker project through the x-broker MCP client",
   "author": {
     "name": "xelexis"
@@ -33,8 +33,8 @@
   },
   "mcpServers": {
     "x-broker": {
-      "command": "npx",
-      "args": ["-y", "@xelexis/x-broker@1.3.0", "--broker-url", "${user_config.broker_url}", "--tool-profile", "${user_config.tool_profile}"],
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/launcher/x-broker.cjs", "@xelexis/x-broker@1.3.0", "--broker-url", "${user_config.broker_url}", "--tool-profile", "${user_config.tool_profile}"],
       "env": {
         "AGENT_SESSION_BROKER_TOKEN": "${user_config.token}"
       }

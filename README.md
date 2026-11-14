@@ -40,7 +40,7 @@ flowchart LR
 ```yaml
 services:
   broker:
-    image: ghcr.io/xelexis-dev/agent-session-broker:1.3.1
+    image: ghcr.io/xelexis-dev/agent-session-broker:1.3.2
     restart: unless-stopped
     ports:
       - "127.0.0.1:8787:8787"

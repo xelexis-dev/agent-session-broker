@@ -6,9 +6,13 @@ English | [한국어](UPGRADE_PATH.ko.md)
 
 New GitHub Releases provide four server executables plus LICENSE and THIRD_PARTY_NOTICES (six assets). On Windows, macOS and Linux, check the published client version with `npm view @xelexis/x-broker version`, prepare it with `npx -y @xelexis/x-broker@<version> --version`, then reconnect MCP. Keep existing client state and credentials. Server-only releases may skip npm publication. Existing Releases and client downloads through 0.14.0 remain available; executable instructions below describe the distribution method used at the time.
 
-This guide covers updates and data migration **through 1.3.1**. See the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for replacing executables and [public releases](https://github.com/xelexis-dev/agent-session-broker/releases) for files and changes. Files for 1.0.2 and earlier remain in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). Docker images older than 1.0.3 are no longer available; use server executables when upgrading through or restoring those versions.
+This guide covers updates and data migration **through 1.3.2**. See the [installation guide](https://github.com/xelexis-dev/agent-session-broker#readme) for replacing executables and [public releases](https://github.com/xelexis-dev/agent-session-broker/releases) for files and changes. Files for 1.0.2 and earlier remain in the [previous distribution repository](https://github.com/xelexis-dev/agent-session-broker-deploy/releases). Docker images older than 1.0.3 are no longer available; use server executables when upgrading through or restoring those versions.
 
 0.20.0 published only an npm client, with no server Release. Release candidates containing both server and client start at 0.20.1.
+
+## 1.3.1 → 1.3.2
+
+This plugin release keeps server behavior and data formats from 1.3.1, and the client stays `@xelexis/x-broker@1.3.0`: no new npm version is published. The plugin (version 1.3.2) now starts the client through a small launcher instead of `npx`, so no npm process stays running; the first start installs the client into the user cache described in the agent guide. Update the plugin in Claude Code and Codex, and in Codex trust its five hooks again after the update. Clients 0.17.3 and later keep working with the 1.3.2 server. Replacing a 1.3.1 server is optional: stop the server and back up all business data, replace the server with 1.3.2 (Docker: `ghcr.io/xelexis-dev/agent-session-broker:1.3.2`), then reconnect each conversation. Rollback requires restoring the complete backup together with the 1.3.1, 1.3.0 or 1.2.1 server.
 
 ## 1.3.0 → 1.3.1
 

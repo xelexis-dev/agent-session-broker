@@ -20,11 +20,11 @@ Claude Code와 Codex 세션 사이의 메시지를 중계합니다. MCP 클라�
 | Windows | `.\asb-server.exe --memory-dir .\asb-data` |
 | macOS·Linux | `chmod +x asb-server` 실행 후 `./asb-server --memory-dir ./asb-data` |
 
-기본 주소는 `127.0.0.1:8787`입니다. **1.3.1은 최초 관리자 설정에 데이터 폴더의 일회용 설정 코드가 필요합니다.** 최초 설정 전에는 외부에 포트를 열지 마세요.
+기본 주소는 `127.0.0.1:8787`입니다. **1.3.2는 최초 관리자 설정에 데이터 폴더의 일회용 설정 코드가 필요합니다.** 최초 설정 전에는 외부에 포트를 열지 마세요.
 
 이 서버에서 `http://127.0.0.1:8787/setup`을 열고(원격이면 `ssh -L 8787:127.0.0.1:8787 <서버>`로 SSH 터널 연결) 아래에서 확인한 설정 코드와 새 관리자 비밀번호를 입력합니다. 로그인한 뒤 프로젝트를 만들고 접속을 허용합니다. **프로젝트 설정 → 프로젝트 토큰**에서 토큰을 발급합니다.
 
-**1.3.1의 설정 코드**: 설정 코드와 새 관리자 비밀번호를 함께 입력해야 합니다. 코드는 `asb-data/control/setup-code`(Windows `asb-data\control\setup-code`)에 있으며 `cat`·`Get-Content`로 확인합니다. Docker는 `docker compose exec broker cat /data/control/setup-code`를 사용합니다. 파일이 없거나 읽기 실패면 서버 시작 상태와 데이터 경로를 확인하고, 코드를 생략하지 마세요. 코드는 재시작 때 바뀌고 설정 성공 후 지워지며 로그에는 파일 위치만 나옵니다. 코드와 설정 전 백업은 비밀로 보관하세요. Windows에서는 데이터 폴더에 private ACL을 설정해야 합니다. 0600 파일 모드는 Windows의 owner-only ACL을 보장하지 않습니다.
+**1.3.2의 설정 코드**: 설정 코드와 새 관리자 비밀번호를 함께 입력해야 합니다. 코드는 `asb-data/control/setup-code`(Windows `asb-data\control\setup-code`)에 있으며 `cat`·`Get-Content`로 확인합니다. Docker는 `docker compose exec broker cat /data/control/setup-code`를 사용합니다. 파일이 없거나 읽기 실패면 서버 시작 상태와 데이터 경로를 확인하고, 코드를 생략하지 마세요. 코드는 재시작 때 바뀌고 설정 성공 후 지워지며 로그에는 파일 위치만 나옵니다. 코드와 설정 전 백업은 비밀로 보관하세요. Windows에서는 데이터 폴더에 private ACL을 설정해야 합니다. 0600 파일 모드는 Windows의 owner-only ACL을 보장하지 않습니다.
 
 클라이언트 연결에는 HTTPS를 사용하세요. **HTTP 연결 허용**이 꺼져 있으면 `/mcp`와 OAuth 자격증명 경로는 표시 헤더가 없는 평문 요청도 403으로 거부합니다. localhost도 예외가 아닙니다. TLS를 종료하는 proxy 뒤에서는 같은 호스트의 proxy라도 서버에 `--trusted-proxy <proxy CIDR>`를 지정하고, proxy가 외부 입력을 전달하지 않고 `X-Forwarded-Proto`를 단일 원래 scheme 값으로 **덮어써야** 합니다. 기본 신뢰 proxy는 없으며, 신뢰한 proxy의 값이 없거나 중복·목록·잘못된 값이면 HTTPS 증명으로 쓰지 않습니다. 보호된 내부망에서 HTTP를 사용하려면 **인스턴스 설정 → HTTP 연결 허용**을 켜세요. 다른 PC에서 HTTP로 직접 접속하는 것은 보호된 내부망에서 `--listen 0.0.0.0:8787`과 HTTP 연결 허용을 함께 켤 때만 사용합니다.
 
@@ -161,7 +161,7 @@ Codex는 신뢰한 프로젝트의 설정을 읽습니다. 기존 실행파일 �
 
 ### 플러그인 마켓플레이스에서 설치
 
-Claude Code와 Codex는 MCP 항목을 직접 쓰는 대신 이 저장소의 `x-broker` 플러그인으로 클라이언트를 설치할 수 있습니다. 플러그인은 해당 릴리스의 클라이언트 버전으로 `npx -y @xelexis/x-broker@<버전>`을 실행합니다(클라이언트 1.3.0 이상, Node.js 22 이상). macOS에서는 Claude Code와 Codex로 확인했고, Windows에서는 클라이언트 1.3.0 입력과 Codex 플러그인을 확인했습니다(2026-11-14). Windows의 Claude Code 플러그인은 확인하지 않았습니다. 플러그인 하나는 프로젝트 하나에 연결합니다. 다른 프로젝트는 [여러 프로젝트에 연결하기](#여러-프로젝트에-연결하기)처럼 수동 항목으로 추가하세요.
+Claude Code와 Codex는 MCP 항목을 직접 쓰는 대신 이 저장소의 `x-broker` 플러그인으로 클라이언트를 설치할 수 있습니다. 플러그인은 작은 Node.js launcher를 실행합니다(클라이언트 1.3.0 이상, Node.js 22 이상). launcher는 첫 시작에서 플러그인 릴리스의 클라이언트 버전 `@xelexis/x-broker@<버전>`을 npm으로 한 번 `~/.cache/xelexis/x-broker/npm/<버전>`(Windows: `%LOCALAPPDATA%\xelexis\x-broker\npm\<버전>`)에 설치하고 클라이언트로 넘어갑니다. 그래서 npm 프로세스가 남지 않습니다. macOS와 Linux에서는 Node.js에 `process.execve`가 있고 성공하면(22.x는 22.15 이상, 23.11 이상, 24 이상) 클라이언트 하나만(약 22 MB) 실행됩니다. 그렇지 않을 때와 Windows에서는 작은 node relay가 함께 남습니다. macOS에서는 Claude Code와 Codex로 확인했고, Windows에서는 클라이언트 1.3.0 입력과 Codex 플러그인을 확인했습니다(2026-11-14). Windows의 Claude Code 플러그인은 확인하지 않았습니다. 플러그인 하나는 프로젝트 하나에 연결합니다. 다른 프로젝트는 [여러 프로젝트에 연결하기](#여러-프로젝트에-연결하기)처럼 수동 항목으로 추가하세요.
 
 설치 전에 직접 쓴 `x-broker` MCP 항목과 `.codex/hooks.json`의 x-broker hook을 지우세요. Claude Code에서는 기존 항목이 플러그인의 `plugin:x-broker:x-broker` 옆에서 두 번째 클라이언트를 실행합니다. Codex에서는 `[mcp_servers.x-broker]` 항목이 플러그인 서버를 알림 없이 대체하고, 남겨 둔 hook 때문에 모든 hook이 두 번 호출됩니다. 플러그인 도구 이름은 `mcp__plugin_x-broker_x-broker__*`이므로 `mcp__x-broker__*`로 쓴 권한 규칙도 바꾸세요.
 
@@ -193,6 +193,12 @@ export AGENT_SESSION_BROKER_TOKEN_FILE="$HOME/.config/x-broker/brk.token"
 두 `export` 줄에는 비밀이 없으므로 셸 프로필에 둬도 됩니다. **토큰 자체는 셸 프로필, 실행 환경, `.env`·`.envrc` 파일에 절대 넣지 마세요.** `set -C`는 이미 있는 파일에 쓰기를 거부합니다. `umask`는 새 파일의 권한만 정하고 이미 있는 파일의 권한은 바꾸지 않으므로, 이렇게 해야 다른 사람이 읽을 수 있는 파일에 토큰이 쓰이지 않습니다. 토큰을 바꾸려면 파일을 지우고(`rm ~/.config/x-broker/brk.token`) 같은 `(umask 077; set -C; …)` 줄을 다시 실행한 뒤 MCP 서버를 다시 시작하세요. 클라이언트는 정규 파일의 절대 경로만 받습니다. macOS·Linux에서는 본인 소유이고 그룹·기타 권한이 없어야 합니다. 파일은 시작할 때 한 번 읽고 끝의 줄바꿈 하나는 무시합니다. Windows는 파일 권한을 검사하지 않습니다. daemon 모드에서는 daemon 환경의 변수를 씁니다. 플러그인은 `CODEX_HOME`도 넘기므로 사용자 지정 Codex 홈에 추가 설정이 필요 없습니다.
 
 다음 시작 때 Codex가 플러그인의 수명 주기 hook 다섯 개를 검토하라고 묻습니다. 신뢰하거나 `/hooks`를 사용하세요. 신뢰하지 않은 hook은 실행되지 않으며, 그동안 바쁜 대화로 온 메시지는 다음 경계까지 기다립니다. **Codex 0.167.2는 플러그인을 업데이트할 때마다 hook을 modified로 표시하므로 업데이트 후 다시 신뢰하세요.**
+
+**첫 시작과 클라이언트 캐시**
+
+- 첫 시작에서 npm 설정(registry, proxy, 인증서)으로 클라이언트 패키지(약 17 MB)를 내려받습니다. MCP 시작 제한 시간(기본 30초)보다 오래 걸리면 서버가 실패로 표시됩니다. Claude Code에서는 `/mcp`에서 Reconnect를 고르거나 15분 뒤 새 세션을 시작하고, Codex에서는 새 thread를 시작하세요. npm이 내려받은 파일을 보관하므로 다시 시도하면 빠릅니다. 느린 회선에서는 미리 `npx -y @xelexis/x-broker@<버전> --version`을 한 번 실행하세요. 그다음부터는 npm과 네트워크 없이 시작합니다.
+- macOS와 Linux에서 launcher는 홈 디렉터리가 내 소유이고 group·other가 쓸 수 없으며, 그 아래 캐시까지의 모든 디렉터리가 심볼릭 링크가 아닌 실제 디렉터리이고 나만 쓸 수 있을 때만 캐시를 씁니다. 캐시 폴더는 나만 열 수 있게(mode 700) 만듭니다. 아니면 `x-broker plugin: unsafe client cache …`로 멈추고 고칠 디렉터리를 알려 줍니다. `~/.cache`가 심볼릭 링크면 실제 디렉터리로 바꾸세요. 링크를 지우고 `mkdir -m 700 ~/.cache`를 실행한 뒤 옛 내용을 옮깁니다. 버전 폴더가 손상되면 `incomplete client cache …; delete this directory and restart`로 멈춥니다.
+- 이전 버전은 직접 지울 때까지 남습니다. x-broker 세션이 하나도 돌지 않을 때 지금 버전이 아닌 `<버전>` 폴더(각 약 42 MB)와 중단된 첫 시작이 남긴 `<버전>-staging-*` 폴더를 지워도 됩니다. 플러그인을 제거한 뒤에는 `npm` 폴더 전체를 지우세요.
 
 **업데이트와 제거**
 

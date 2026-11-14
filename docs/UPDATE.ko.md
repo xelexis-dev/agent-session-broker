@@ -4,6 +4,17 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.2 (2026-11-15)
+
+- 마켓플레이스 플러그인이 `npx` 대신 작은 launcher로 클라이언트를 시작합니다. 그래서 npm 프로세스가 옆에 남지 않습니다. 세션당 측정값: macOS 126.5 MiB → 21.8 MiB(클라이언트만), Windows working set 282.4 MiB → 133.5 MiB(Windows에서는 작은 node relay가 남습니다).
+- 첫 시작에서 고정된 클라이언트 `@xelexis/x-broker@1.3.0`을 npm으로 한 번 `~/.cache/xelexis/x-broker/npm`(Windows: `%LOCALAPPDATA%\xelexis\x-broker\npm`)에 설치합니다. 느린 회선에서는 MCP 시작 제한 시간(기본 30초)보다 오래 걸릴 수 있습니다. 서버를 다시 연결하면(Claude Code: `/mcp`에서 Reconnect, Codex: 새 thread) 시작합니다. 그다음부터는 npm과 네트워크 없이 시작합니다.
+- launcher는 다른 사용자가 바꿀 수 있는 캐시(`unsafe client cache …`)나 손상된 버전 폴더(`incomplete client cache …`)를 폴더 이름을 담은 한 줄로 거부합니다. 권한을 고치거나 그 폴더를 지우세요. `~/.cache`가 심볼릭 링크면 실제 디렉터리로 바꾸세요. 자세한 내용은 에이전트 안내에 있습니다.
+- 캐시의 이전 클라이언트 버전은 자동으로 지우지 않습니다. x-broker 세션이 하나도 돌지 않을 때 지금 버전이 아닌 버전 폴더(각 약 42 MB)를 지워도 됩니다. 이전 플러그인 버전은 npm 캐시 디렉터리(`npm config get cache`)의 `_npx` 폴더에 클라이언트 사본을 남겼습니다. 플러그인은 이제 그 사본을 쓰지 않으며, `npm cache clean`은 그 폴더를 지우지 않습니다.
+- 플러그인을 업데이트하세요. Claude Code: `claude plugin marketplace update xelexis`, `claude plugin update x-broker@xelexis` 다음에 `/reload-plugins`. Codex: `codex plugin marketplace upgrade xelexis`, `codex plugin add x-broker@xelexis` 다음에 hook 다섯 개를 다시 신뢰합니다. hook은 바뀌지 않았지만 Codex는 플러그인을 업데이트할 때마다 hook을 modified로 표시합니다.
+- 클라이언트는 `@xelexis/x-broker@1.3.0` 그대로입니다. 새 npm 버전은 게시하지 않습니다. 0.17.3 이상 클라이언트는 이 서버에서 계속 동작합니다.
+- 서버: 동작 변경이 없습니다. 1.3.1 서버를 바꾸는 것은 선택입니다.
+- 데이터: 변경 없음. 되돌리기는 이전과 같습니다: 전체 백업과 1.3.1, 1.3.0 또는 1.2.1 서버를 함께 복원합니다.
+
 ## 1.3.1 (2026-11-14)
 
 - 문서 패치입니다. 에이전트 안내에 2026-11-14 Windows 확인 결과를 적었습니다. Windows에서 클라이언트 1.3.0은 토큰 파일과 변수 `AGENT_SESSION_BROKER_URL`·`AGENT_SESSION_BROKER_TOKEN`·`AGENT_SESSION_BROKER_TOKEN_FILE`을 문서의 우선순위대로 읽습니다. Codex 플러그인은 마켓플레이스 추가, 플러그인 추가, 신뢰한 뒤의 hook, MCP 연결까지 동작합니다. Windows의 Claude Code 플러그인은 확인하지 않았습니다.

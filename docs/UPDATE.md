@@ -4,6 +4,17 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.2 (2026-11-15)
+
+- The marketplace plugin now starts the client through a small launcher instead of `npx`, so no npm process stays running next to it. Measured per session: macOS 126.5 MiB → 21.8 MiB (the client alone); Windows 282.4 MiB → 133.5 MiB working set (a small node relay remains on Windows).
+- The first start installs the pinned client `@xelexis/x-broker@1.3.0` once with npm into `~/.cache/xelexis/x-broker/npm` (Windows: `%LOCALAPPDATA%\xelexis\x-broker\npm`). On a slow network this can take longer than the MCP start timeout (30 seconds by default); reconnect the server (Claude Code: Reconnect in `/mcp`; Codex: a new thread) and it starts. Later starts need neither npm nor the network.
+- The launcher refuses a cache that another user could change (`unsafe client cache …`) or a damaged version folder (`incomplete client cache …`) with one line that names the folder: fix its permissions or delete it. If `~/.cache` is a symbolic link, replace it with a real directory. Details are in the agent guide.
+- Old client versions in that cache are not removed automatically. When no x-broker session is running, you may delete version folders other than the current one (about 42 MB each). Older plugin versions left a copy of the client in the `_npx` folder of npm's cache directory (`npm config get cache`); the plugin no longer uses it, and `npm cache clean` does not remove that folder.
+- Update the plugin. Claude Code: `claude plugin marketplace update xelexis`, `claude plugin update x-broker@xelexis`, then `/reload-plugins`. Codex: `codex plugin marketplace upgrade xelexis`, `codex plugin add x-broker@xelexis`, then trust the five hooks again: the hooks did not change, but Codex marks them as modified after every plugin update.
+- The client stays `@xelexis/x-broker@1.3.0`: no new npm version is published. Clients 0.17.3 and later keep working with this server.
+- Server: no behaviour change; replacing a 1.3.1 server is optional.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.3.1, 1.3.0 or 1.2.1 server.
+
 ## 1.3.1 (2026-11-14)
 
 - Documentation patch: the agent guide now records the Windows check of 2026-11-14. On Windows, client 1.3.0 reads the token file and the variables `AGENT_SESSION_BROKER_URL`, `AGENT_SESSION_BROKER_TOKEN` and `AGENT_SESSION_BROKER_TOKEN_FILE` with the documented precedence, and the Codex plugin works: marketplace add, plugin add, the hooks once you trust them, and the MCP connection. The Claude Code plugin on Windows is not verified.
