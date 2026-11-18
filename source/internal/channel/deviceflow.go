@@ -457,6 +457,8 @@ type clientUpdate struct {
 }
 
 type authStatus struct {
+	ConfigSource            string                         `json:"configSource,omitempty"`
+	Broker                  string                         `json:"broker,omitempty"`
 	ParentDiagnostic        *parentDiagnostic              `json:"parentDiagnostic,omitempty"`
 	ToolProfile             string                         `json:"toolProfile"`
 	ToolProfileNote         string                         `json:"toolProfileNote"`

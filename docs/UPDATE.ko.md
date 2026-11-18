@@ -4,6 +4,19 @@
 
 릴리스 노트가 없는 이전 태그: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.3 (2026-11-18)
+
+- Claude Code 플러그인: 한 PC에서 저장소마다 다른 broker 프로젝트에 연결할 수 있습니다. Claude Code는 플러그인 설정을 사용자 계정 전체에 하나만 두므로, 플러그인의 broker URL과 토큰을 저장소마다 다르게 할 수 없었습니다. 계정 홈 폴더의 선택 파일 `~/.config/x-broker/claude-plugin.json`이 폴더를 broker URL과 개인 토큰 파일의 절대 경로(선택으로 도구 프로필)에 연결합니다. 하위 폴더는 가장 가까운 등록 폴더의 항목을 쓰고, 그 밖의 폴더는 플러그인 설정을 그대로 씁니다. 토큰 값은 이 파일에 넣지 않습니다. macOS와 Linux에서 이 파일은 본인만 읽을 수 있어야 하고, 본인 소유의 실제 폴더에 있어야 합니다. 안전하지 않거나 잘못된 파일이면 플러그인 설정으로 넘어가지 않고 고정된 한 줄을 남기고 x-broker 서버를 시작하지 않습니다. 플러그인은 저장소 안의 설정을 읽지 않습니다. Codex 플러그인과 수동 MCP 항목은 바뀌지 않습니다. 에이전트 안내의 「저장소마다 다른 프로젝트 사용하기 (Claude Code)」를 보세요. Windows의 Claude Code 플러그인은 여전히 확인하지 않았습니다.
+- `auth_status`에 `configSource`(Claude Code 플러그인에서 `directory` 또는 `userConfig`, 수동 항목과 Codex에서는 생략)와 `broker`(선택된 서버와 프로젝트, 토큰과 다른 쿼리 제외)를 더했습니다.
+- 클라이언트가 대화에 전달하는 메시지에 `project` 필드가 붙습니다. 값은 클라이언트에 설정한 broker URL의 프로젝트이며, 보낸 쪽이나 메시지 본문의 값을 쓰지 않습니다. Claude Code 채널·inbox 전달, Codex hook·작업 중 대화 전달, Kimi 전달에 붙습니다. 도구 호출로 읽는 메시지는 바뀌지 않습니다.
+- `xbroker_docs` 주제가 내장 도움말에 없는 절로 연결하지 않습니다. setup은 공개 안내의 여러 프로젝트 연결 방법을 가리킵니다.
+- 의존성 업데이트: `golang.org/x/crypto` 0.59.0, `golang.org/x/sys` 0.50.0. x-broker가 import하지 않는 패키지에 대한 모듈 수준 취약점 보고(GO-2026-5932)가 사라집니다.
+- 새 클라이언트 `@xelexis/x-broker@1.3.3`. 플러그인은 이 버전을 고정하고 다음 시작 때 설치합니다. 수동 항목은 `npm install -g @xelexis/x-broker@1.3.3`을 실행하거나 npx 고정 버전을 바꾼 뒤 MCP 서버를 다시 시작하세요. 0.17.3 이상 클라이언트는 이 서버에서 계속 동작합니다.
+- 플러그인을 업데이트하세요. Claude Code: `claude plugin marketplace update xelexis`, `claude plugin update x-broker@xelexis` 다음에 `/reload-plugins`. Codex: `codex plugin marketplace upgrade xelexis`, `codex plugin add x-broker@xelexis` 다음에 hook 다섯 개를 다시 신뢰합니다. hook은 바뀌지 않았지만 Codex는 플러그인을 업데이트할 때마다 hook을 modified로 표시합니다.
+- 클라이언트 1.3.0으로 되돌릴 때: 클라이언트 1.3.3이 작업 중인 Codex 대화에 메시지를 전달한 직후 확인하기 전에 멈췄다면, 클라이언트 1.3.0은 그 전달을 알아보지 못합니다. 그러면 클라이언트가 다시 1.3.3이 될 때까지 그 대화의 다음 메시지를 보류합니다. 1.3.3은 그 전달을 두 번 보내지 않고 확인합니다. 다른 대화에는 영향이 없습니다.
+- 서버: 권장 클라이언트가 1.3.3이 되어, 이전 클라이언트는 `auth_status`에 업데이트 안내를 보입니다. 그 밖의 동작 변경은 없습니다. 1.3.2 서버를 바꾸는 것은 선택입니다.
+- 데이터: 변경 없음. 되돌리기는 이전과 같습니다: 전체 백업과 1.3.2, 1.3.1, 1.3.0 또는 1.2.1 서버를 함께 복원합니다. 플러그인 1.3.2로 되돌리면 디렉터리 설정 파일을 무시하고 플러그인 설정을 다시 씁니다.
+
 ## 1.3.2 (2026-11-15)
 
 - 마켓플레이스 플러그인이 `npx` 대신 작은 launcher로 클라이언트를 시작합니다. 그래서 npm 프로세스가 옆에 남지 않습니다. 세션당 측정값: macOS 126.5 MiB → 21.8 MiB(클라이언트만), Windows working set 282.4 MiB → 133.5 MiB(Windows에서는 작은 node relay가 남습니다).

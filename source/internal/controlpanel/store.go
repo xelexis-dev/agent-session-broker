@@ -106,6 +106,7 @@ type Store struct {
 	languages           map[string]string
 	invalidUserSettings int
 	api                 apiState
+	connect             connectState
 	listRecords         func() (map[string][]byte, error)
 
 	attachmentStore        *attachments.Store
@@ -496,6 +497,13 @@ func (s *Store) authorize(project, raw string) (access.Grant, <-chan struct{}, b
 					}
 				}
 				grant.ExpiresAt = token.ExpiresAt
+				if parent, ok := s.api.tokens[token.ParentID]; ok && isConnectToken(parent) {
+					grant.ParentKind = "user-connect"
+					grant.ParentExpiresAt = parent.ExpiresAt
+				}
+				if parent, ok := s.api.tokens[token.ParentID]; ok && isConnectToken(parent) && parent.ExpiresAt.Before(grant.ExpiresAt) {
+					grant.ExpiresAt = parent.ExpiresAt
+				}
 				for _, parent := range p.Tokens {
 					if parent.ID == token.ParentID && !parent.ExpiresAt.IsZero() && parent.ExpiresAt.Before(grant.ExpiresAt) {
 						grant.ExpiresAt = parent.ExpiresAt
@@ -629,8 +637,39 @@ func (s *Store) commitAudited(candidate state, events []AuditEvent) error {
 }
 
 func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent *apiAuditEvent, extra map[string][]byte) error {
+	return s.commitConnect(candidate, events, apiEvent, extra, nil, nil, nil)
+}
+func (s *Store) commitConnect(candidate state, events []AuditEvent, apiEvent *apiAuditEvent, extra map[string][]byte, tokens map[string]userAPIToken, connectEvents []connectAudit, deletes []string) error {
+	if s.closed {
+		return ErrStorage
+	}
 	candidate, events = s.prepareAutoCommit(candidate, events)
+	candidate, tokens, connectEvents = s.prepareConnectCommit(candidate, tokens, connectEvents)
+	if apiEvent != nil && apiEvent.Actor != "" {
+		for i := range connectEvents {
+			if connectEvents[i].Reason == "explicit" && connectEvents[i].ActorKind == "system" {
+				connectEvents[i].ActorKind = "user"
+				connectEvents[i].ActorID = apiEvent.Actor
+			}
+		}
+	}
+	if err := s.connectCapacityLocked(candidate, tokens); err != nil {
+		return err
+	}
+	connectPuts, connectDeletes, connectAudits, connectErr := s.connectRowsLocked(tokens, connectEvents)
+	if connectErr != nil {
+		return connectErr
+	}
+	deletes = append(deletes, connectDeletes...)
+
 	events = s.auditAutoTransitions(candidate, events)
+	filtered := events[:0]
+	for _, event := range events {
+		if parent, ok := s.api.tokens[event.ParentID]; !ok || !isConnectToken(parent) {
+			filtered = append(filtered, event)
+		}
+	}
+	events = filtered
 	if !validProjectGenerations(candidate) || !validAutoState(candidate) {
 		return ErrStorage
 	}
@@ -660,6 +699,9 @@ func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent 
 	if puts == nil {
 		puts = map[string][]byte{}
 	}
+	for key, raw := range connectPuts {
+		puts[key] = raw
+	}
 	puts["state"] = data
 	// Remove the previous project's audit in the same transaction as its
 	// deletion. Also discard orphaned audit before a same-name recreation.
@@ -670,8 +712,8 @@ func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent 
 			break
 		}
 	}
-	if len(events) > 0 || pruneAudit {
-		if err = s.writeAuditBatch(puts, events, candidate.Projects, apiEvent); err != nil {
+	if len(events) > 0 || pruneAudit || len(connectPuts) > 0 || len(deletes) > 0 || len(extra) > 0 {
+		if err = s.writeAuditBatchDeletes(puts, events, candidate.Projects, apiEvent, deletes); err != nil {
 			return ErrStorage
 		}
 	} else if apiEvent != nil {
@@ -682,6 +724,19 @@ func (s *Store) commitAuditedAPI(candidate state, events []AuditEvent, apiEvent 
 		return ErrStorage
 	}
 	s.data = candidate
+	s.api.tokens = tokens
+	for _, key := range deletes {
+		delete(s.api.rows, key)
+		delete(s.api.pendingDeletes, key)
+	}
+	for _, t := range tokens {
+		s.api.rows[t.key()] = true
+	}
+	s.connect.audits = connectAudits
+	for name, p := range s.data.Projects {
+		s.notifyTokenChangesLocked(name, p.Tokens)
+	}
+	s.notifyConnectWatchersLocked()
 	s.pruneDevicePollLocked()
 	return nil
 }

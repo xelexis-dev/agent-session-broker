@@ -45,7 +45,7 @@ type ingressServer struct {
 // the registration locks. It runs automatically once ctx ends and is safe to
 // call again to join the shutdown.
 func newIngressServerWithOptions(ctx context.Context, upstream Upstream, tools []*mcp.Tool, identify func(context.Context, *mcp.CallToolRequest) (broker.AttachRequest, error), factory ingressSinkFactory, opts durableOptions) (*mcp.Server, func()) {
-	srv := &ingressServer{ctx: ctx, upstream: upstream, tools: tools, identify: identify, factory: factory, opts: opts}
+	srv := &ingressServer{ctx: ctx, upstream: upstream, tools: tools, identify: identify, factory: boundIngressFactory(opts.project, factory), opts: opts}
 	srv.opts = srv.opts.withDefaults()
 	if srv.opts.enabled && srv.opts.state != nil && srv.opts.harness == "codex" {
 		srv.opts.codexClaim = &codexResumeClaim{}

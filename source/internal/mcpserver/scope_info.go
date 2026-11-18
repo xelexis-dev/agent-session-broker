@@ -26,6 +26,6 @@ func addTokenInfoTool(server *mcp.Server) {
 		}
 		scopes := slices.Clone(grant.Scopes)
 		slices.Sort(scopes)
-		return nil, access.TokenInfo{ProjectGenerationID: grant.ProjectGenerationID, ProjectRefusals: grant.ProjectGenerationID != "", Scopes: scopes, AdmissionMode: grant.AdmissionMode, ExpiresAt: grant.ExpiresAt}, nil
+		return nil, access.TokenInfo{ParentKind: grant.ParentKind, ParentExpiresAt: grant.ParentExpiresAt, ProjectGenerationID: grant.ProjectGenerationID, ProjectRefusals: grant.ProjectGenerationID != "", Scopes: scopes, AdmissionMode: grant.AdmissionMode, ExpiresAt: grant.ExpiresAt}, nil
 	})
 }

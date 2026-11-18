@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	"io"
 	"os"
 	"strings"
@@ -104,7 +105,7 @@ func (p *Poster) Post(ctx context.Context, message broker.Message) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	frames, err := encodeFrames(message, p.peerTag)
+	frames, err := encodeFrames(message, p.peerTag, clientdelivery.Project(ctx))
 	if err != nil {
 		return err
 	}
@@ -166,6 +167,7 @@ func writeFrame(writer io.Writer, frame []byte) error {
 }
 
 type panelEnvelope struct {
+	Project            string             `json:"project,omitempty"`
 	From               string             `json:"from"`
 	Body               string             `json:"body"`
 	To                 string             `json:"to"`
@@ -175,7 +177,7 @@ type panelEnvelope struct {
 	Attachment         *broker.Attachment `json:"attachment,omitempty"`
 }
 
-func encodeFrames(message broker.Message, peerTag bool) ([][]byte, error) {
+func encodeFrames(message broker.Message, peerTag bool, project string) ([][]byte, error) {
 	message = broker.LocalMessage(message)
 	messages := []broker.DeliveredMessage{{Attachment: broker.LocalAttachment(message.Attachment), DeliverySequence: message.DeliverySequence, FromRegistrationID: message.FromRegistrationID, From: message.From, To: message.To, Body: message.Body, SentAt: message.SentAt}}
 	if message.Batch != nil {
@@ -191,7 +193,7 @@ func encodeFrames(message broker.Message, peerTag bool) ([][]byte, error) {
 		if len(entry.FromRegistrationID) > 26 || len(entry.From) > maxFrameBytes || len(entry.To) > maxFrameBytes || len(entry.Body) > maxFrameBytes {
 			return nil, ErrInvalidMessage
 		}
-		content, err := json.Marshal(entry)
+		content, err := json.Marshal(clientdelivery.Entry{Project: project, DeliveredMessage: entry})
 		if err != nil || len(content) > maxFrameBytes {
 			return nil, ErrInvalidMessage
 		}
@@ -220,7 +222,7 @@ func encodeFrames(message broker.Message, peerTag bool) ([][]byte, error) {
 		}
 		if peerTag {
 			// The panel's collapsed preview shows only the start of the envelope.
-			visible, err := json.Marshal(panelEnvelope{From: entry.From, Body: entry.Body, To: entry.To, DeliverySequence: entry.DeliverySequence, FromRegistrationID: entry.FromRegistrationID, SentAt: entry.SentAt, Attachment: entry.Attachment})
+			visible, err := json.Marshal(panelEnvelope{Project: project, From: entry.From, Body: entry.Body, To: entry.To, DeliverySequence: entry.DeliverySequence, FromRegistrationID: entry.FromRegistrationID, SentAt: entry.SentAt, Attachment: entry.Attachment})
 			if err != nil {
 				return nil, ErrInvalidMessage
 			}

@@ -20,11 +20,11 @@ Claude Code와 Codex 세션 사이의 메시지를 중계합니다. MCP 클라�
 | Windows | `.\asb-server.exe --memory-dir .\asb-data` |
 | macOS·Linux | `chmod +x asb-server` 실행 후 `./asb-server --memory-dir ./asb-data` |
 
-기본 주소는 `127.0.0.1:8787`입니다. **1.3.2는 최초 관리자 설정에 데이터 폴더의 일회용 설정 코드가 필요합니다.** 최초 설정 전에는 외부에 포트를 열지 마세요.
+기본 주소는 `127.0.0.1:8787`입니다. **1.3.3은 최초 관리자 설정에 데이터 폴더의 일회용 설정 코드가 필요합니다.** 최초 설정 전에는 외부에 포트를 열지 마세요.
 
 이 서버에서 `http://127.0.0.1:8787/setup`을 열고(원격이면 `ssh -L 8787:127.0.0.1:8787 <서버>`로 SSH 터널 연결) 아래에서 확인한 설정 코드와 새 관리자 비밀번호를 입력합니다. 로그인한 뒤 프로젝트를 만들고 접속을 허용합니다. **프로젝트 설정 → 프로젝트 토큰**에서 토큰을 발급합니다.
 
-**1.3.2의 설정 코드**: 설정 코드와 새 관리자 비밀번호를 함께 입력해야 합니다. 코드는 `asb-data/control/setup-code`(Windows `asb-data\control\setup-code`)에 있으며 `cat`·`Get-Content`로 확인합니다. Docker는 `docker compose exec broker cat /data/control/setup-code`를 사용합니다. 파일이 없거나 읽기 실패면 서버 시작 상태와 데이터 경로를 확인하고, 코드를 생략하지 마세요. 코드는 재시작 때 바뀌고 설정 성공 후 지워지며 로그에는 파일 위치만 나옵니다. 코드와 설정 전 백업은 비밀로 보관하세요. Windows에서는 데이터 폴더에 private ACL을 설정해야 합니다. 0600 파일 모드는 Windows의 owner-only ACL을 보장하지 않습니다.
+**1.3.3의 설정 코드**: 설정 코드와 새 관리자 비밀번호를 함께 입력해야 합니다. 코드는 `asb-data/control/setup-code`(Windows `asb-data\control\setup-code`)에 있으며 `cat`·`Get-Content`로 확인합니다. Docker는 `docker compose exec broker cat /data/control/setup-code`를 사용합니다. 파일이 없거나 읽기 실패면 서버 시작 상태와 데이터 경로를 확인하고, 코드를 생략하지 마세요. 코드는 재시작 때 바뀌고 설정 성공 후 지워지며 로그에는 파일 위치만 나옵니다. 코드와 설정 전 백업은 비밀로 보관하세요. Windows에서는 데이터 폴더에 private ACL을 설정해야 합니다. 0600 파일 모드는 Windows의 owner-only ACL을 보장하지 않습니다.
 
 클라이언트 연결에는 HTTPS를 사용하세요. **HTTP 연결 허용**이 꺼져 있으면 `/mcp`와 OAuth 자격증명 경로는 표시 헤더가 없는 평문 요청도 403으로 거부합니다. localhost도 예외가 아닙니다. TLS를 종료하는 proxy 뒤에서는 같은 호스트의 proxy라도 서버에 `--trusted-proxy <proxy CIDR>`를 지정하고, proxy가 외부 입력을 전달하지 않고 `X-Forwarded-Proto`를 단일 원래 scheme 값으로 **덮어써야** 합니다. 기본 신뢰 proxy는 없으며, 신뢰한 proxy의 값이 없거나 중복·목록·잘못된 값이면 HTTPS 증명으로 쓰지 않습니다. 보호된 내부망에서 HTTP를 사용하려면 **인스턴스 설정 → HTTP 연결 허용**을 켜세요. 다른 PC에서 HTTP로 직접 접속하는 것은 보호된 내부망에서 `--listen 0.0.0.0:8787`과 HTTP 연결 허용을 함께 켤 때만 사용합니다.
 
@@ -104,13 +104,13 @@ Node.js 22 이상과 npm이 필요합니다. Windows x64, macOS ARM64·x64, Linu
 
 ```sh
 npm view @xelexis/x-broker version
-npm install -g @xelexis/x-broker@1.3.0
+npm install -g @xelexis/x-broker@1.3.3
 x-broker --version
 ```
 
-예제는 `1.3.0`을 고정합니다. 서버만 바뀐 릴리스는 npm 게시를 생략하므로 서버와 클라이언트 버전이 다를 수 있습니다. 다른 버전은 게시 여부를 확인하고 설치 버전을 바꾸세요. `--version`은 버전 확인이며 대화 연결 검사가 아닙니다.
+예제는 `1.3.3`을 고정합니다. 서버만 바뀐 릴리스는 npm 게시를 생략하므로 서버와 클라이언트 버전이 다를 수 있습니다. 다른 버전은 게시 여부를 확인하고 설치 버전을 바꾸세요. `--version`은 버전 확인이며 대화 연결 검사가 아닙니다.
 
-대안으로 `npx -y @xelexis/x-broker@1.3.0`을 쓸 수 있지만 세션마다 약 100 MB의 npm 프로세스 하나가 계속 남습니다. 이때 아래 `command`를 `npx`로 바꾸고 `args` 앞에 `"-y", "@xelexis/x-broker@1.3.0"`을 추가하세요. `@latest`는 시작 때 레지스트리 확인과 다운로드로 늦어질 수 있으므로 버전을 고정하세요.
+대안으로 `npx -y @xelexis/x-broker@1.3.3`을 쓸 수 있지만 세션마다 약 100 MB의 npm 프로세스 하나가 계속 남습니다. 이때 아래 `command`를 `npx`로 바꾸고 `args` 앞에 `"-y", "@xelexis/x-broker@1.3.3"`을 추가하세요. `@latest`는 시작 때 레지스트리 확인과 다운로드로 늦어질 수 있으므로 버전을 고정하세요.
 
 macOS·Linux에서는 execve를 지원하는 Node의 전역 wrapper가 client로 교체됩니다. **Windows는 execve가 없어 어느 설치 방식이든 node relay가 남으며, 전역 설치는 npm exec 부모 프로세스를 제거합니다.**
 
@@ -148,7 +148,7 @@ args = [
 ```
 
 Codex는 신뢰한 프로젝트의 설정만 읽습니다. 같은 OS 사용자와 인증 상태 디렉터리를 유지하세요. MCP 재연결 후 에이전트에게 이 대화를 연결해 달라고 요청할 때만 `attach_session`을 호출합니다. 기존 등록은 자동 복구합니다. `auth_status`로 등록 이름·clientVersion·serverVersion을 확인하세요. 승인 코드가 나오면 관리 화면에서 승인합니다. 상세 재연결은 `xbroker_docs topic=upgrade`, 연결 오류는 `topic=errors`를 읽으세요.
-프로젝트마다 entry를 추가하는 방법은 [여러 프로젝트에 연결하기](#여러-프로젝트에-연결하기)를 보세요. 사용자 지정 `CODEX_HOME`은 각 MCP entry의 `env`에도 같은 경로로 지정합니다.
+프로젝트마다 entry를 추가하는 방법은 [여러 프로젝트에 연결하기](https://github.com/xelexis-dev/agent-session-broker/blob/main/docs/README_AGENT.ko.md#여러-프로젝트에-연결하기)를 보세요. 사용자 지정 `CODEX_HOME`은 각 MCP entry의 `env`에도 같은 경로로 지정합니다.
 <!-- /xbroker-docs:setup -->
 
 대화별 클라이언트 상태와 steer 시도 기록은 30일 동안 사용하지 않으면 자동 삭제하며(불확실한 pending 시도는 재연결로 해소될 때까지 보존), 진단 기록은 14일 후 정리합니다.
@@ -161,7 +161,7 @@ Codex는 신뢰한 프로젝트의 설정을 읽습니다. 기존 실행파일 �
 
 ### 플러그인 마켓플레이스에서 설치
 
-Claude Code와 Codex는 MCP 항목을 직접 쓰는 대신 이 저장소의 `x-broker` 플러그인으로 클라이언트를 설치할 수 있습니다. 플러그인은 작은 Node.js launcher를 실행합니다(클라이언트 1.3.0 이상, Node.js 22 이상). launcher는 첫 시작에서 플러그인 릴리스의 클라이언트 버전 `@xelexis/x-broker@<버전>`을 npm으로 한 번 `~/.cache/xelexis/x-broker/npm/<버전>`(Windows: `%LOCALAPPDATA%\xelexis\x-broker\npm\<버전>`)에 설치하고 클라이언트로 넘어갑니다. 그래서 npm 프로세스가 남지 않습니다. macOS와 Linux에서는 Node.js에 `process.execve`가 있고 성공하면(22.x는 22.15 이상, 23.11 이상, 24 이상) 클라이언트 하나만(약 22 MB) 실행됩니다. 그렇지 않을 때와 Windows에서는 작은 node relay가 함께 남습니다. macOS에서는 Claude Code와 Codex로 확인했고, Windows에서는 클라이언트 1.3.0 입력과 Codex 플러그인을 확인했습니다(2026-11-14). Windows의 Claude Code 플러그인은 확인하지 않았습니다. 플러그인 하나는 프로젝트 하나에 연결합니다. 다른 프로젝트는 [여러 프로젝트에 연결하기](#여러-프로젝트에-연결하기)처럼 수동 항목으로 추가하세요.
+Claude Code와 Codex는 MCP 항목을 직접 쓰는 대신 이 저장소의 `x-broker` 플러그인으로 클라이언트를 설치할 수 있습니다. 플러그인은 작은 Node.js launcher를 실행합니다(클라이언트 1.3.0 이상, Node.js 22 이상). launcher는 첫 시작에서 플러그인 릴리스의 클라이언트 버전 `@xelexis/x-broker@<버전>`을 npm으로 한 번 `~/.cache/xelexis/x-broker/npm/<버전>`(Windows: `%LOCALAPPDATA%\xelexis\x-broker\npm\<버전>`)에 설치하고 클라이언트로 넘어갑니다. 그래서 npm 프로세스가 남지 않습니다. macOS와 Linux에서는 Node.js에 `process.execve`가 있고 성공하면(22.x는 22.15 이상, 23.11 이상, 24 이상) 클라이언트 하나만(약 22 MB) 실행됩니다. 그렇지 않을 때와 Windows에서는 작은 node relay가 함께 남습니다. macOS에서는 Claude Code와 Codex로 확인했고, Windows에서는 클라이언트 1.3.0 입력과 Codex 플러그인을 확인했습니다(2026-11-14). Windows의 Claude Code 플러그인은 확인하지 않았습니다. Claude Code 플러그인은 디렉터리에 따라 프로젝트를 고를 수 있습니다. 한 대화에서 여러 프로젝트를 쓰려면 수동 항목을 추가하세요.
 
 설치 전에 직접 쓴 `x-broker` MCP 항목과 `.codex/hooks.json`의 x-broker hook을 지우세요. Claude Code에서는 기존 항목이 플러그인의 `plugin:x-broker:x-broker` 옆에서 두 번째 클라이언트를 실행합니다. Codex에서는 `[mcp_servers.x-broker]` 항목이 플러그인 서버를 알림 없이 대체하고, 남겨 둔 hook 때문에 모든 hook이 두 번 호출됩니다. 플러그인 도구 이름은 `mcp__plugin_x-broker_x-broker__*`이므로 `mcp__x-broker__*`로 쓴 권한 규칙도 바꾸세요.
 
@@ -173,6 +173,33 @@ claude plugin install x-broker@xelexis
 ```
 
 Claude Code가 물을 때, `/plugin`에서, 또는 `claude plugin configure x-broker@xelexis --values-stdin`(stdin에 JSON 객체 하나)으로 broker URL과 토큰을 입력합니다. 토큰을 `install --config`로 넘기지 마세요. 명령줄에 남습니다. Claude Code는 토큰을 시스템 자격증명 저장소에 두고 플러그인 MCP 항목에만 `AGENT_SESSION_BROKER_TOKEN`으로 넘깁니다. 도구 프로필은 선택이며 `full`(기본값) 또는 `worker`입니다. URL과 토큰을 설정하면 MCP 항목이 시작됩니다. `/reload-plugins`를 실행하거나 새 세션을 시작하세요.
+
+### 저장소마다 다른 프로젝트 사용하기 (Claude Code)
+
+Claude Code의 `pluginConfigs`는 user/managed 범위이므로 플러그인을 저장소에 설치해도 URL과 토큰은 사용자 전체 설정입니다. 플러그인 대화상자의 필수 기본 URL·토큰은 유지하세요. 디렉터리별 설정은 `<계정 홈>/.config/x-broker/claude-plugin.json`에 둡니다. 계정 홈은 OS 계정 정보에서 가져오며 `HOME`·`XDG_CONFIG_HOME`·`USERPROFILE`은 무시합니다. launcher는 저장소 안 설정 파일을 읽지 않습니다.
+
+```sh
+mkdir -p ~/.config/x-broker && chmod 700 ~/.config/x-broker
+(umask 077; set -C; cat > ~/.config/x-broker/project-b.token)  # 토큰을 붙여넣고 Enter, Ctrl-D; 기존 파일이면 거부
+(umask 077; set -C; cat > ~/.config/x-broker/claude-plugin.json <<'JSON'
+{
+  "/Users/me/work/project-b": {
+    "broker_url": "https://broker.example/mcp?project=b",
+    "token_file": "/Users/me/.config/x-broker/project-b.token",
+    "tool_profile": "worker"
+  }
+}
+JSON
+)
+```
+
+실제 절대 경로를 쓰세요. JSON의 `~`는 확장하지 않습니다. 항목마다 `broker_url`과 `token_file`이 모두 필요하고 토큰 값은 넣을 수 없습니다. `tool_profile`은 선택이며 `full`·`worker`만 허용합니다(없으면 플러그인 기본값). 토큰 파일은 저장소·공유 폴더 밖에 두세요. POSIX에서는 설정 파일이 본인 소유·0600이어야 하고 상위 디렉터리는 본인 소유이며 다른 사용자가 쓸 수 없어야 합니다. `.config`·`x-broker`·설정 파일의 symlink는 dotfile 관리용 링크도 거부합니다. Windows에서도 절대 경로를 쓰고 JSON의 역슬래시를 이스케이프하세요. ACL은 검사하지 않으므로 직접 접근을 제한해야 합니다. 정책이 junction 탐색을 차단하고 설정 파일 경로에 junction이 있으면 플러그인이 시작을 거부합니다. junction 또는 해당 정책을 제거하세요. Windows Claude Code 플러그인은 계속 미검증입니다.
+
+가장 깊은 실제 디렉터리가 이기고 하위 폴더도 같은 짝을 이어받습니다. `/a/repo2`는 `/a/repo`를 이어받지 않으며 없는 디렉터리 키는 건너뜁니다. 양쪽에 native realpath를 적용하고 대소문자를 임의로 합치지 않습니다. 일치하면 URL과 토큰 파일을 함께 교체하고 상속된 broker URL·토큰·토큰 파일 환경변수를 지웁니다. 매핑 URL에 기본 토큰을 섞지 않습니다. 파일이 없거나 일치 항목이 없으면 필수 플러그인 기본값과 기존 우선순위(Codex 환경변수보다 우선)를 유지합니다. 파일이 잘못됐거나 Claude 프로젝트 경로를 해석할 수 없으면 시작을 거부합니다. Codex·수동 MCP 항목은 기존 규칙 그대로입니다.
+
+`x-broker plugin:` 뒤의 고정 문구를 확인하세요. `directory settings for <dir>`는 적용 성공입니다. `unsafe directory settings`는 소유권·권한·종류·링크 문제, `not valid directory settings JSON`은 JSON 오류 또는 64 KiB 초과입니다. `must map absolute directory paths`는 키·객체 형식 오류, `must not hold a token`은 토큰 값 금지, `need both broker_url and token_file`은 짝 누락입니다. `have an unknown key`는 허용 필드 외 값, `must be an absolute path`는 상대 토큰 경로, `two entries ... name the same directory`는 실제 경로 중복, `must be full or worker`는 프로필 오류입니다. `Claude Code gave no usable project directory; refusing directory settings`는 프로젝트 입력을 고치고 재시작해야 한다는 뜻이며 `unexpected launcher arguments`는 플러그인 매니페스트를 복구해야 한다는 뜻입니다. 값은 오류에 출력하지 않습니다.
+
+MCP를 재시작한 뒤 `auth_status`의 `configSource`(`directory` 또는 `userConfig`)와 `broker`(선택 서버·프로젝트, 다른 쿼리 제외)를 확인하세요. CLI·Codex·수동 실행은 `configSource`를 생략합니다. 처음 바꾸면 새 프로젝트에 새 등록을 만들므로 필요 없는 옛 등록은 retire하세요. 1.3.2로 되돌리면 이 파일을 무시하고 기본값으로 연결합니다. 저장소는 상위의 승인된 짝을 이어받을 수 있습니다. 코드를 실행하는 settings나 위조된 `CLAUDE_PROJECT_DIR`은 보호 범위 밖이며, 경로 위조로 고를 수 있는 것도 사용자가 승인한 짝뿐입니다.
 
 **Codex**
 
@@ -211,7 +238,7 @@ export AGENT_SESSION_BROKER_TOKEN_FILE="$HOME/.config/x-broker/brk.token"
 
 ### Codex 재개 실행기 (프롬프트 없는 연결)
 
-macOS·Linux에서 정확한 UUID를 지정한 재개 실행기는 daemon과 embedded 두 모드를 지원합니다. 아래를 `codex-resume.sh`로 저장하고 `sh codex-resume.sh <대화 UUID>`로 실행하세요. `-c model_reasoning_effort=medium` 같은 embedded 옵션을 주면 기존 PID claim 경로를 사용합니다. MCP 설정과 같은 npm client 버전이 필요합니다. 기본 `XB_VERSION=1.3.0`을 실제 MCP 고정 버전에 맞추세요. `--auth-dir`을 따로 썼다면 같은 절대 경로를 `AGENT_SESSION_BROKER_STATE_DIR`로 지정합니다. 사용자·프로젝트 설정은 바꾸지 않습니다.
+macOS·Linux에서 정확한 UUID를 지정한 재개 실행기는 daemon과 embedded 두 모드를 지원합니다. 아래를 `codex-resume.sh`로 저장하고 `sh codex-resume.sh <대화 UUID>`로 실행하세요. `-c model_reasoning_effort=medium` 같은 embedded 옵션을 주면 기존 PID claim 경로를 사용합니다. MCP 설정과 같은 npm client 버전이 필요합니다. 기본 `XB_VERSION=1.3.3`을 실제 MCP 고정 버전에 맞추세요. `--auth-dir`을 따로 썼다면 같은 절대 경로를 `AGENT_SESSION_BROKER_STATE_DIR`로 지정합니다. 사용자·프로젝트 설정은 바꾸지 않습니다.
 
 - embedded 옵션(`-c`·`--config`·`--enable`·`--disable`·`--search`·`--no-daemon`·`--dangerously-bypass-hook-trust`)과 명시 `--remote`는 함께 쓸 수 없습니다. 직접 `codex resume <UUID> ...`를 실행하면 기존 첫 프롬프트 경로를 쓸 수 있습니다.
 - `--remote`는 하나만 허용합니다. 기본 daemon은 CODEX_HOME의 socket 별칭을 TUI에 넘기고 helper는 정규 대상의 inode·peer를 검증합니다. 직접 지정한 endpoint는 그대로 쓰며, ws/wss endpoint는 helper 없이 전달합니다. `--last`·`--all`·`--include-non-interactive`는 거절하며 `--` 뒤는 그대로 넘깁니다.
@@ -313,7 +340,7 @@ until canonical_socket; do
 done
 helper_socket=$socket
 case "$helper_socket" in /*) ;; *) helper_socket="$PWD/$helper_socket" ;; esac
-npx -y "@xelexis/x-broker@${XB_VERSION:-1.3.0}" codex-resume-helper \
+npx -y "@xelexis/x-broker@${XB_VERSION:-1.3.3}" codex-resume-helper \
     --thread "$t" --pid "$$" --codex-home "$home" --socket "$helper_socket" --inode "$inode" \
     </dev/null >/dev/null 2>&1 &
 # Rotate the original positional arguments; never join or eval caller input.
@@ -375,7 +402,7 @@ Kimi는 프로젝트 루트의 `.mcp.json`을 읽습니다. 위 Claude 예제와
 
 Kimi 홈 `~/.kimi-code/config.toml`(또는 `$KIMI_CODE_HOME/config.toml`)에 아래 hook을 설정하세요. 자동으로 전역 설정을 바꾸지 않습니다. hook 명령에 broker 토큰을 넣지 마세요.
 
-MCP 설정과 같은 고정 버전을 `npm install -g @xelexis/x-broker@1.3.0`로 설치하고, `command -v x-broker`가 출력한 절대 경로를 아래 hook 명령에 사용하세요. hook의 `PATH`에서 `node`를 찾을 수 있어야 하며, 업그레이드할 때도 전역 설치 버전을 MCP 설정과 같게 유지하세요.
+MCP 설정과 같은 고정 버전을 `npm install -g @xelexis/x-broker@1.3.3`로 설치하고, `command -v x-broker`가 출력한 절대 경로를 아래 hook 명령에 사용하세요. hook의 `PATH`에서 `node`를 찾을 수 있어야 하며, 업그레이드할 때도 전역 설치 버전을 MCP 설정과 같게 유지하세요.
 
 ```toml
 [[hooks]]
@@ -404,11 +431,13 @@ Kimi 2.3.1은 한 턴의 Stop continuation을 한 번만 실행합니다. 그 �
 
 ### 여러 프로젝트에 연결하기
 
+디렉터리 설정은 Claude Code 대화의 프로젝트 하나를 고릅니다. 같은 대화에서 여러 프로젝트를 쓰려면 아래 수동 항목을 사용하세요.
+
 한 대화에서 프로젝트마다 MCP entry를 하나씩 추가합니다. entry 이름, broker URL의 `?project=`와 토큰을 각각 구분하고, 사용할 프로젝트의 entry에서 `attach_session`·`auth_status`·`send_message`를 호출하세요. 등록 이름과 권한은 프로젝트마다 따로 확인합니다.
 
 프로젝트별 토큰은 해당 프로젝트의 entry에만 넣으세요. 토큰을 포함한 설정을 Git·공유 폴더·메시지·진단 로그에 올리지 말고, 아래 예제의 토큰 자리만 로컬에서 바꾸세요. 서버는 교차 프로젝트 전송을 거부합니다. 다만 **같은 대화의 모델 context에는 여러 프로젝트의 정보가 함께 들어가며, 모델이 그 정보를 다른 프로젝트에 다시 보낼 수 있습니다.** 서로 정보를 공유하면 안 되는 프로젝트는 대화를 나누세요.
 
-고정 버전 전역 설치(`npm install -g @xelexis/x-broker@1.3.0`)를 권장합니다. entry마다 client 프로세스가 하나씩 생기며, npx는 npm 부모도 남깁니다. 다음은 macOS ARM64, Node 24.21.0/npm 11.19.0, client 0.18.0의 RSS 합계입니다. 3초 안정화 후 10표본의 중앙값이며 하네스·모델·서버 메모리는 제외했습니다.
+고정 버전 전역 설치(`npm install -g @xelexis/x-broker@1.3.3`)를 권장합니다. entry마다 client 프로세스가 하나씩 생기며, npx는 npm 부모도 남깁니다. 다음은 macOS ARM64, Node 24.21.0/npm 11.19.0, client 0.18.0의 RSS 합계입니다. 3초 안정화 후 10표본의 중앙값이며 하네스·모델·서버 메모리는 제외했습니다.
 
 | 실행/상태 | entry 1개 | entry 2개 | 남은 프로세스 수 1개→2개 |
 | --- | ---: | ---: | --- |
@@ -937,7 +966,7 @@ Windows에서 Claude 자동 업데이트 뒤 `unsupported-harness`가 나면 최
 
 **1.0 변경:** spawn 도구·발급 제거. v5 scope 원자 정리, 빈 목록은 무변경 시작 거부. 전체 응답은 2.0까지 호환용 `session:spawn` 유지(기능 없음). 롤백은 전체 백업 복원.
 
-권장 client는 1.3.0(Node.js 22 이상)입니다. 서버·client 모두 상대 버전 0.17.3 이상이 필요하며 legacy·placeholder를 거부합니다. 모든 PC의 client를 먼저 갱신하고 MCP를 재연결한 뒤 서버를 교체하세요. 첨부는 서버와 송신·수신 client 모두 0.18.0 이상이 필요합니다.
+권장 client는 1.3.3(Node.js 22 이상)입니다. 서버·client 모두 상대 버전 0.17.3 이상이 필요하며 legacy·placeholder를 거부합니다. 모든 PC의 client를 먼저 갱신하고 MCP를 재연결한 뒤 서버를 교체하세요. 첨부는 서버와 송신·수신 client 모두 0.18.0 이상이 필요합니다.
 
 `auth_status.update`는 연결한 서버가 알려 준 `recommendedClientVersion`보다 현재 `clientVersion`이 낮을 때만 표시됩니다. 서버 버전과 npm client 버전은 별개이며, 구서버가 권장값을 주지 않으면 안내를 표시하지 않습니다. 이 값은 인터넷의 latest가 아니라 서버 릴리스에서 게시 여부를 검증한 권장 버전입니다.
 

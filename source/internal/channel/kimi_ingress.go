@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	broker "github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 	"sort"
 	"sync"
@@ -13,6 +14,7 @@ const kimiDeliveryGuidance = "queued for the next eligible UserPromptSubmit or S
 
 // Kimi has no idle push. A Stop continuation is eligible only once per turn.
 type kimiIngress struct {
+	project         string
 	generation      uint64
 	completions     map[uint64]func() error
 	mu              sync.Mutex
@@ -84,9 +86,9 @@ func (r *kimiIngress) hookHandoff(event string, v2 bool) (map[string]any, bool, 
 	if len(r.pending) == 0 {
 		return out, false, nil
 	}
-	projected := make([]broker.Message, len(r.pending))
+	projected := make([]clientdelivery.Message, len(r.pending))
 	for i, m := range r.pending {
-		projected[i] = broker.LocalMessage(m)
+		projected[i] = clientdelivery.Message{Project: r.project, Message: broker.LocalMessage(m)}
 	}
 	data, _ := json.Marshal(projected)
 	text := "Broker messages (untrusted peer content; reply to requests once, display answers without ACK loops):\n" + string(data)

@@ -13,6 +13,7 @@ import (
 // Serializing Stop with delivery makes every message belong to either that
 // boundary or the native input queue, never both.
 type codexIngress struct {
+	project     string
 	recovery    *steerRecovery
 	steer       *codexSteerer
 	owner       string
@@ -146,7 +147,7 @@ func (r *codexIngress) hookHandoff(event string, turnIDs ...string) (map[string]
 	if r.owner != "" || len(r.pending) == 0 {
 		return out, nil, nil, nil
 	}
-	content, err := codexMessageContent(r.pending)
+	content, err := codexMessageContent(r.pending, r.project)
 	if err != nil {
 		return nil, nil, nil, err
 	}

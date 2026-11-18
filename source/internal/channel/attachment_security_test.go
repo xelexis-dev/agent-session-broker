@@ -31,7 +31,7 @@ func TestAttachmentWithoutBoundSourceSendsNothing(t *testing.T) {
 }
 
 func TestAttachmentClaudeMetadataProjection(t *testing.T) {
-	meta := messageMetadata(broker.Message{Attachment: &broker.Attachment{ID: "private-id", Name: "private-name", Path: "/inbox/file", Size: 12, SHA256: "digest"}})
+	meta := messageMetadata(broker.Message{Attachment: &broker.Attachment{ID: "private-id", Name: "private-name", Path: "/inbox/file", Size: 12, SHA256: "digest"}}, "")
 	if meta["attachment_path"] != "/inbox/file" || meta["attachment_size"] != "12" || meta["attachment_sha256"] != "digest" {
 		t.Fatal("Claude fallback lost local attachment")
 	}
@@ -41,7 +41,7 @@ func TestAttachmentClaudeMetadataProjection(t *testing.T) {
 	if decoded["attachment_id"] != "" || decoded["attachment_name"] != "" {
 		t.Fatal("server reference escaped")
 	}
-	meta = messageMetadata(broker.Message{Attachment: &broker.Attachment{Error: "integrity"}})
+	meta = messageMetadata(broker.Message{Attachment: &broker.Attachment{Error: "integrity"}}, "")
 	if meta["attachment_error"] != "integrity" || meta["attachment_path"] != "" {
 		t.Fatal("Claude fallback lost attachment error")
 	}
@@ -59,7 +59,7 @@ func TestAttachmentCodexHookAndSteerProjection(t *testing.T) {
 		t.Fatal(e)
 	}
 	hook := out["reason"].(string)
-	steer, e := codexMessageContent([]broker.Message{m})
+	steer, e := codexMessageContent([]broker.Message{m}, "")
 	if e != nil {
 		t.Fatal(e)
 	}

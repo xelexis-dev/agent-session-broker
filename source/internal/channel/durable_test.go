@@ -703,7 +703,7 @@ func testDurableChannelLifecycle(t *testing.T, discover bool) {
 			} `json:"params"`
 		}
 		raw := read()
-		if err := json.Unmarshal(raw, &got); err != nil || got.Method != "notifications/claude/channel" || got.Params.Content != body || got.Params.Meta["to"] != "channel-owner" {
+		if err := json.Unmarshal(raw, &got); err != nil || got.Method != "notifications/claude/channel" || got.Params.Content != body || got.Params.Meta["to"] != "channel-owner" || got.Params.Meta["project"] != opts.project {
 			t.Fatalf("channel event: %+v %v", got, err)
 		}
 		if _, err := time.Parse(time.RFC3339Nano, got.Params.Meta["sentAt"]); err != nil {

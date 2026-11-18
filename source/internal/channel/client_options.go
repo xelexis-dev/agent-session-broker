@@ -28,6 +28,7 @@ type clientOptions struct {
 	nickname      string
 	codexSteerOff bool
 	toolProfile   string
+	configSource  string
 }
 
 // takeEnv reads one input variable and removes it from this process, so no child process or diagnostic sees it.
@@ -40,6 +41,10 @@ func takeEnv(name string) string {
 func parseClientOptions(args []string) (clientOptions, error) {
 	// Read and clear every environment input first, even when a flag wins or a value is invalid.
 	envURL, envTok, envFile := takeEnv(envBrokerURL), takeEnv(envToken), takeEnv(envTokenFile)
+	configSource := takeEnv("AGENT_SESSION_BROKER_PLUGIN_SOURCE")
+	if configSource != "userConfig" && configSource != "directory" {
+		configSource = ""
+	}
 	flags := flag.NewFlagSet("client", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	endpoint := flags.String("broker-url", "", "project-scoped HTTP or HTTPS broker MCP URL (local or remote)")
@@ -96,7 +101,7 @@ func parseClientOptions(args []string) (clientOptions, error) {
 	if err := validateBrokerURL(url); err != nil {
 		return clientOptions{}, err
 	}
-	options := clientOptions{endpoint: url, token: secret, deviceMode: isProjectToken(secret)}
+	options := clientOptions{endpoint: url, token: secret, deviceMode: isProjectToken(secret), configSource: configSource}
 	if *steer != "on" && *steer != "off" {
 		return clientOptions{}, errors.New("--codex-steer requires on or off")
 	}

@@ -32,7 +32,7 @@ func (s *Store) retireCredentials(project, id string, target access.RetirementTa
 	if actor.ID == "" || actor.OwnerID == "" {
 		return reject("forbidden")
 	}
-	if target.RegistrationID != "" && !s.canManageSessionLocked(actor.OwnerID, project, target.Identity, target.RecordedOwner) {
+	if target.RegistrationID != "" && !s.canManageSessionRoleLocked(actor.OwnerID, project, target.Identity, s.credentialManagementRoleLocked(p, actor), target.RecordedOwner) {
 		return reject("forbidden")
 	}
 	var indices []int
@@ -55,7 +55,7 @@ func (s *Store) retireCredentials(project, id string, target access.RetirementTa
 			if !tokenReservesName(t, target.Name) {
 				continue
 			}
-			if !s.canManageOwnedSessionLocked(actor.OwnerID, project, t.OwnerID) {
+			if !s.canManageOwnedSessionRoleLocked(actor.OwnerID, project, t.OwnerID, s.credentialManagementRoleLocked(p, actor)) {
 				return reject("forbidden")
 			}
 			if t.FirstConnectedAt.IsZero() {

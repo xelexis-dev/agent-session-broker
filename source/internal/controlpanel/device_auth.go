@@ -79,11 +79,15 @@ type DeviceResponse struct {
 	Interval                int    `json:"interval"`
 }
 type DeviceTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
-	GrantID     string `json:"session_grant_id"`
-	Nickname    string `json:"nickname"`
+	ParentKind        string    `json:"parent_kind,omitempty"`
+	ParentExpiresAt   time.Time `json:"parent_expires_at,omitzero"`
+	Project           string    `json:"project,omitempty"`
+	ProjectGeneration string    `json:"project_generation,omitempty"`
+	AccessToken       string    `json:"access_token"`
+	TokenType         string    `json:"token_type"`
+	ExpiresIn         int       `json:"expires_in"`
+	GrantID           string    `json:"session_grant_id"`
+	Nickname          string    `json:"nickname"`
 }
 type DeviceView struct {
 	Project, OwnerID, Harness, InstanceID, SessionID, Status, Nickname string
@@ -163,9 +167,16 @@ func (s *Store) sessionTokenEligibleLocked(p Project, t SessionToken) bool {
 	if t.Kind != tokenSession {
 		return true
 	}
+	if s.parentAmbiguousLocked(p, t.ParentID) {
+		return false
+	}
 	now := s.now()
 	if !now.Before(t.ExpiresAt) || (!t.LastUsedAt.IsZero() && !now.Before(t.LastUsedAt.Add(sessionIdleLifetime))) {
 		return false
+	}
+	if parent, ok := s.api.tokens[t.ParentID]; ok && isConnectToken(parent) {
+		_, err := s.connectParentLocked(p, t.ParentID, t.AdmissionMode == "auto")
+		return err == nil && t.OwnerID == parent.User && access.ScopesSubset(t.Scopes, access.DelegatedScopes(parent.Connect.MCPScopes))
 	}
 	for _, parent := range p.Tokens {
 		if parent.ID == t.ParentID && parent.Kind == tokenProject && tokenActive(parent, now) && parent.OwnerID == t.OwnerID && s.tokenOwnerEligibleLocked(p, parent.OwnerID) {
@@ -193,7 +204,7 @@ func (s *Store) projectTokenLocked(project, raw string) (Project, SessionToken, 
 	}
 	h := digest(raw)
 	for _, t := range p.Tokens {
-		if t.Kind == tokenProject && tokenActive(t, s.now()) && equal(t.TokenHash, h) && s.tokenOwnerEligibleLocked(p, t.OwnerID) {
+		if t.Kind == tokenProject && tokenActive(t, s.now()) && equal(t.TokenHash, h) && s.tokenOwnerEligibleLocked(p, t.OwnerID) && !s.parentAmbiguousLocked(p, t.ID) {
 			return p, t, nil
 		}
 	}
@@ -259,6 +270,12 @@ func normalizeUserCode(code string) string {
 	return strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(code), "-", ""))
 }
 func (s *Store) BeginDeviceAuthorization(project, raw string, r DeviceRequest) (DeviceResponse, error) {
+	return s.beginDeviceAuthorization(project, raw, r, false, false)
+}
+func (s *Store) beginConnectAuthorization(project, raw string, r DeviceRequest, plaintext bool) (DeviceResponse, error) {
+	return s.beginDeviceAuthorization(project, raw, r, true, plaintext)
+}
+func (s *Store) beginDeviceAuthorization(project, raw string, r DeviceRequest, connect, plaintext bool) (DeviceResponse, error) {
 	if !r.valid() {
 		return DeviceResponse{}, errDeviceRequest
 	}
@@ -266,11 +283,22 @@ func (s *Store) BeginDeviceAuthorization(project, raw string, r DeviceRequest) (
 	// identity. Only the current process retains it under the issued code hash.
 	cwdHint := r.CWDBasename
 	r.CWDBasename = ""
+	if connect && s.beforeTokenExchange != nil {
+		s.beforeTokenExchange()
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	p, t, err := s.projectTokenLocked(project, raw)
+	if connect && plaintext && !s.data.AllowHTTP {
+		return DeviceResponse{}, errConnectHTTPDenied
+	}
+	p, t, err := s.admissionParentLocked(project, raw, connect, false)
 	if err != nil {
 		return DeviceResponse{}, err
+	}
+	if connect {
+		if wait := s.directRateWaitLocked(project, t, "connect", false); wait > 0 {
+			return DeviceResponse{}, &directRateError{wait: wait}
+		}
 	}
 	now := s.now().UTC()
 	previousDevices := p.Devices
@@ -339,8 +367,11 @@ func (s *Store) deviceForUserLocked(actor, code string) (Project, int, SessionTo
 			if !equal(d.UserHash, h) || !s.now().Before(d.ExpiresAt) {
 				continue
 			}
+			if parent, err := s.connectParentLocked(p, d.TokenID, false); err == nil && (actor == parent.User || s.projectRoleLocked(actor, p.Name) == "owner") {
+				return p, i, connectSessionParent(parent), nil
+			}
 			for _, t := range p.Tokens {
-				if t.ID == d.TokenID && t.Kind == tokenProject && !t.Revoked && s.tokenOwnerEligibleLocked(p, t.OwnerID) && s.tokenOwnerEligibleLocked(p, actor) && (actor == t.OwnerID || s.projectRoleLocked(actor, p.Name) == "owner") {
+				if t.ID == d.TokenID && !s.parentAmbiguousLocked(p, t.ID) && t.Kind == tokenProject && !t.Revoked && s.tokenOwnerEligibleLocked(p, t.OwnerID) && s.tokenOwnerEligibleLocked(p, actor) && (actor == t.OwnerID || s.projectRoleLocked(actor, p.Name) == "owner") {
 					return p, i, t, nil
 				}
 			}
@@ -377,6 +408,12 @@ func (s *Store) ApproveDeviceAuthorization(actor, code, nickname string, deny bo
 	return s.approveDeviceAuthorizationGuarded(actor, code, nickname, deny, nil)
 }
 func (s *Store) approveDeviceAuthorizationGuarded(actor, code, nickname string, deny bool, guard commitGuard) (DeviceView, error) {
+	return s.approveDeviceAuthorization(actor, code, nickname, deny, guard, false)
+}
+func (s *Store) approvePanelDeviceAuthorization(actor, code, nickname string, deny bool) (DeviceView, error) {
+	return s.approveDeviceAuthorization(actor, code, nickname, deny, nil, true)
+}
+func (s *Store) approveDeviceAuthorization(actor, code, nickname string, deny bool, guard commitGuard, panelSession bool) (DeviceView, error) {
 	nickname = strings.TrimSpace(nickname)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -389,6 +426,9 @@ func (s *Store) approveDeviceAuthorizationGuarded(actor, code, nickname string, 
 	p, i, parent, err := s.deviceForUserLocked(actor, code)
 	if err != nil {
 		return DeviceView{}, err
+	}
+	if parent, ok := s.api.tokens[parent.ID]; ok && isConnectToken(parent) && !panelSession {
+		return DeviceView{}, ErrForbidden
 	}
 	d := p.Devices[i]
 	if d.Status != "pending" {
@@ -405,6 +445,9 @@ func (s *Store) approveDeviceAuthorizationGuarded(actor, code, nickname string, 
 		}
 		if activeTokenCount(p.Tokens, s.now()) >= projectTokenCap {
 			return DeviceView{}, ErrTokenCap
+		}
+		if t, ok := s.api.tokens[parent.ID]; ok && isConnectToken(t) && connectCount(s.data, parent.ID, s.now()) >= t.Connect.MaxSessions {
+			return DeviceView{}, errConnectCapacity
 		}
 		now := s.now().UTC()
 		id := rand.Text() + rand.Text()
@@ -435,17 +478,31 @@ func (s *Store) approveDeviceAuthorizationGuarded(actor, code, nickname string, 
 	return view, nil
 }
 func (s *Store) ExchangeDeviceToken(project, raw, code, clientID string, plaintext bool) (DeviceTokenResponse, error) {
+	return s.exchangeDeviceToken(project, raw, code, clientID, plaintext, strings.HasPrefix(raw, "asb_u_"))
+}
+func (s *Store) exchangeConnectToken(project, raw, code, clientID string, plaintext bool) (DeviceTokenResponse, error) {
+	return s.exchangeDeviceToken(project, raw, code, clientID, plaintext, true)
+}
+func (s *Store) exchangeDeviceToken(project, raw, code, clientID string, plaintext, connect bool) (DeviceTokenResponse, error) {
 	if s.beforeTokenExchange != nil {
 		s.beforeTokenExchange()
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if plaintext && !s.data.AllowHTTP {
+		if connect {
+			return DeviceTokenResponse{}, errConnectHTTPDenied
+		}
 		return DeviceTokenResponse{}, errHTTPNotAllowed
 	}
-	p, parent, err := s.projectTokenLocked(project, raw)
+	p, parent, err := s.admissionParentLocked(project, raw, connect, false)
 	if err != nil {
 		return DeviceTokenResponse{}, err
+	}
+	if connect {
+		if wait := s.directRateWaitLocked(project, parent, "connect", false); wait > 0 {
+			return DeviceTokenResponse{}, &directRateError{wait: wait}
+		}
 	}
 	if len(code) > 256 || code == "" {
 		return DeviceTokenResponse{}, errDeviceGrant
@@ -506,7 +563,11 @@ func (s *Store) ExchangeDeviceToken(project, raw, code, clientID string, plainte
 		if err = s.commitProject(p); err != nil {
 			return DeviceTokenResponse{}, err
 		}
-		return DeviceTokenResponse{AccessToken: raw, TokenType: "Bearer", ExpiresIn: int(t.ExpiresAt.Sub(now).Seconds()), GrantID: t.ID, Nickname: t.Nickname}, nil
+		response := DeviceTokenResponse{AccessToken: raw, TokenType: "Bearer", ExpiresIn: int(t.ExpiresAt.Sub(now).Seconds()), GrantID: t.ID, Nickname: t.Nickname}
+		if connect {
+			response = withConnectParent(response, s.api.tokens[parent.ID], p)
+		}
+		return response, nil
 	}
 	return DeviceTokenResponse{}, errDeviceGrant
 }

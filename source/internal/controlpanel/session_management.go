@@ -21,7 +21,7 @@ func (s *Store) checkSessionManagement(project, id, identity, owner string, gene
 		return ErrForbidden
 	}
 	for _, token := range p.Tokens {
-		if token.ID == id && token.OwnerID != "" && s.sessionTokenEligibleLocked(p, token) && s.canManageSessionLocked(token.OwnerID, project, identity, owner) {
+		if token.ID == id && token.OwnerID != "" && s.sessionTokenEligibleLocked(p, token) && s.canManageSessionRoleLocked(token.OwnerID, project, identity, s.credentialManagementRoleLocked(p, token), owner) {
 			return nil
 		}
 	}

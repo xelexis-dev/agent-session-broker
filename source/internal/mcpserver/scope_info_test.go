@@ -45,6 +45,7 @@ func TestTokenInfoIsHiddenAndRequiresOnlyAValidGrant(t *testing.T) {
 		denied bool
 	}{
 		{"restricted", &access.Grant{TokenID: "synthetic", Scopes: []string{access.SessionRegister}, AdmissionMode: "manual", ExpiresAt: time.Now().Add(time.Hour)}, false},
+		{"connect", &access.Grant{TokenID: "synthetic", Scopes: []string{access.SessionRegister}, AdmissionMode: "manual", ExpiresAt: time.Now().Add(time.Hour), ParentKind: "user-connect", ParentExpiresAt: time.Now().Add(24 * time.Hour)}, false},
 		{"no-grant", nil, true},
 		{"expired", &access.Grant{TokenID: "synthetic", Scopes: []string{access.SessionRegister}, ExpiresAt: time.Now().Add(-time.Hour)}, true},
 	} {
@@ -76,7 +77,7 @@ func TestTokenInfoIsHiddenAndRequiresOnlyAValidGrant(t *testing.T) {
 			if !tc.denied {
 				raw, _ := json.Marshal(result.StructuredContent)
 				var info access.TokenInfo
-				if json.Unmarshal(raw, &info) != nil || !reflect.DeepEqual(info.Scopes, tc.grant.Scopes) || info.AdmissionMode != "manual" || !info.ExpiresAt.Equal(tc.grant.ExpiresAt) {
+				if json.Unmarshal(raw, &info) != nil || !reflect.DeepEqual(info.Scopes, tc.grant.Scopes) || info.AdmissionMode != "manual" || !info.ExpiresAt.Equal(tc.grant.ExpiresAt) || info.ParentKind != tc.grant.ParentKind || !info.ParentExpiresAt.Equal(tc.grant.ParentExpiresAt) {
 					t.Fatal("scope snapshot changed")
 				}
 			}

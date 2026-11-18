@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func scanMessages() []broker.Message {
 func scanPage(messages []broker.Message, next any) json.RawMessage {
 	items := []any{}
 	if messages != nil {
-		text, _ := codexMessageContent(messages)
+		text, _ := codexMessageContent(messages, "")
 		items = append(items, map[string]any{"turnId": "moved-turn", "item": map[string]any{"type": "userMessage", "clientId": "xb:R:E:1-2", "content": []any{map[string]any{"type": "text", "text": text}}}})
 	}
 	raw, _ := json.Marshal(map[string]any{"data": items, "nextCursor": next})
@@ -74,9 +75,28 @@ func TestSteerScanMalformedPageCannotProveReceipt(t *testing.T) {
 }
 func TestSteerEnvelopeRejectsFalseEvidence(t *testing.T) {
 	messages := scanMessages()
-	text, _ := codexMessageContent(messages)
+	text, _ := codexMessageContent(messages, "")
 	if _, err := parseSteerEnvelope(text, "R", []uint64{1, 2}); err != nil {
 		t.Fatal(err)
+	}
+	// Display provenance is additive: old receipts remain valid, unknown fields do not.
+	for _, project := range []string{"P1", "P2"} {
+		labelled, _ := codexMessageContent(messages, project)
+		got, err := parseSteerEnvelope(labelled, "R", []uint64{1, 2})
+		if err != nil || len(got) != 2 || !sameSteerEnvelope(got[0], messages[0]) {
+			t.Fatal("labelled receipt changed identity")
+		}
+	}
+	legacy, _ := json.Marshal(messages)
+	if _, err := parseSteerEnvelope(codexEnvelopePrefix+string(legacy), "R", []uint64{1, 2}); err != nil {
+		t.Fatal("legacy receipt rejected")
+	}
+	unknown := strings.Replace(text, `[{`, `[{"unknown":"value",`, 1)
+	if unknown == text {
+		t.Fatal("unknown-field fixture did not modify envelope")
+	}
+	if _, err := parseSteerEnvelope(unknown, "R", []uint64{1, 2}); err == nil {
+		t.Fatal("unknown field accepted")
 	}
 	if _, err := parseSteerEnvelope(text, "R", []uint64{1, 3}); err == nil {
 		t.Fatal("client-id endpoints invented interior membership")

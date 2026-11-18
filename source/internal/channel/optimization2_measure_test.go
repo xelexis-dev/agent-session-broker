@@ -16,11 +16,11 @@ func TestOptimization2EnvelopeMeasure(t *testing.T) {
 		t.Skip("opt-in synthetic envelope bytes")
 	}
 	message := broker.Message{DeliverySequence: 1, FromRegistrationID: strings.Repeat("X", 26), From: "worker-abc-1", To: "planner", Body: strings.Repeat("x", 100), SentAt: time.Date(2026, 10, 31, 1, 2, 3, 0, time.UTC)}
-	codex, e := codexMessageContent([]broker.Message{message})
+	codex, e := codexMessageContent([]broker.Message{message}, "")
 	if e != nil {
 		t.Fatal(e)
 	}
-	claude, e := json.Marshal(map[string]any{"jsonrpc": "2.0", "method": "notifications/claude/channel", "params": map[string]any{"content": message.Body, "meta": messageMetadata(message)}})
+	claude, e := json.Marshal(map[string]any{"jsonrpc": "2.0", "method": "notifications/claude/channel", "params": map[string]any{"content": message.Body, "meta": messageMetadata(message, "")}})
 	if e != nil {
 		t.Fatal(e)
 	}

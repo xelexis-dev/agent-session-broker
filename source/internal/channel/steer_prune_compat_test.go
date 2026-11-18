@@ -53,7 +53,7 @@ func TestSteerPrunedCachedEmptyHookCompatibility(t *testing.T) {
 	if len(f.pushed) != 0 {
 		t.Fatal("hook messages escaped through queue")
 	}
-	expected, err := codexMessageContent(scanMessages())
+	expected, err := codexMessageContent(scanMessages(), "")
 	if err != nil {
 		t.Fatal(err)
 	}

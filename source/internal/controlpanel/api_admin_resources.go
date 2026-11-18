@@ -163,7 +163,7 @@ func (p *panel) apiDeviceLookup(w http.ResponseWriter, r *http.Request, a apiPri
 		apiError(w, err)
 		return
 	}
-	view, err := p.decideDeviceCode(a.userID, req.UserCode, "lookup", "", a.guardLocked(p.store, "approve"))
+	view, err := p.decideDeviceCode(a.userID, req.UserCode, "lookup", "", a.guardLocked(p.store, "approve"), false)
 	if err != nil {
 		apiError(w, err)
 		return
@@ -180,7 +180,7 @@ func (p *panel) apiDeviceDecision(w http.ResponseWriter, r *http.Request, a apiP
 		apiError(w, ErrInvalid)
 		return
 	}
-	view, err := p.decideDeviceCode(a.userID, req.UserCode, req.Action, req.Nickname, a.guardLocked(p.store, "approve"))
+	view, err := p.decideDeviceCode(a.userID, req.UserCode, req.Action, req.Nickname, a.guardLocked(p.store, "approve"), false)
 	if err != nil {
 		apiError(w, err)
 		return

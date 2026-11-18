@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -38,7 +39,7 @@ func (a *Adapter) PushExternal(ctx context.Context, request broker.AttachRequest
 		return ErrSessionNotFound
 	}
 	message = broker.LocalMessage(message)
-	payload, err := json.Marshal(broker.DeliveredMessage{Attachment: broker.LocalAttachment(message.Attachment), DeliverySequence: message.DeliverySequence, FromRegistrationID: message.FromRegistrationID, From: message.From, To: message.To, Body: message.Body, SentAt: message.SentAt})
+	payload, err := json.Marshal(clientdelivery.Entry{Project: clientdelivery.Project(ctx), DeliveredMessage: broker.DeliveredMessage{Attachment: broker.LocalAttachment(message.Attachment), DeliverySequence: message.DeliverySequence, FromRegistrationID: message.FromRegistrationID, From: message.From, To: message.To, Body: message.Body, SentAt: message.SentAt}})
 	if err != nil || len(payload) > maxEnvelopeBytes || message.Batch != nil {
 		return errors.New("invalid message: maximum envelope size is 64 KiB; batches are receive-only")
 	}

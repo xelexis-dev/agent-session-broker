@@ -645,8 +645,30 @@ type releaseAssetManifest struct {
 }
 type releaseLock struct {
 	Candidate, Previous string
+	PreviousClient      struct{ Version, Source string }
 	UpgradeSources      []string
 	Assets              []struct{ Version, Kind, Platform, SHA256 string }
+}
+
+// releaseClientFor is the client released with server version v; a kept-client previous release (R3-C2) shipped none of its own.
+func releaseClientFor(lock releaseLock, v string) string {
+	if v == lock.Previous && lock.PreviousClient.Version != "" {
+		return lock.PreviousClient.Version
+	}
+	return v
+}
+
+func TestReleaseClientForKeptPrevious(t *testing.T) {
+	for _, row := range []struct{ lock, version, want string }{
+		{`{"previous":"1.3.2","previousClient":{"version":"1.3.0","source":"receipt+tag"}}`, "1.3.2", "1.3.0"},
+		{`{"previous":"1.3.2","previousClient":{"version":"1.3.0","source":"tag"}}`, "0.17.3", "0.17.3"},
+		{`{"previous":"1.3.0"}`, "1.3.0", "1.3.0"},
+	} {
+		var lock releaseLock
+		if e := json.Unmarshal([]byte(row.lock), &lock); e != nil || releaseClientFor(lock, row.version) != row.want {
+			t.Errorf("%s %s: got %q, want %q", row.lock, row.version, releaseClientFor(lock, row.version), row.want)
+		}
+	}
 }
 
 func releaseInputs(t *testing.T, candidate bool) (releaseLock, releaseAssetManifest, string) {
@@ -776,7 +798,7 @@ func TestReleaseUpgradeInvariants(t *testing.T) {
 	for _, version := range lock.UpgradeSources {
 		expected = append(expected, "upgrade/"+version)
 		if !t.Run(version, func(t *testing.T) {
-			f := releaseNew(t, version, releaseBinary(t, manifest, "server", version), releaseBinary(t, manifest, "client", version))
+			f := releaseNew(t, version, releaseBinary(t, manifest, "server", version), releaseBinary(t, manifest, "client", releaseClientFor(lock, version)))
 			f.seed()
 			want := releaseReadFacts(t, f.server.dir)
 			f.stage(candidate, want, true)
@@ -791,7 +813,7 @@ func TestReleaseRestoreRehearsal(t *testing.T) {
 	releaseGate(t)
 	lock, manifest, candidate := releaseInputs(t, true)
 	old := releaseBinary(t, manifest, "server", lock.Previous)
-	f := releaseNew(t, lock.Previous, old, releaseBinary(t, manifest, "client", lock.Previous))
+	f := releaseNew(t, lock.Previous, old, releaseBinary(t, manifest, "client", releaseClientFor(lock, lock.Previous)))
 	f.seed()
 	s0 := releaseReadFacts(t, f.server.dir)
 	f.server.stop()
@@ -855,7 +877,7 @@ func TestReleaseOldServerSeedAndStoppedRestore(t *testing.T) {
 	for _, version := range lock.UpgradeSources {
 		if !t.Run(version, func(t *testing.T) {
 			old := releaseBinary(t, manifest, "server", version)
-			f := releaseNew(t, version, old, releaseBinary(t, manifest, "client", version))
+			f := releaseNew(t, version, old, releaseBinary(t, manifest, "client", releaseClientFor(lock, version)))
 			f.seed()
 			before := releaseReadFacts(t, f.server.dir)
 			f.server.stop()

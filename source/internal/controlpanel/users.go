@@ -576,7 +576,16 @@ func (s *Store) CanManageSession(actor, project, identity string, recordedOwner 
 }
 
 func (s *Store) canManageSessionLocked(actor, project, identity string, recordedOwner ...string) bool {
-	if s.projectRoleLocked(actor, project) == "owner" {
+	return s.canManageSessionRoleLocked(actor, project, identity, s.projectRoleLocked(actor, project), recordedOwner...)
+}
+func (s *Store) credentialManagementRoleLocked(p Project, t SessionToken) string {
+	if parent, ok := s.api.tokens[t.ParentID]; ok && isConnectToken(parent) {
+		return p.Members[t.OwnerID]
+	}
+	return s.projectRoleLocked(t.OwnerID, p.Name)
+}
+func (s *Store) canManageSessionRoleLocked(actor, project, identity, role string, recordedOwner ...string) bool {
+	if role == "owner" {
 		return true
 	}
 	if identity == "" {
@@ -589,18 +598,20 @@ func (s *Store) canManageSessionLocked(actor, project, identity string, recorded
 		// An older revoked grant must not confer access after another member
 		// reapproves the same conversation under their own token.
 		if token.BoundIdentity == identity {
-			return s.canManageOwnedSessionLocked(actor, project, token.OwnerID)
+			return s.canManageOwnedSessionRoleLocked(actor, project, token.OwnerID, role)
 		}
 	}
 	if len(recordedOwner) == 1 {
-		return s.canManageOwnedSessionLocked(actor, project, recordedOwner[0])
+		return s.canManageOwnedSessionRoleLocked(actor, project, recordedOwner[0], role)
 	}
 	return false
 }
 
 // Shared by registered-session and reserved-grant management. Call with s.mu held.
 func (s *Store) canManageOwnedSessionLocked(actor, project, ownerID string) bool {
-	role := s.projectRoleLocked(actor, project)
+	return s.canManageOwnedSessionRoleLocked(actor, project, ownerID, s.projectRoleLocked(actor, project))
+}
+func (s *Store) canManageOwnedSessionRoleLocked(actor, project, ownerID, role string) bool {
 	if role == "owner" {
 		return true
 	}
@@ -699,6 +710,9 @@ func (s *Store) expiryPendingLocked(now time.Time) bool {
 // expireLocked publishes all expiration removals together, retaining the old
 // state on disk failures. Callers fail closed when an expiration cannot persist.
 func (s *Store) expireLocked() error {
+	if err := s.sweepConnectLocked(); err != nil {
+		return err
+	}
 	now := s.now().UTC()
 	s.pruneDeviceDirectoryHintsLocked(now)
 	if !s.expiryPendingLocked(now) {

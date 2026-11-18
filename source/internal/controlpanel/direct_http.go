@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const directPath = "/oauth/session_registration"
@@ -31,7 +32,11 @@ func (p *panel) directHTTP(w http.ResponseWriter, r *http.Request) {
 		if p.store.scopedIssuanceReady() {
 			capabilities = append(capabilities, "direct-registration-v1", protocol.ReceiverHolderCapability)
 		}
-		writeDeviceJSON(w, 200, map[string]any{"version": 1, "capabilities": capabilities})
+		connect, httpAllowed := p.store.connectCapability()
+		if connect {
+			capabilities = append(capabilities, "connect-parent-v1")
+		}
+		writeDeviceJSON(w, 200, map[string]any{"version": 1, "capabilities": capabilities, "connect_http_allowed": httpAllowed})
 		return
 	}
 	if r.Method != "POST" {
@@ -99,7 +104,18 @@ func (p *panel) directHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	plaintext := p.plaintext(r)
-	if plaintext && !p.store.AllowHTTP(project) {
+	connect := strings.HasPrefix(raw, "asb_u_")
+	if connect {
+		if _, err := p.store.authenticateConnect(raw); err != nil {
+			writeDirectFailure(w, err)
+			return
+		}
+		if plaintext && !p.store.InstanceHTTPPolicy() {
+			writeConnectFailure(w, errConnectHTTPDenied)
+			return
+		}
+	}
+	if !connect && plaintext && !p.store.AllowHTTP(project) {
 		p.denyTransport(w, r, project)
 		return
 	}
@@ -247,6 +263,9 @@ func (p *panel) directHTTP(w http.ResponseWriter, r *http.Request) {
 	writeDeviceJSON(w, 200, result)
 }
 func writeDirectFailure(w http.ResponseWriter, err error) {
+	if writeConnectFailure(w, err) {
+		return
+	}
 	status, code := 503, "server_error"
 	var device deviceError
 	if errors.As(err, &device) {

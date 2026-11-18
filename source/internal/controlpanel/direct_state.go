@@ -91,6 +91,13 @@ func validAudit(e AuditEvent) bool {
 	return e.GrantID == "" || len(e.GrantID) == 52
 }
 func (s *Store) writeAuditBatch(puts map[string][]byte, events []AuditEvent, projects map[string]Project, apiEvents ...*apiAuditEvent) error {
+	var event *apiAuditEvent
+	if len(apiEvents) > 0 {
+		event = apiEvents[0]
+	}
+	return s.writeAuditBatchDeletes(puts, events, projects, event, nil)
+}
+func (s *Store) writeAuditBatchDeletes(puts map[string][]byte, events []AuditEvent, projects map[string]Project, apiEvent *apiAuditEvent, deletes []string) error {
 	if s.writeBatch == nil {
 		return ErrStorage
 	}
@@ -98,7 +105,6 @@ func (s *Store) writeAuditBatch(puts map[string][]byte, events []AuditEvent, pro
 	if next == nil {
 		next = map[string]AuditEvent{}
 	}
-	var deletes []string
 	now := s.now()
 	for key, e := range next {
 		if pruneGenerationAudit(e, s.data.Projects, projects) || !now.Before(e.At.Add(auditRetention)) {
@@ -136,8 +142,8 @@ func (s *Store) writeAuditBatch(puts map[string][]byte, events []AuditEvent, pro
 		next[key] = e
 	}
 	var err error
-	if len(apiEvents) > 0 && apiEvents[0] != nil {
-		err = s.apiBatchLocked(puts, deletes, *apiEvents[0])
+	if apiEvent != nil {
+		err = s.apiBatchLocked(puts, deletes, *apiEvent)
 	} else {
 		err = s.writeBatch(puts, deletes)
 	}
@@ -262,6 +268,9 @@ func (s *Store) prepareAutoCommit(candidate state, events []AuditEvent) (state, 
 					parentActive = tokenActive(t, now)
 					break
 				}
+			}
+			if parent, ok := s.api.tokens[b.ParentID]; ok && isConnectToken(parent) {
+				parentActive = connectTokenLive(candidate, parent, now) && roleRank(p.Members[parent.User]) >= roleRank("developer")
 			}
 			drop := b.State == "issued" && !now.Before(b.ExpiresAt)
 			for i, t := range p.Tokens {

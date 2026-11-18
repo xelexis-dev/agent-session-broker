@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/clientstate"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/codexcontrol"
 	broker "github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
@@ -51,12 +52,15 @@ func parseSteerEnvelope(text, registration string, sequences []uint64) ([]broker
 	}
 	decoder := json.NewDecoder(strings.NewReader(strings.TrimPrefix(text, codexEnvelopePrefix)))
 	decoder.DisallowUnknownFields()
-	var messages []broker.Message
-	if decoder.Decode(&messages) != nil || decoder.Decode(new(any)) != io.EOF || len(messages) == 0 || len(messages) > 32 || len(messages) != len(sequences) {
+	var projected []clientdelivery.Message
+	if decoder.Decode(&projected) != nil || decoder.Decode(new(any)) != io.EOF || len(projected) == 0 || len(projected) > 32 || len(projected) != len(sequences) {
 		return nil, errSteerScan
 	}
+	messages := make([]broker.Message, len(projected))
 	var prior uint64
-	for i, m := range messages {
+	for i, entry := range projected {
+		m := entry.Message
+		messages[i] = m
 		if m.Batch != nil || m.DeliverySequence <= prior || m.RegistrationID != registration || m.SentAt.IsZero() || m.DeliverySequence != sequences[i] {
 			return nil, errSteerScan
 		}

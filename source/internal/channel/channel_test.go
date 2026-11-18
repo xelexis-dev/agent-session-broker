@@ -50,7 +50,7 @@ func (f *fakeUpstream) CallTool(ctx context.Context, p *mcp.CallToolParams) (*mc
 // The channel push metadata is shared by every Claude channel path. Keep the
 // exact millisecond UTC form the legacy channel test pinned.
 func TestMessageMetadataSentAtMillisecondUTC(t *testing.T) {
-	meta := messageMetadata(broker.Message{From: "codex-current", To: "claude-current", Body: "automatic-nonce", SentAt: time.Date(2026, 10, 18, 1, 2, 3, 456000000, time.UTC)})
+	meta := messageMetadata(broker.Message{From: "codex-current", To: "claude-current", Body: "automatic-nonce", SentAt: time.Date(2026, 10, 18, 1, 2, 3, 456000000, time.UTC)}, "")
 	if meta["sentAt"] != "2026-10-18T01:02:03.456Z" {
 		t.Fatalf("channel metadata sentAt = %q", meta["sentAt"])
 	}

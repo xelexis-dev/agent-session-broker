@@ -126,8 +126,11 @@ func maintainRegistration(ctx context.Context, upstream Upstream, identity broke
 	}
 }
 
-func messageMetadata(message broker.Message) map[string]string {
+func messageMetadata(message broker.Message, project string) map[string]string {
 	meta := map[string]string{"from": message.From, "to": message.To}
+	if project != "" {
+		meta["project"] = project
+	}
 	if message.DeliverySequence != 0 {
 		meta["deliverySequence"] = strconv.FormatUint(message.DeliverySequence, 10)
 	}

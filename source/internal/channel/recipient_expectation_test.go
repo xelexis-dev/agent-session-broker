@@ -81,7 +81,7 @@ func TestClientForwardsRecipientExpectationAndSourceToNativeSink(t *testing.T) {
 func TestChannelAndCodexHookPreserveSourceRegistrationAndSize(t *testing.T) {
 	id := strings.Repeat("A", 26)
 	m := broker.Message{From: "from", To: "to", Body: "frame", FromRegistrationID: id}
-	if messageMetadata(m)["fromRegistrationId"] != id {
+	if messageMetadata(m, "")["fromRegistrationId"] != id {
 		t.Fatal("Claude event metadata dropped source")
 	}
 	router := newCodexIngress(func(context.Context, broker.Message) error { t.Fatal("unexpected direct push"); return nil })

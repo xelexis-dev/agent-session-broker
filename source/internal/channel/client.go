@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	"net/url"
 	"os"
 	"regexp"
@@ -238,6 +239,7 @@ func runClientTransport(ctx context.Context, transport mcp.Transport, args []str
 		return err
 	}
 	ctx = context.WithValue(ctx, toolProfileKey{}, options.toolProfile)
+	ctx = context.WithValue(ctx, clientConfigKey{}, clientConfig{source: options.configSource, broker: brokerScope(options.endpoint, options.project)})
 	var shared Upstream
 	var tools []*mcp.Tool
 	opts := durableOptions{codexSteerOff: options.codexSteerOff, tokenMode: true, project: options.project, scope: brokerScope(options.endpoint, options.project)}
@@ -313,6 +315,7 @@ func runClientTransport(ctx context.Context, transport mcp.Transport, args []str
 			return errors.New("Kimi working directory is unavailable")
 		}
 		k := newKimiClient(pid, cwd)
+		k.queue.project = opts.project
 		opts.kimi, opts.harness = k, "kimi"
 		stop := k.listen(ctx, opts.state.Dir())
 		defer stop()
@@ -501,7 +504,7 @@ func ServeDurableChannel(ctx context.Context, transport mcp.Transport, upstream 
 				return sinkCtx.Err()
 			}
 			message = broker.LocalMessage(message)
-			return wire.notify(sinkCtx, message.Body, messageMetadata(message))
+			return wire.notify(sinkCtx, message.Body, messageMetadata(message, clientdelivery.Project(sinkCtx)))
 		}, nil, nil
 	}
 	identify := claudeConversationIdentity(identity, &opts)

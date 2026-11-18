@@ -30,6 +30,8 @@ type Grant struct {
 	// The false phase runs under the broker mutation lock before its commit.
 	Registration            func(identity, id, owner, name string, revision uint64, confirmed bool) error
 	ParentID, AdmissionMode string
+	ParentKind              string
+	ParentExpiresAt         time.Time
 	// Scopes is a server-owned copy of the persisted child permission snapshot.
 	Scopes                     []string
 	ExpiresAt                  time.Time

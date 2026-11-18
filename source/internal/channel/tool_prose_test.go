@@ -61,8 +61,8 @@ func TestToolProseSurface(t *testing.T) {
 	encoded, _ := json.Marshal(contract)
 	fmt.Printf("TOOL_CONTRACT %x\n", sha256.Sum256(encoded))
 	fmt.Printf("TOOL_DESCRIPTION_TOTAL %d\n", descriptions)
-	if fmt.Sprintf("%x", sha256.Sum256(encoded)) != "639756afd30f33a5fc065536ceaca83991b0c7fe12dcfd5b6a6f893807882afd" {
-		t.Fatal("tool names, schemas or annotations changed beyond the reviewed optional parentDiagnostic schema")
+	if fmt.Sprintf("%x", sha256.Sum256(encoded)) != "d49bb3b7a30a4aa516de41412af6485da78abb521a407496fc504d768580f1b0" {
+		t.Fatal("tool names, schemas or annotations changed beyond the reviewed optional configSource/broker diagnostic fields")
 	}
 	if descriptions > 3600 {
 		t.Fatalf("description bytes=%d, want <=3600", descriptions)

@@ -4,6 +4,19 @@ English | [한국어](UPDATE.ko.md)
 
 Earlier tags without release notes: 0.1.0–0.1.11, 0.2.0.
 
+## 1.3.3 (2026-11-18)
+
+- Claude Code plugin: connect each repository to its own broker project on one PC. Claude Code keeps plugin settings for the whole user account, so the plugin's broker URL and token cannot differ per repository. The optional file `~/.config/x-broker/claude-plugin.json` in your account's home folder maps a folder to a broker URL and the absolute path of a private token file, optionally with a tool profile. Subfolders use the entry of the nearest mapped folder; other folders keep the plugin settings. The token itself never goes into this file. On macOS and Linux the file must be owner-only, in real folders you own. An unsafe or invalid file stops the x-broker server with one fixed line instead of falling back to the plugin settings. The plugin never reads settings from inside a repository. The Codex plugin and manual MCP entries are unchanged. See "Different projects per repository (Claude Code)" in the agent guide; the Claude Code plugin on Windows remains unverified.
+- `auth_status` adds `configSource` (`directory` or `userConfig` for the Claude Code plugin, omitted for manual entries and Codex) and `broker` (the selected server and project, without a token or other query parameters).
+- Messages that the client delivers into a conversation now include a `project` field: the project of the client's configured broker URL, never a value from the sender or the message body. It is added to Claude Code channel and inbox deliveries, Codex hook and busy-conversation deliveries, and Kimi deliveries. Messages read with tool calls are unchanged.
+- `xbroker_docs` topics no longer link to sections that the embedded help does not contain; setup now points to the public multiple-project instructions.
+- Dependency update: `golang.org/x/crypto` 0.59.0 and `golang.org/x/sys` 0.50.0. This clears a module-level vulnerability report for a package x-broker does not import (GO-2026-5932).
+- New client `@xelexis/x-broker@1.3.3`. The plugin pins it and installs it on its next start. Manual entries: run `npm install -g @xelexis/x-broker@1.3.3` (or change the npx pin), then restart the MCP server. Clients 0.17.3 and later keep working with this server.
+- Update the plugin. Claude Code: `claude plugin marketplace update xelexis`, `claude plugin update x-broker@xelexis`, then `/reload-plugins`. Codex: `codex plugin marketplace upgrade xelexis`, `codex plugin add x-broker@xelexis`, then trust the five hooks again: the hooks did not change, but Codex marks them as modified after every plugin update.
+- Going back to client 1.3.0: if client 1.3.3 stopped right after delivering a message into a busy Codex conversation and before confirming it, client 1.3.0 cannot recognize that delivery. It then holds later messages for that conversation until the client is 1.3.3 again, which confirms the delivery without sending it twice. Other conversations are not affected.
+- Server: it now recommends client 1.3.3, so older clients show an update notice in `auth_status`; no other behaviour change. Replacing a 1.3.2 server is optional.
+- Data: no change. Rollback is unchanged: restore the complete backup together with the 1.3.2, 1.3.1, 1.3.0 or 1.2.1 server. Going back to plugin 1.3.2 ignores the directory settings file and uses the plugin settings again.
+
 ## 1.3.2 (2026-11-15)
 
 - The marketplace plugin now starts the client through a small launcher instead of `npx`, so no npm process stays running next to it. Measured per session: macOS 126.5 MiB → 21.8 MiB (the client alone); Windows 282.4 MiB → 133.5 MiB working set (a small node relay remains on Windows).

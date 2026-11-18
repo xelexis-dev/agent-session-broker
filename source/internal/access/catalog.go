@@ -39,6 +39,8 @@ func ScopeDetails(scopes []string) []ScopeDetail {
 const TokenInfoTool = "session_token_info"
 
 type TokenInfo struct {
+	ParentKind          string    `json:"parentKind,omitempty"`
+	ParentExpiresAt     time.Time `json:"parentExpiresAt,omitzero"`
 	ProjectGenerationID string    `json:"projectGenerationId,omitempty"`
 	ProjectRefusals     bool      `json:"projectRefusals,omitempty"`
 	Scopes              []string  `json:"scopes"`

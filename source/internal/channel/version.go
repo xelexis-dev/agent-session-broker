@@ -40,7 +40,12 @@ func launcherHint(platform string, ancestors []int, harnessPID int) string {
 	return "a launcher process stays between the harness and this client (for example npx); see xbroker_docs topic=setup"
 }
 
+type clientConfigKey struct{}
+type clientConfig struct{ source, broker string }
+
 func authVersions(ctx context.Context, upstream Upstream, out authStatus, host ...string) authStatus {
+	config, _ := ctx.Value(clientConfigKey{}).(clientConfig)
+	out.ConfigSource, out.Broker = config.source, config.broker
 	out.ToolProfile = clientToolProfile(ctx)
 	out.ToolProfileNote = "hidden from the list only; authorization unchanged"
 	out.LaunchHint, _ = ctx.Value(launchHintKey{}).(string)

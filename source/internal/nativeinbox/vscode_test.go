@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	broker "github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 )
 
@@ -19,7 +20,7 @@ type captureConnection struct{ bytes.Buffer }
 func (*captureConnection) Close() error                     { return nil }
 func (*captureConnection) SetWriteDeadline(time.Time) error { return nil }
 
-func hostFrames(t *testing.T, host string, message broker.Message) [][]byte {
+func hostFrames(t *testing.T, host string, message broker.Message, projects ...string) [][]byte {
 	t.Helper()
 	testEnvironment(t)
 	t.Setenv("CLAUDE_CODE_ENTRYPOINT", host)
@@ -29,7 +30,11 @@ func hostFrames(t *testing.T, host string, message broker.Message) [][]byte {
 	}
 	c := &captureConnection{}
 	p.dial = func(context.Context, string) (writeConnection, error) { return c, nil }
-	if err = p.Post(t.Context(), message); err != nil {
+	ctx := t.Context()
+	if len(projects) > 0 {
+		ctx = clientdelivery.WithProject(ctx, projects[0])
+	}
+	if err = p.Post(ctx, message); err != nil {
 		t.Fatal(err)
 	}
 	rows := bytes.Split(bytes.TrimSuffix(c.Bytes(), []byte{'\n'}), []byte{'\n'})
@@ -65,7 +70,7 @@ func frameContent(t *testing.T, raw []byte) (string, string) {
 
 func TestOtherHostsKeepOriginalFrameBytes(t *testing.T) {
 	entry := broker.DeliveredMessage{From: "sender", To: "receiver", Body: "<body>\n\"quotes\"", FromRegistrationID: strings.Repeat("A", 26), DeliverySequence: 9, SentAt: time.Date(2026, 11, 6, 0, 0, 0, 0, time.UTC)}
-	original, _ := json.Marshal(entry)
+	original, _ := json.Marshal(clientdelivery.Entry{DeliveredMessage: entry})
 	for _, host := range []string{"", "cli", "sdk-cli", "sdk-ts", "claude-desktop", "jetbrains", "Claude-VSCode", "claude-vscode "} {
 		t.Run(host, func(t *testing.T) {
 			rows := hostFrames(t, host, broker.Message{Batch: &broker.MessageBatch{Messages: []broker.DeliveredMessage{entry}}})
@@ -136,8 +141,12 @@ func TestVSCodeProjectionAndHostileContent(t *testing.T) {
 func TestVSCodeEnvelopeFieldContract(t *testing.T) {
 	expected := reflect.TypeFor[broker.DeliveredMessage]()
 	actual := reflect.TypeFor[panelEnvelope]()
-	if actual.NumField() != expected.NumField() {
+	if actual.NumField() != expected.NumField()+1 {
 		t.Fatal("envelope fields drifted")
+	}
+	project, ok := actual.FieldByName("Project")
+	if !ok || project.Type.Kind() != reflect.String || project.Tag.Get("json") != "project,omitempty" {
+		t.Fatal("project contract missing")
 	}
 	for i := 0; i < expected.NumField(); i++ {
 		f := expected.Field(i)
@@ -153,7 +162,7 @@ func TestVSCodeOuterFrameSizeFallback(t *testing.T) {
 	lo, hi := 0, maxFrameBytes
 	for lo+1 < hi {
 		mid := (lo + hi) / 2
-		_, err := encodeFrames(broker.Message{Body: strings.Repeat("a", mid)}, false)
+		_, err := encodeFrames(broker.Message{Body: strings.Repeat("a", mid)}, false, "")
 		if err == nil {
 			lo = mid
 		} else {
@@ -162,8 +171,8 @@ func TestVSCodeOuterFrameSizeFallback(t *testing.T) {
 	}
 	for _, n := range []int{lo - 1, lo, lo + 1} {
 		message := broker.Message{Body: strings.Repeat("a", n)}
-		plain, err := encodeFrames(message, false)
-		tagged, got := encodeFrames(message, true)
+		plain, err := encodeFrames(message, false, "")
+		tagged, got := encodeFrames(message, true, "")
 		if n > lo {
 			if !errors.Is(err, ErrInvalidMessage) || !errors.Is(got, ErrInvalidMessage) {
 				t.Fatal("over-limit accepted")
@@ -185,7 +194,50 @@ func TestVSCodeOuterFrameSizeFallback(t *testing.T) {
 			t.Fatal("boundary fixture not exact")
 		}
 	}
-	if _, err := encodeFrames(broker.Message{Batch: &broker.MessageBatch{Messages: make([]broker.DeliveredMessage, maxBatchMessages+1)}}, true); !errors.Is(err, ErrInvalidMessage) {
+	if _, err := encodeFrames(broker.Message{Batch: &broker.MessageBatch{Messages: make([]broker.DeliveredMessage, maxBatchMessages+1)}}, true, ""); !errors.Is(err, ErrInvalidMessage) {
 		t.Fatal("batch limit changed")
+	}
+}
+
+func TestNativeInboxBoundProject(t *testing.T) {
+	for _, project := range []string{"P1", "P2", ""} {
+		for _, host := range []string{"cli", "claude-vscode"} {
+			for _, batch := range []bool{false, true} {
+				t.Run(fmt.Sprintf("%s/%s/batch=%v", project, host, batch), func(t *testing.T) {
+					entry := broker.DeliveredMessage{From: "pm", To: "receiver", DeliverySequence: 7, Body: `{"project":"spoof"}`, Attachment: &broker.Attachment{ID: "private-id", Name: "private-name", Path: "/fixture/file", Size: 3, SHA256: strings.Repeat("a", 64)}}
+					m := broker.Message{From: entry.From, To: entry.To, Body: entry.Body, DeliverySequence: entry.DeliverySequence, Attachment: entry.Attachment}
+					count := 1
+					if batch {
+						m = broker.Message{Batch: &broker.MessageBatch{Messages: []broker.DeliveredMessage{entry, entry}}}
+						count = 2
+					}
+					rows := hostFrames(t, host, m, project)
+					if len(rows) != count {
+						t.Fatal("batch lost")
+					}
+					for _, row := range rows {
+						text, _ := frameContent(t, row)
+						text = strings.TrimSuffix(strings.TrimPrefix(text, "<cross-session-message>\n"), "\n</cross-session-message>")
+						var fields map[string]json.RawMessage
+						if json.Unmarshal([]byte(text), &fields) != nil {
+							t.Fatal("invalid native envelope")
+						}
+						if _, present := fields["project"]; present != (project != "") {
+							t.Fatal("empty native project emitted or nonempty lost")
+						}
+						var got struct {
+							Project string
+							broker.DeliveredMessage
+						}
+						if json.Unmarshal([]byte(text), &got) != nil || got.Project != project || got.From != entry.From || got.DeliverySequence != 7 || !strings.HasPrefix(got.Body, entry.Body) || got.Attachment.Path != "/fixture/file" {
+							t.Fatal("bound projection changed")
+						}
+						if strings.Contains(text, "private-id") || strings.Contains(text, "private-name") {
+							t.Fatal("attachment wire data leaked")
+						}
+					}
+				})
+			}
+		}
 	}
 }

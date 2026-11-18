@@ -83,7 +83,20 @@ func (p *panel) deviceREST(w http.ResponseWriter, r *http.Request) {
 	// Check after reading the bounded request body so a policy toggle while a
 	// client is uploading cannot admit a plaintext credential request.
 	plaintext := p.plaintext(r)
-	if plaintext && !p.store.AllowHTTP(project) {
+	connect := strings.HasPrefix(token, "asb_u_")
+	if connect {
+		if _, err := p.store.authenticateConnect(token); err != nil {
+			if !writeConnectFailure(w, err) {
+				p.writeDeviceFailure(w, err, true)
+			}
+			return
+		}
+		if plaintext && !p.store.InstanceHTTPPolicy() {
+			writeConnectFailure(w, errConnectHTTPDenied)
+			return
+		}
+	}
+	if !connect && plaintext && !p.store.AllowHTTP(project) {
 		p.denyTransport(w, r, project)
 		return
 	}
@@ -94,7 +107,13 @@ func (p *panel) deviceREST(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		request := DeviceRequest{CWDBasename: form.Get("cwd_basename"), ClientID: form.Get("client_id"), Harness: form.Get("harness"), SessionID: form.Get("session_id"), InstanceID: form.Get("asb_client_instance_id"), RequestID: form.Get("request_id")}
-		issued, err := p.store.BeginDeviceAuthorization(project, token, request)
+		var issued DeviceResponse
+		var err error
+		if connect {
+			issued, err = p.store.beginConnectAuthorization(project, token, request, plaintext)
+		} else {
+			issued, err = p.store.BeginDeviceAuthorization(project, token, request)
+		}
 		if err != nil {
 			p.writeDeviceFailure(w, err, true)
 			return
@@ -119,6 +138,9 @@ func (p *panel) deviceREST(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *panel) writeDeviceFailure(w http.ResponseWriter, err error, issuing bool) {
+	if writeConnectFailure(w, err) {
+		return
+	}
 	var code deviceError
 	switch {
 	case errors.Is(err, errDeviceClient):
@@ -237,7 +259,7 @@ func (p *panel) authCode(w http.ResponseWriter, r *http.Request, session loginSe
 		p.render(w, r, 400, v)
 		return
 	}
-	view, decisionErr := p.decideDeviceCode(user.ID, code, action, r.PostForm.Get("nickname"), nil)
+	view, decisionErr := p.decideDeviceCode(user.ID, code, action, r.PostForm.Get("nickname"), nil, true)
 	if errors.Is(decisionErr, errDeviceCodeAttempts) {
 		v.Error = "device.error_attempts"
 		p.render(w, r, 429, v)

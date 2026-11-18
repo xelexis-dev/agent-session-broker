@@ -201,7 +201,13 @@ func NewWithTrustedProxies(store *Store, backend Backend, next http.Handler, pro
 			}
 		}
 	}))
-	return protection.Handler(http.HandlerFunc(p.serve))
+	protected := protection.Handler(http.HandlerFunc(p.serve))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if p.wrongConnectEndpoint(w, r) {
+			return
+		}
+		protected.ServeHTTP(w, r)
+	})
 }
 
 func (p *panel) serve(w http.ResponseWriter, r *http.Request) {

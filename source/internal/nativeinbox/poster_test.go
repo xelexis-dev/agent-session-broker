@@ -234,7 +234,7 @@ var _ io.WriteCloser = failingConnection{}
 
 func TestSinglePostIncludesSentAt(t *testing.T) {
 	stamp := time.Date(2026, 10, 18, 1, 2, 3, 456000000, time.UTC)
-	frames, err := encodeFrames(broker.Message{From: "a", To: "b", Body: "fixture", SentAt: stamp}, false)
+	frames, err := encodeFrames(broker.Message{From: "a", To: "b", Body: "fixture", SentAt: stamp}, false, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,7 +245,7 @@ func TestSinglePostIncludesSentAt(t *testing.T) {
 
 func TestNativeSingleFramePreservesSourceRegistration(t *testing.T) {
 	id := strings.Repeat("A", 26)
-	frames, err := encodeFrames(broker.Message{From: "sender", To: "receiver", Body: "single", FromRegistrationID: id}, false)
+	frames, err := encodeFrames(broker.Message{From: "sender", To: "receiver", Body: "single", FromRegistrationID: id}, false, "")
 	if err != nil || len(frames) != 1 {
 		t.Fatal("single frame rejected")
 	}
@@ -257,7 +257,7 @@ func TestNativeSingleFramePreservesSourceRegistration(t *testing.T) {
 	if json.Unmarshal([]byte(frame.Message.Content), &got) != nil || got.FromRegistrationID != id {
 		t.Fatal("native single frame dropped source")
 	}
-	if _, err := encodeFrames(broker.Message{Body: "bounded", FromRegistrationID: strings.Repeat("A", maxFrameBytes+1)}, false); err == nil {
+	if _, err := encodeFrames(broker.Message{Body: "bounded", FromRegistrationID: strings.Repeat("A", maxFrameBytes+1)}, false, ""); err == nil {
 		t.Fatal("unbounded source metadata accepted")
 	}
 }
@@ -281,7 +281,7 @@ func TestAttachmentNativeFrames(t *testing.T) {
 		if batch {
 			message = broker.Message{Batch: &broker.MessageBatch{Messages: []broker.DeliveredMessage{{From: "sender", To: "receiver", Body: "synthetic", Attachment: a}}}}
 		}
-		frames, e := encodeFrames(message, false)
+		frames, e := encodeFrames(message, false, "")
 		if e != nil || len(frames) != 1 {
 			t.Fatal("attachment frame rejected")
 		}

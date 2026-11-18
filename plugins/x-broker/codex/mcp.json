@@ -2,7 +2,7 @@
   "mcpServers": {
     "x-broker": {
       "command": "node",
-      "args": ["launcher/x-broker.cjs", "@xelexis/x-broker@1.3.0"],
+      "args": ["launcher/x-broker.cjs", "@xelexis/x-broker@1.3.3"],
       "cwd": ".",
       "env_vars": ["AGENT_SESSION_BROKER_URL", "AGENT_SESSION_BROKER_TOKEN_FILE", "CODEX_HOME"]
     }

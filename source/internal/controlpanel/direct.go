@@ -53,11 +53,11 @@ func (r DirectRequest) valid() bool {
 	return r.DeviceRequest.valid() && canonicalDirectIdentity(r.identity()) && utf8.ValidString(r.RequestedNickname) && len(r.RequestedNickname) <= 128 && len(r.RegistrationID) <= 128 && len(r.ResumeSecret) <= 256
 }
 
-// This preflight is read-only and runs before broker proof lookup. Exchange
-// repeats every live check after the proof lookup, under the policy lock.
+// Eligibility checks never consume rate tokens; Exchange charges once and
+// repeats every live check after proof lookup, under the policy lock.
 func (s *Store) directPreflight(project, raw string) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if !s.data.ScopeIssuanceReady {
 		return errDirectUnavailable
 	}
@@ -74,6 +74,9 @@ var (
 )
 
 func (s *Store) directParentLocked(project, raw string) (Project, SessionToken, error) {
+	if strings.HasPrefix(raw, "asb_u_") {
+		return s.admissionParentLocked(project, raw, true, true)
+	}
 	p, parent, err := s.projectTokenLocked(project, raw)
 	if err != nil {
 		return p, parent, err
@@ -97,12 +100,21 @@ func latestDirectOwner(s *Store, p Project, identity, excluding string) string {
 	return owner
 }
 func (s *Store) ExchangeDirect(project, raw string, r DirectRequest, proof DirectProof, source string, plaintext bool) (DirectResponse, error) {
+	return s.exchangeDirect(project, raw, r, proof, source, plaintext, strings.HasPrefix(raw, "asb_u_"))
+}
+func (s *Store) exchangeConnectDirect(project, raw string, r DirectRequest, proof DirectProof, source string, plaintext bool) (DirectResponse, error) {
+	return s.exchangeDirect(project, raw, r, proof, source, plaintext, true)
+}
+func (s *Store) exchangeDirect(project, raw string, r DirectRequest, proof DirectProof, source string, plaintext, connect bool) (DirectResponse, error) {
 	if s.beforeTokenExchange != nil {
 		s.beforeTokenExchange()
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if plaintext && !s.data.AllowHTTP {
+		if connect {
+			return DirectResponse{}, errConnectHTTPDenied
+		}
 		return DirectResponse{}, errHTTPNotAllowed
 	}
 	if !s.data.ScopeIssuanceReady {
@@ -215,7 +227,11 @@ func (s *Store) ExchangeDirect(project, raw string, r DirectRequest, proof Direc
 			if err = s.commitDirectProject(p, []AuditEvent{auditFor(project, *binding, parent.OwnerID, "request", "replay", now)}); err != nil {
 				return DirectResponse{}, err
 			}
-			return directResponse(secret, p.Tokens[i], *binding, now), nil
+			response := directResponse(secret, p.Tokens[i], *binding, now)
+			if connect {
+				response.DeviceTokenResponse = withConnectParent(response.DeviceTokenResponse, s.api.tokens[parent.ID], p)
+			}
+			return response, nil
 		}
 		return DirectResponse{}, errDirectConflict
 	}
@@ -226,6 +242,12 @@ func (s *Store) ExchangeDirect(project, raw string, r DirectRequest, proof Direc
 	}
 	if binding != nil && proof.RegistrationID == "" {
 		return DirectResponse{}, errDirectConflict
+	}
+	if connect {
+		t := s.api.tokens[parent.ID]
+		if binding == nil && connectCount(s.data, parent.ID, s.now()) >= t.Connect.MaxSessions {
+			return DirectResponse{}, errConnectCapacity
+		}
 	}
 	count := 0
 	for _, b := range p.AutoBindings {
@@ -313,7 +335,11 @@ func (s *Store) ExchangeDirect(project, raw string, r DirectRequest, proof Direc
 		return DirectResponse{}, err
 	}
 	s.notifyTokenChangesLocked(project, p.Tokens)
-	return directResponse(secret, t, b, now), nil
+	response := directResponse(secret, t, b, now)
+	if connect {
+		response.DeviceTokenResponse = withConnectParent(response.DeviceTokenResponse, s.api.tokens[parent.ID], p)
+	}
+	return response, nil
 }
 func directResponse(raw string, t SessionToken, b AutoBinding, now time.Time) DirectResponse {
 	return DirectResponse{DeviceTokenResponse: DeviceTokenResponse{AccessToken: raw, TokenType: "Bearer", ExpiresIn: int(t.ExpiresAt.Sub(now).Seconds()), GrantID: t.ID, Nickname: t.Nickname}, Scopes: access.WireScopes(t.Scopes), AdmissionMode: "auto", RegistrationID: b.ExpectedID, Revision: b.ExpectedRevision}

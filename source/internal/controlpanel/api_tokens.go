@@ -31,17 +31,18 @@ var (
 )
 
 type userAPIToken struct {
-	V          int       `json:"v"`
-	ID         string    `json:"id"`
-	Hash       string    `json:"hash"`
-	User       string    `json:"user"`
-	Rev        uint64    `json:"rev"`
-	Label      string    `json:"label"`
-	Scopes     []string  `json:"scopes"`
-	Source     string    `json:"source"`
-	CreatedAt  time.Time `json:"created_at"`
-	ExpiresAt  time.Time `json:"expires_at"`
-	LastUsedAt time.Time `json:"last_used_at"`
+	Connect    *connectOptions `json:"connect,omitempty"`
+	V          int             `json:"v"`
+	ID         string          `json:"id"`
+	Hash       string          `json:"hash"`
+	User       string          `json:"user"`
+	Rev        uint64          `json:"rev"`
+	Label      string          `json:"label"`
+	Scopes     []string        `json:"scopes"`
+	Source     string          `json:"source"`
+	CreatedAt  time.Time       `json:"created_at"`
+	ExpiresAt  time.Time       `json:"expires_at"`
+	LastUsedAt time.Time       `json:"last_used_at"`
 }
 
 // UserTokenView never contains a digest or password verifier.
@@ -80,7 +81,7 @@ func (a apiPrincipal) guardLocked(s *Store, scope string) commitGuard {
 		}
 		t, ok := s.api.tokens[a.tokenID]
 		u, active := s.activeUserLocked(a.userID)
-		if !ok || !active || t.User != a.userID || t.Rev != u.Revision || a.revision != u.Revision || !s.now().Before(t.ExpiresAt) {
+		if isConnectToken(t) || !ok || !active || t.User != a.userID || t.Rev != u.Revision || a.revision != u.Revision || !s.now().Before(t.ExpiresAt) {
 			return errAPIUnauthorized
 		}
 		if scope != "" && !containsAPIScope(t.Scopes, scope) {
@@ -171,13 +172,22 @@ func (s *Store) loadAPI(records map[string][]byte) {
 			}
 		}
 	}
+	s.loadConnect(records)
 }
 
 var apiTokenIDPattern = regexp.MustCompile(`^[A-Z2-7]{52}$`)
 
 func validAPIToken(t userAPIToken, key string) bool {
+	maximum := 90 * 24 * time.Hour
+	scopesValid := validAPIScopes(t.Scopes, true) && t.Connect == nil
+	if isConnectToken(t) {
+		scopesValid = validConnectOptions(t.Connect)
+		if t.Connect.AdmissionMode == "manual" {
+			maximum = 365 * 24 * time.Hour
+		}
+	}
 	h, e := hex.DecodeString(t.Hash)
-	return t.V == 1 && apiTokenIDPattern.MatchString(t.ID) && usernamePattern.MatchString(t.User) && t.key() == key && e == nil && len(h) == 32 && t.Rev > 0 && len(t.Label) <= 128 && validProfile(t.Label, "") && validAPIScopes(t.Scopes, true) && (t.Source == "login" || t.Source == "panel") && !t.CreatedAt.IsZero() && t.ExpiresAt.Sub(t.CreatedAt) >= 300*time.Second && t.ExpiresAt.Sub(t.CreatedAt) <= 90*24*time.Hour
+	return t.V == 1 && apiTokenIDPattern.MatchString(t.ID) && usernamePattern.MatchString(t.User) && t.key() == key && e == nil && len(h) == 32 && t.Rev > 0 && len(t.Label) <= 128 && validProfile(t.Label, "") && scopesValid && (t.Source == "login" || t.Source == "panel") && !t.CreatedAt.IsZero() && t.ExpiresAt.Sub(t.CreatedAt) >= 300*time.Second && t.ExpiresAt.Sub(t.CreatedAt) <= maximum
 }
 func (s *Store) AdminAPIEnabled() bool {
 	s.mu.RLock()
@@ -257,6 +267,9 @@ func (s *Store) apiBatchLocked(puts map[string][]byte, deletes []string, events 
 	return nil
 }
 func (s *Store) sweepAPILocked() error {
+	if err := s.sweepConnectLocked(); err != nil {
+		return err
+	}
 	for id, t := range s.api.tokens {
 		u, ok := s.data.Users[t.User]
 		if !ok || !u.Enabled || u.Revision != t.Rev || !s.now().Before(t.ExpiresAt) {
@@ -440,7 +453,7 @@ func (s *Store) issueUserToken(user, password, label string, seconds int64, scop
 	}
 	raw := "asb_u_" + rand.Text() + rand.Text()
 	now := s.now().UTC()
-	t := userAPIToken{1, rand.Text() + rand.Text(), digest(raw), user, u.Revision, label, append([]string(nil), scopes...), source, now, now.Add(time.Duration(seconds) * time.Second), time.Time{}}
+	t := userAPIToken{V: 1, ID: rand.Text() + rand.Text(), Hash: digest(raw), User: user, Rev: u.Revision, Label: label, Scopes: append([]string(nil), scopes...), Source: source, CreatedAt: now, ExpiresAt: now.Add(time.Duration(seconds) * time.Second)}
 	encoded, _ := json.Marshal(t)
 	if err := s.apiBatchLocked(map[string][]byte{t.key(): encoded}, nil, apiAuditEvent{Action: "token_issue_" + source, Actor: user, Result: "success"}); err != nil {
 		return "", UserTokenView{}, err
@@ -474,6 +487,12 @@ func (s *Store) userTokenViewsLocked(user string) []UserTokenView {
 	return out
 }
 func (s *Store) revokeUserTokensLocked(actor, id string, all bool, auditActor ...string) error {
+	for tokenID, t := range s.api.tokens {
+		if t.User == actor && isConnectToken(t) && (all || tokenID == id) {
+			return s.revokeConnectUserTokensLocked(actor, id, all, auditActor...)
+		}
+	}
+
 	keys := []string{}
 	if all {
 		for tokenID, t := range s.api.tokens {

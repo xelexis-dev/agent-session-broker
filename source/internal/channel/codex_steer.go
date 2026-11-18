@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	"github.com/xelexis-dev/agent-session-broker/source/internal/codexcontrol"
 	"regexp"
 	"strings"
@@ -198,7 +199,7 @@ func (r *codexIngress) steerDecision(ctx context.Context, fired bool) error {
 	s.batch = batch
 	r.owner = "steer-writing"
 	r.mu.Unlock()
-	content, contentErr := codexMessageContent(batch.messages)
+	content, contentErr := codexMessageContent(batch.messages, r.project)
 	if contentErr != nil {
 		return r.finishSteer(s, batch, false)
 	}
@@ -583,10 +584,10 @@ func (r *codexIngress) deliveryStatus() *codexDelivery {
 	return &codexDelivery{Mode: "hook", Reason: reason}
 }
 
-func codexMessageContent(messages []broker.Message) (string, error) {
-	projected := make([]broker.Message, len(messages))
+func codexMessageContent(messages []broker.Message, project string) (string, error) {
+	projected := make([]clientdelivery.Message, len(messages))
 	for i, m := range messages {
-		projected[i] = broker.LocalMessage(m)
+		projected[i] = clientdelivery.Message{Project: project, Message: broker.LocalMessage(m)}
 	}
 	data, err := json.Marshal(projected)
 	return codexEnvelopePrefix + string(data), err

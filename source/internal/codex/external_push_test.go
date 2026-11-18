@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/xelexis-dev/agent-session-broker/source/internal/broker"
+	"github.com/xelexis-dev/agent-session-broker/source/internal/clientdelivery"
 	protocol "github.com/xelexis-dev/agent-session-broker/source/internal/protocol"
 )
 
@@ -191,5 +192,42 @@ func TestAttachmentExternalProjection(t *testing.T) {
 	}
 	if e := a.PushExternal(t.Context(), r, key, broker.Message{Body: "synthetic", Attachment: &protocol.Attachment{ID: "hidden-id", Name: "hidden-name", Path: "/inbox/synthetic.bin", Size: 7, SHA256: strings.Repeat("a", 64)}}); e != nil {
 		t.Fatal(e)
+	}
+}
+
+func TestExternalPushBoundProject(t *testing.T) {
+	for _, project := range []string{"P1", "P2", ""} {
+		t.Run(project, func(t *testing.T) {
+			a, r, key := externalPushFixture(t)
+			calls := 0
+			a.externalQueue = func(_ context.Context, _ string, _ string, args []string) error {
+				calls++
+				var fields map[string]json.RawMessage
+				if len(args) != 5 || json.Unmarshal([]byte(args[4]), &fields) != nil {
+					t.Fatal("invalid external envelope")
+				}
+				if _, present := fields["project"]; present != (project != "") {
+					t.Fatal("empty external project emitted or nonempty lost")
+				}
+				var got struct {
+					Project string
+					protocol.DeliveredMessage
+				}
+				if len(args) != 5 || json.Unmarshal([]byte(args[4]), &got) != nil || got.Project != project || got.From != "pm" || got.DeliverySequence != 7 || !strings.HasPrefix(got.Body, `{"project":"spoof"}`) || got.Attachment.Path != "/fixture/file" {
+					t.Fatal("bound external projection changed")
+				}
+				if strings.Contains(args[4], "private-id") || strings.Contains(args[4], "private-name") {
+					t.Fatal("attachment authority leaked")
+				}
+				return nil
+			}
+			m := broker.Message{From: "pm", To: r.Name, DeliverySequence: 7, Body: `{"project":"spoof"}`, Attachment: &protocol.Attachment{ID: "private-id", Name: "private-name", Path: "/fixture/file", Size: 3, SHA256: strings.Repeat("a", 64)}}
+			if err := a.PushExternal(clientdelivery.WithProject(t.Context(), project), r, key, m); err != nil {
+				t.Fatal(err)
+			}
+			if calls != 1 {
+				t.Fatal("external push not reached")
+			}
+		})
 	}
 }

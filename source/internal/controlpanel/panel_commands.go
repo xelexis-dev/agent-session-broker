@@ -88,7 +88,7 @@ func (p *panel) manageSession(ctx context.Context, actor, project, op, id, grant
 var errDeviceCodeInput = errors.New("invalid device code")
 var errDeviceCodeAttempts = errors.New("device code attempt limit")
 
-func (p *panel) decideDeviceCode(actor, code, action, nickname string, guard commitGuard) (DeviceView, error) {
+func (p *panel) decideDeviceCode(actor, code, action, nickname string, guard commitGuard, panelSession bool) (DeviceView, error) {
 	user, ok := p.store.User(actor)
 	if !ok || !user.Enabled {
 		return DeviceView{}, ErrForbidden
@@ -102,9 +102,9 @@ func (p *panel) decideDeviceCode(actor, code, action, nickname string, guard com
 	}
 	switch action {
 	case "approve":
-		return p.store.approveDeviceAuthorizationGuarded(actor, code, strings.TrimSpace(nickname), false, guard)
+		return p.store.approveDeviceAuthorization(actor, code, strings.TrimSpace(nickname), false, guard, panelSession)
 	case "deny":
-		return p.store.approveDeviceAuthorizationGuarded(actor, code, "", true, guard)
+		return p.store.approveDeviceAuthorization(actor, code, "", true, guard, panelSession)
 	default:
 		return p.store.deviceAuthorizationForGuarded(actor, code, guard)
 	}

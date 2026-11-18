@@ -142,7 +142,7 @@ func TestReleaseCandidateCompatibility(t *testing.T) {
 			server, clientBinary, serverVersion := candidate, client, lock.Candidate
 			switch name {
 			case "client/previous":
-				clientBinary = releaseBinary(t, manifest, "client", lock.Previous)
+				clientBinary = releaseBinary(t, manifest, "client", releaseClientFor(lock, lock.Previous))
 			case "client/oldest":
 				clientBinary = releaseBinary(t, manifest, "client", policy.MinClient)
 			case "server/previous":
